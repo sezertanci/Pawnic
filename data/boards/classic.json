@@ -1,0 +1,26 @@
+{
+	"paths": [
+		{ "id": "ring", "points": [[0, 0], [14, 0], [14, 14], [0, 14]], "loop": true },
+		{ "id": "lane0", "points": [[7, 1], [7, 6]], "owner": 0 },
+		{ "id": "lane1", "points": [[13, 7], [8, 7]], "owner": 1 },
+		{ "id": "lane2", "points": [[7, 13], [7, 8]], "owner": 2 },
+		{ "id": "lane3", "points": [[1, 7], [6, 7]], "owner": 3 }
+	],
+	"links": [
+		{ "from": "ring:7", "to": "lane0:0", "seats": [0], "mode": "forced" },
+		{ "from": "ring:21", "to": "lane1:0", "seats": [1], "mode": "forced" },
+		{ "from": "ring:35", "to": "lane2:0", "seats": [2], "mode": "forced" },
+		{ "from": "ring:49", "to": "lane3:0", "seats": [3], "mode": "forced" }
+	],
+	"safe": ["ring:1", "ring:8", "ring:15", "ring:22", "ring:29", "ring:36", "ring:43", "ring:50"],
+	"speed": {
+		"ring:4": 4, "ring:11": 6, "ring:18": -3, "ring:25": 3,
+		"ring:32": -1, "ring:39": -4, "ring:46": 5, "ring:53": -2
+	},
+	"seats": [
+		{ "start": "ring:8", "home": "lane0:5", "shortcut": "ring:7", "base": [11.0, 3.5] },
+		{ "start": "ring:22", "home": "lane1:5", "shortcut": "ring:21", "base": [11.5, 11.0] },
+		{ "start": "ring:36", "home": "lane2:5", "shortcut": "ring:35", "base": [4.0, 11.5] },
+		{ "start": "ring:50", "home": "lane3:5", "shortcut": "ring:49", "base": [3.5, 4.0] }
+	]
+}

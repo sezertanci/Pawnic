@@ -1,0 +1,20 @@
+# Godot önbelleği ve içe aktarma çıktıları
+.godot/
+*.translation
+
+# Android derleme çıktıları
+build/
+android/
+*.apk
+*.aab
+*.idsig
+
+# İmza anahtarları ve şifreler
+*.keystore
+*.jks
+export_credentials.cfg
+
+# İşletim sistemi ve editör dosyaları
+.DS_Store
+Thumbs.db
+.vscode/

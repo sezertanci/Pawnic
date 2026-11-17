@@ -1,0 +1,114 @@
+"""Oyunun ses efektlerini WAV dosyası olarak üretir (RobiCodes projesindeki make_sounds.py yöntemiyle).
+
+Sesler kayıt değil, notalardan hesaplanır: kısa yükseliş ve üstel sönme zarfı. Tuş ve adım sesleri
+RobiCodes'taki notalarla aynıdır. Işınlanma sesi tonu yükselen, titreşimli bir süpürmedir.
+Kart çekme sesi, yavaşça kabarıp sönen boğuk bir fışırtıdır (süzülmüş gürültü).
+Yalnızca Python'un standart kütüphanesi gerekir.
+
+Kullanım: python tools/make_sounds.py assets/sounds
+"""
+import math
+import random
+import os
+import struct
+import sys
+import wave
+
+SAMPLE_RATE = 44100
+VOLUME = 0.18
+ATTACK_SECONDS = 0.02
+SILENT_GAIN = 0.0001        # Üstel azalma sıfıra inemez; duyulmayacak kadar küçük bir değer.
+MAX_SAMPLE = 32767
+
+# Her nota: (frekans Hz, başlangıç sn, süre sn).
+MELODIES = {
+    'tap': [(1047, 0, 0.06)],
+    'step': [(392, 0, 0.08)],
+}
+
+# Işınlanma: frekans başlangıçtan bitişe üstel olarak yükselir, üstüne hızlı bir titreşim biner.
+TELEPORT_START_HZ = 300
+TELEPORT_END_HZ = 1500
+TELEPORT_SECONDS = 1.8        # tuning.json içindeki slide_sec ile aynı: kayma boyunca çalar.
+TELEPORT_WOBBLE_HZ = 30
+TELEPORT_WOBBLE_DEPTH = 0.08
+
+# Kart çekme: iki kez süzülen gürültü. Ses ani başlamasın diye zarf sin² biçiminde kabarıp söner
+# (çıt sesi olmaz); süzgeç ortada biraz açılıp yine kapanır ("fışşırt").
+DRAW_SECONDS = 0.28
+DRAW_SMOOTH_EDGE = 0.04     # Tek kutuplu süzgeç katsayısı: küçük değer daha boğuk ses.
+DRAW_SMOOTH_PEAK = 0.12
+DRAW_VOLUME = 0.6           # Süzülen gürültünün tepe genliği (tam ölçeğe oranla).
+DRAW_SEED = 7               # Her üretimde aynı ses çıksın.
+
+
+def sine(phase):
+    return math.sin(2 * math.pi * phase)
+
+
+def gain_at(t, duration):
+    """İki üstel rampa: 0'dan VOLUME'a yükseliş, sonra SILENT_GAIN'e sönme."""
+    if t < ATTACK_SECONDS:
+        return SILENT_GAIN * (VOLUME / SILENT_GAIN) ** (t / ATTACK_SECONDS)
+    fade = (t - ATTACK_SECONDS) / (duration - ATTACK_SECONDS)
+    return VOLUME * (SILENT_GAIN / VOLUME) ** fade
+
+
+def render(notes):
+    length = max(start + duration for _, start, duration in notes)
+    samples = [0.0] * math.ceil(length * SAMPLE_RATE)
+    for frequency, start, duration in notes:
+        first = round(start * SAMPLE_RATE)
+        for i in range(round(duration * SAMPLE_RATE)):
+            t = i / SAMPLE_RATE
+            samples[first + i] += sine(frequency * t) * gain_at(t, duration)
+    return samples
+
+
+def render_teleport():
+    samples = []
+    phase = 0.0
+    ratio = TELEPORT_END_HZ / TELEPORT_START_HZ
+    for i in range(round(TELEPORT_SECONDS * SAMPLE_RATE)):
+        t = i / SAMPLE_RATE
+        wobble = 1 + TELEPORT_WOBBLE_DEPTH * sine(TELEPORT_WOBBLE_HZ * t)
+        frequency = TELEPORT_START_HZ * ratio ** (t / TELEPORT_SECONDS) * wobble
+        phase += frequency / SAMPLE_RATE
+        samples.append(sine(phase) * gain_at(t, TELEPORT_SECONDS))
+    return samples
+
+
+def render_draw():
+    rng = random.Random(DRAW_SEED)
+    samples = []
+    first = second = 0.0
+    for i in range(round(DRAW_SECONDS * SAMPLE_RATE)):
+        swell = math.sin(math.pi * i / (DRAW_SECONDS * SAMPLE_RATE)) ** 2
+        smooth = DRAW_SMOOTH_EDGE + (DRAW_SMOOTH_PEAK - DRAW_SMOOTH_EDGE) * swell
+        first += smooth * (rng.uniform(-1, 1) - first)
+        second += smooth * (first - second)
+        samples.append(second * swell)
+    peak = max(abs(s) for s in samples)
+    return [s / peak * DRAW_VOLUME * VOLUME for s in samples]
+
+
+def write_wav(path, samples):
+    with wave.open(path, 'wb') as file:
+        file.setnchannels(1)
+        file.setsampwidth(2)
+        file.setframerate(SAMPLE_RATE)
+        file.writeframes(b''.join(struct.pack('<h', round(max(-1, min(1, s)) * MAX_SAMPLE)) for s in samples))
+
+
+def main(output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    sounds = {name: render(notes) for name, notes in MELODIES.items()}
+    sounds['teleport'] = render_teleport()
+    sounds['draw'] = render_draw()
+    for name, samples in sounds.items():
+        write_wav(os.path.join(output_dir, f'{name}.wav'), samples)
+        print(f'{name}.wav')
+
+
+if __name__ == '__main__':
+    main(sys.argv[1])

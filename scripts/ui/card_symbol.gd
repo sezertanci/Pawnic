@@ -1,0 +1,251 @@
+class_name CardSymbol
+extends Control
+## Sayı kartları dışındaki kartlarda yazının yerine çizilen sembol:
+## Yer değiştir: iki taş ve aralarında karşılıklı oklar.
+## Çıkış: kutudan dışarı çıkan taş ve ok; çıkış sayısında (+6) altına sayı da yazılır.
+## Kısayol: ev. Joker: yıldız ve seçilebilen sayı aralığı; sayı seçilince üstte o sayı.
+## Sembolü olmayan kartlarda gizlidir. Renkler arayüz temasındaki CardSymbol türünden okunur.
+
+enum Kind { NONE, SWAP, EXIT_FORWARD, EXIT, SEND_BACK, SHORTCUT, JOKER }
+
+const STYLE := &"CardSymbol"
+const PAWN_COLOR := &"pawn_color"
+const RIVAL_COLOR := &"rival_color"
+const STAR_COLOR := &"star_color"
+const INK_COLOR := &"ink_color"
+const LABEL_STYLE := &"CardLabel"
+const FONT_NAME := &"font"
+const FONT_SIZE := &"font_size"
+const KIND_BY_TYPE := {
+	Card.Type.SWAP: Kind.SWAP,
+	Card.Type.EXIT: Kind.EXIT,
+	Card.Type.SEND_BACK: Kind.SEND_BACK,
+	Card.Type.SHORTCUT: Kind.SHORTCUT,
+	Card.Type.JOKER: Kind.JOKER,
+}
+## Ölçüler kart genişliğine oranla verilir; yükseklikteki yerler (…_Y) kart boyuna oranladır.
+const LINE_RATIO := 0.03
+const HEAD_RATIO := 0.08
+const HEAD_ANGLE := PI / 6.0
+const ARC_POINTS := 24
+const PAWN_RADIUS := 0.17
+const PAWN_Y := 0.48
+const TEXT_Y := 0.85
+## Jokerde seçilen sayının yazı çizgisi (kart boyuna oranla).
+const CHOSEN_Y := 0.2
+const SWAP_RADIUS := 0.13
+const SWAP_PAWN_X := 0.2
+const SWAP_ARROW_X := 0.35
+const SWAP_ARROW_GAP := 0.07
+const ARROW_GAP := 0.05
+## Çıkış kartı: kutunun yarı boyu ve merkezi, sağ kenardaki açıklık, kutudaki taş ve ok.
+const BOX_HALF := 0.2
+const BOX_X := 0.4
+const BOX_OPENING := 0.12
+const BOX_PAWN_RADIUS := 0.09
+## Taşın kutunun sol kenarından uzaklığı (kutu yarı boyuna oranla).
+const BOX_PAWN_SHIFT := 0.5
+const BOX_ARROW_END := 0.88
+## Geri yolla: taşın üstündeki dönen okun yarıçapı.
+const TURN_RADIUS := 0.15
+## Kısayol: kartta evin kapladığı alan (kart boyuna oranla).
+const HOUSE_BOUNDS := Rect2(0.2, 0.2, 0.6, 0.42)
+## Evin parçaları, kapladığı alana oranla: gövde genişliği, çatı yüksekliği, kapı boyu.
+const HOUSE_BODY_WIDTH := 0.73
+const ROOF_HEIGHT := 0.43
+const DOOR_WIDTH := 0.2
+const DOOR_HEIGHT := 0.29
+## Joker: yıldızın dış ve iç yarıçapı, köşe sayısı.
+const STAR_OUTER := 0.26
+const STAR_INNER := 0.11
+const STAR_POINTS := 5
+const RANGE_TEXT := "1–%d"
+
+var _kind := Kind.NONE
+var _value := 0
+var _joker_max := 0
+## Jokerde oyuncunun seçtiği sayı; seçilmediyse Card.NO_VALUE.
+var _chosen := Card.NO_VALUE
+
+
+func _init() -> void:
+	mouse_filter = MOUSE_FILTER_IGNORE
+	set_anchors_preset(PRESET_FULL_RECT)
+	hide()
+
+
+static func kind_for(card: Card, exit_value: int) -> Kind:
+	if card.type == Card.Type.FORWARD and card.value == exit_value:
+		return Kind.EXIT_FORWARD
+	return KIND_BY_TYPE.get(card.type, Kind.NONE)
+
+
+## Kartın sembolü varsa gösterir, yoksa gizlenir.
+func show_card(card: Card, settings: GameSettings) -> void:
+	_kind = kind_for(card, settings.exit_value)
+	_value = card.value
+	_joker_max = settings.joker_max
+	_chosen = Card.NO_VALUE
+	visible = _kind != Kind.NONE
+	queue_redraw()
+
+
+func _draw() -> void:
+	match _kind:
+		Kind.SWAP:
+			_draw_swap()
+		Kind.EXIT_FORWARD:
+			_draw_exit_forward()
+		Kind.EXIT:
+			_draw_exit()
+		Kind.SEND_BACK:
+			_draw_send_back()
+		Kind.SHORTCUT:
+			var ink := _color(INK_COLOR)
+			var bounds := Rect2(HOUSE_BOUNDS.position * size, HOUSE_BOUNDS.size * size)
+			draw_house(self, bounds, _color(PAWN_COLOR), ink, _line_width())
+		Kind.JOKER:
+			_draw_star()
+			_draw_caption(RANGE_TEXT % _joker_max)
+			if _chosen != Card.NO_VALUE:
+				_draw_caption(str(_chosen), CHOSEN_Y)
+
+
+## Jokerde seçilen sayıyı kartın üst bölümünde gösterir; Card.NO_VALUE verilirse kaldırır.
+func show_chosen(value: int) -> void:
+	_chosen = value
+	queue_redraw()
+
+
+func _draw_swap() -> void:
+	var middle := size.y / 2.0
+	var gap := size.x * SWAP_ARROW_GAP
+	_draw_pawn(Vector2(size.x * SWAP_PAWN_X, middle), SWAP_RADIUS, PAWN_COLOR)
+	_draw_pawn(Vector2(size.x * (1.0 - SWAP_PAWN_X), middle), SWAP_RADIUS, RIVAL_COLOR)
+	var left := size.x * SWAP_ARROW_X
+	var right := size.x - left
+	_draw_arrow(Vector2(left, middle - gap), Vector2(right, middle - gap))
+	_draw_arrow(Vector2(right, middle + gap), Vector2(left, middle + gap))
+
+
+func _draw_exit_forward() -> void:
+	_draw_exit()
+	_draw_caption("+%d" % _value)
+
+
+## Sağ kenarı açık bir kutu; içindeki taştan dışarıya bir ok çıkar.
+func _draw_exit() -> void:
+	var center := Vector2(size.x * BOX_X, size.y / 2.0)
+	var half := size.x * BOX_HALF
+	var opening := size.x * BOX_OPENING
+	var top := center.y - half
+	var bottom := center.y + half
+	var left := center.x - half
+	var right := center.x + half
+	var outline := PackedVector2Array(
+		[
+			Vector2(right, top + half - opening),
+			Vector2(right, top),
+			Vector2(left, top),
+			Vector2(left, bottom),
+			Vector2(right, bottom),
+			Vector2(right, bottom - half + opening),
+		]
+	)
+	draw_polyline(outline, _color(INK_COLOR), _line_width())
+	var pawn := Vector2(left + half * BOX_PAWN_SHIFT, center.y)
+	_draw_pawn(pawn, BOX_PAWN_RADIUS, PAWN_COLOR)
+	var arrow_start := pawn.x + size.x * (BOX_PAWN_RADIUS + ARROW_GAP)
+	_draw_arrow(Vector2(arrow_start, center.y), Vector2(size.x * BOX_ARROW_END, center.y))
+
+
+## Rakip taş ve üstünde soldan aşağı dönen yarım daire ok.
+func _draw_send_back() -> void:
+	var center := _pawn_center()
+	_draw_pawn(center, PAWN_RADIUS, RIVAL_COLOR)
+	var radius := size.x * TURN_RADIUS
+	var arc_center := Vector2(center.x, center.y - size.x * (PAWN_RADIUS + ARROW_GAP))
+	draw_arc(arc_center, radius, PI, TAU, ARC_POINTS, _color(INK_COLOR), _line_width())
+	_draw_head(arc_center + Vector2.LEFT * radius, Vector2.DOWN)
+	_draw_caption("-%d" % _value)
+
+
+## Ev sembolü: gövde, çatı ve kapı; ölçüler rect'e oranlıdır (tahtadaki kısayol karesi de kullanır).
+## Evi bounds alanının tamamını kaplayacak biçimde çizer: çatı üst kenara, saçaklar yan kenarlara,
+## gövde alt kenara değer.
+static func draw_house(
+	canvas: CanvasItem, bounds: Rect2, fill: Color, ink: Color, line_width: float
+) -> void:
+	var middle := bounds.get_center().x
+	var half := bounds.size.x * HOUSE_BODY_WIDTH / 2.0
+	var top := bounds.position.y + bounds.size.y * ROOF_HEIGHT
+	var bottom := bounds.end.y
+	var body := Rect2(middle - half, top, half * 2.0, bottom - top)
+	canvas.draw_rect(body, fill)
+	canvas.draw_rect(body, ink, false, line_width)
+	var roof := PackedVector2Array(
+		[
+			Vector2(bounds.position.x, top),
+			Vector2(middle, bounds.position.y),
+			Vector2(bounds.end.x, top),
+		]
+	)
+	canvas.draw_colored_polygon(roof, fill)
+	roof.append(roof[0])
+	canvas.draw_polyline(roof, ink, line_width)
+	var door_half := bounds.size.x * DOOR_WIDTH / 2.0
+	var door_height := bounds.size.y * DOOR_HEIGHT
+	var door := Rect2(middle - door_half, bottom - door_height, door_half * 2.0, door_height)
+	canvas.draw_rect(door, ink)
+
+
+func _draw_star() -> void:
+	var center := _pawn_center()
+	var points := PackedVector2Array()
+	for index: int in range(STAR_POINTS * 2):
+		var ratio := STAR_OUTER if index % 2 == 0 else STAR_INNER
+		var angle := -PI / 2.0 + PI * index / STAR_POINTS
+		points.append(center + Vector2.from_angle(angle) * size.x * ratio)
+	draw_colored_polygon(points, _color(STAR_COLOR))
+	points.append(points[0])
+	draw_polyline(points, _color(INK_COLOR), _line_width())
+
+
+func _pawn_center() -> Vector2:
+	return Vector2(size.x / 2.0, size.y * PAWN_Y)
+
+
+func _draw_caption(text: String, line_y: float = TEXT_Y) -> void:
+	var font := get_theme_font(FONT_NAME, LABEL_STYLE)
+	var font_size := get_theme_font_size(FONT_SIZE, LABEL_STYLE)
+	var baseline := Vector2(0.0, size.y * line_y)
+	draw_string(
+		font, baseline, text, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, _color(INK_COLOR)
+	)
+
+
+func _draw_pawn(center: Vector2, radius_ratio: float, color_name: StringName) -> void:
+	var radius := size.x * radius_ratio
+	draw_circle(center, radius, _color(color_name))
+	draw_arc(center, radius, 0.0, TAU, ARC_POINTS, _color(INK_COLOR), _line_width())
+
+
+func _draw_arrow(from: Vector2, to: Vector2) -> void:
+	draw_line(from, to, _color(INK_COLOR), _line_width())
+	_draw_head(to, (to - from).normalized())
+
+
+## Ok ucu: tip noktasında, direction yönünü gösteren iki kısa çizgi.
+func _draw_head(tip: Vector2, direction: Vector2) -> void:
+	var ink := _color(INK_COLOR)
+	var back := -direction * size.x * HEAD_RATIO
+	draw_line(tip, tip + back.rotated(HEAD_ANGLE), ink, _line_width())
+	draw_line(tip, tip + back.rotated(-HEAD_ANGLE), ink, _line_width())
+
+
+func _line_width() -> float:
+	return size.x * LINE_RATIO
+
+
+func _color(color_name: StringName) -> Color:
+	return get_theme_color(color_name, STYLE)

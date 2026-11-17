@@ -1,0 +1,53 @@
+; Godot proje dosyası. Düzenlemeyi tercihen Godot editöründen yapın.
+
+config_version=5
+
+[application]
+
+config/name="Pawnic"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+
+Tuning="*res://scripts/autoload/tuning.gd"
+SaveStore="*res://scripts/autoload/save_store.gd"
+Localization="*res://scripts/autoload/localization.gd"
+Skins="*res://scripts/autoload/skins.gd"
+Ads="*res://scripts/autoload/ads.gd"
+Iap="*res://scripts/autoload/iap.gd"
+Sound="*res://scripts/autoload/sound.gd"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=2
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=405
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+theme/custom="res://themes/ui_theme.tres"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://data/translations.tr.translation", "res://data/translations.en.translation", "res://data/translations.de.translation", "res://data/translations.es.translation", "res://data/translations.fr.translation", "res://data/translations.it.translation", "res://data/translations.pt.translation", "res://data/translations.id.translation")
+locale/fallback="en"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.12, 0.13, 0.17, 1)

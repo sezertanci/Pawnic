@@ -1,0 +1,98 @@
+keys,tr,en,de,es,fr,it,pt,id
+TITLE,Pawnic,Pawnic,Pawnic,Pawnic,Pawnic,Pawnic,Pawnic,Pawnic
+RESUME,Devam et,Continue,Fortsetzen,Continuar,Reprendre,Continua,Continuar,Lanjutkan
+MODE_SINGLE,Mod: Tek oyunculu (botlara karşı),Mode: Single player (vs. bots),Modus: Einzelspieler (gegen Bots),Modo: Un jugador (contra bots),Mode : Solo (contre des bots),Modalità: Giocatore singolo (contro bot),Modo: Um jogador (contra bots),Mode: Pemain tunggal (lawan bot)
+MODE_MULTI,Mod: Çok oyunculu (aynı telefonda),Mode: Multiplayer (same phone),Modus: Mehrspieler (ein Handy),Modo: Multijugador (mismo teléfono),Mode : Multijoueur (même téléphone),Modalità: Multigiocatore (stesso telefono),Modo: Multijogador (mesmo celular),Mode: Multipemain (satu ponsel)
+SET_BOTS,Bot sayısı,Bots,Bots,Bots,Bots,Bot,Bots,Jumlah bot
+SET_PLAYERS,Oyuncu sayısı,Players,Spieler,Jugadores,Joueurs,Giocatori,Jogadores,Jumlah pemain
+SET_PAWNS,Taş sayısı,Pawns,Figuren,Fichas,Pions,Pedine,Peões,Jumlah bidak
+START,Başla,Start,Start,Empezar,Commencer,Inizia,Começar,Mulai
+RULES,"• Sıran gelince 1 kart çekersin, elindeki 4 karttan birini oynarsın.
+• Taş başlangıçtan Çıkış kartıyla ya da 6 ile çıkar.
+• Rakip taşın üstüne gelirsen onu başlangıca yollarsın. Halkalı karelerde çarpma ve yer değiştirme olmaz.
+• +3 karesine gelen taş 3 kare daha gider.
+• Ev yoluna giren taş yalnızca ileri kartlarıyla gider, eve tam sayıyla girer.
+• Oynanabilir kartın yoksa bir kart atarsın.
+• Bütün taşlarını eve ilk getiren kazanır.","• On your turn, draw 1 card and play one of the 4 cards in your hand.
+• A pawn leaves the start with an Exit card or a 6.
+• Land on a rival pawn to send it back to the start. No captures or swaps on ringed squares.
+• A pawn landing on a +3 square moves 3 more squares.
+• Pawns in the home lane move only with forward cards and need an exact count to reach home.
+• If you have no playable card, discard one.
+• The first to bring all pawns home wins.","• Ziehe in deinem Zug 1 Karte und spiele eine der 4 Karten auf deiner Hand.
+• Eine Figur verlässt den Start mit einer Ausstiegskarte oder einer 6.
+• Landest du auf einer gegnerischen Figur, schickst du sie zum Start zurück. Auf Feldern mit Ring wird weder geschlagen noch getauscht.
+• Eine Figur auf einem +3-Feld zieht 3 Felder weiter.
+• Figuren im Zielweg ziehen nur mit Vorwärtskarten und brauchen die genaue Zahl bis ins Ziel.
+• Hast du keine spielbare Karte, wirfst du eine ab.
+• Wer zuerst alle Figuren ins Ziel bringt, gewinnt.","• En tu turno robas 1 carta y juegas una de las 4 cartas de tu mano.
+• Una ficha sale de la salida con una carta de Salida o con un 6.
+• Si caes sobre una ficha rival, la mandas a la salida. En las casillas con anillo no se captura ni se intercambia.
+• Una ficha que cae en una casilla +3 avanza 3 casillas más.
+• En el pasillo final las fichas solo avanzan con cartas de avance y entran a casa con el número exacto.
+• Si no tienes carta jugable, descartas una.
+• Gana quien lleve primero todas sus fichas a casa.","• À ton tour, pioche 1 carte et joue l'une des 4 cartes de ta main.
+• Un pion quitte le départ avec une carte Sortie ou un 6.
+• Si tu tombes sur un pion adverse, tu le renvoies au départ. Pas de capture ni d'échange sur les cases à anneau.
+• Un pion qui tombe sur une case +3 avance de 3 cases de plus.
+• Dans le couloir final, les pions n'avancent qu'avec des cartes Avancer et entrent à la maison au nombre exact.
+• Si tu n'as aucune carte jouable, défausse-en une.
+• Le premier à ramener tous ses pions à la maison gagne.","• Al tuo turno peschi 1 carta e giochi una delle 4 carte in mano.
+• Una pedina esce dalla partenza con una carta Uscita o con un 6.
+• Se finisci su una pedina avversaria, la rimandi alla partenza. Sulle caselle con l'anello non si cattura né si scambia.
+• Una pedina che finisce su una casella +3 avanza di altre 3 caselle.
+• Nel corridoio finale le pedine avanzano solo con carte Avanti ed entrano a casa con il numero esatto.
+• Se non hai carte giocabili, ne scarti una.
+• Vince chi porta per primo tutte le pedine a casa.","• Na sua vez, compre 1 carta e jogue uma das 4 cartas da sua mão.
+• Um peão sai da largada com uma carta Saída ou com um 6.
+• Se cair sobre um peão rival, você o manda de volta à largada. Nas casas com anel não há captura nem troca.
+• Um peão que cai numa casa +3 anda mais 3 casas.
+• No corredor final, os peões só andam com cartas de avanço e entram em casa com o número exato.
+• Se não tiver carta jogável, descarte uma.
+• Vence quem levar primeiro todos os peões para casa.","• Saat giliranmu, ambil 1 kartu lalu mainkan salah satu dari 4 kartu di tanganmu.
+• Bidak keluar dari awal dengan kartu Keluar atau angka 6.
+• Jika mendarat di bidak lawan, kamu mengirimnya kembali ke awal. Di petak bercincin tidak ada tangkapan atau tukar posisi.
+• Bidak yang mendarat di petak +3 maju 3 petak lagi.
+• Di jalur rumah, bidak hanya bergerak dengan kartu maju dan masuk rumah dengan angka yang tepat.
+• Jika tidak ada kartu yang bisa dimainkan, buang satu kartu.
+• Yang pertama membawa semua bidaknya pulang menang."
+COLOR_RED,Kırmızı,Red,Rot,Rojo,Rouge,Rosso,Vermelho,Merah
+COLOR_BLUE,Mavi,Blue,Blau,Azul,Bleu,Blu,Azul,Biru
+COLOR_GREEN,Yeşil,Green,Grün,Verde,Vert,Verde,Verde,Hijau
+COLOR_YELLOW,Sarı,Yellow,Gelb,Amarillo,Jaune,Giallo,Amarelo,Kuning
+HANDOFF,"Sıra %s oyuncusunda.
+Telefonu ver, hazır olunca dokun.","It's %s's turn.
+Pass the phone and tap when ready.","%s ist am Zug.
+Gib das Handy weiter und tippe, wenn du bereit bist.","Le toca a %s.
+Pasa el teléfono y toca cuando estés listo.","C'est au tour de %s.
+Passe le téléphone et touche l'écran quand tu es prêt.","Tocca a %s.
+Passa il telefono e tocca quando sei pronto.","É a vez de %s.
+Passe o celular e toque quando estiver pronto.","Giliran %s.
+Berikan ponselnya dan ketuk jika sudah siap."
+WIN,"%s kazandı!
+Yeni oyun için dokun.","%s wins!
+Tap for a new game.","%s gewinnt!
+Tippe für ein neues Spiel.","¡Gana %s!
+Toca para una nueva partida.","%s gagne !
+Touche pour une nouvelle partie.","Vince %s!
+Tocca per una nuova partita.","%s venceu!
+Toque para um novo jogo.","%s menang!
+Ketuk untuk permainan baru."
+PILE_DECK_COUNT,%d kart,%d cards,%d Karten,%d cartas,%d cartes,%d carte,%d cartas,%d kartu
+PILE_DISCARD,Atılanlar,Discards,Ablage,Descartes,Défausse,Scarti,Descartes,Buangan
+CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
+CARD_BACK,-%d,-%d,-%d,-%d,-%d,-%d,-%d,-%d
+CARD_EXIT,Çıkış,Exit,Ausstieg,Salida,Sortie,Uscita,Saída,Keluar
+CARD_SWAP,Yer değiştir,Swap,Tauschen,Intercambio,Échange,Scambio,Troca,Tukar
+CARD_SEND_BACK,Geri yolla %d,Send back %d,Zurückschicken %d,Devolver %d,Renvoi %d,Rimanda %d,Devolve %d,Pukul mundur %d
+CARD_SHORTCUT,Kısayol,Shortcut,Abkürzung,Atajo,Raccourci,Scorciatoia,Atalho,Jalan pintas
+CARD_JOKER,Joker,Joker,Joker,Comodín,Joker,Jolly,Curinga,Joker
+DESC_FORWARD_EXIT,Taş çıkar ya da ilerlet,Bring out or move a pawn,Figur einsetzen oder vorziehen,Saca o avanza una ficha,Sors ou avance un pion,Fai uscire o avanzare una pedina,Tire ou avance um peão,Keluarkan atau majukan bidak
+DESC_EXIT,Başlangıçtan taş çıkar,Bring a pawn out of the start,Setze eine Figur vom Start ein,Saca una ficha de la salida,Sors un pion du départ,Fai uscire una pedina dalla partenza,Tire um peão da largada,Keluarkan bidak dari awal
+DESC_SWAP,Taşını rakiple değiştir,Swap your pawn with a rival,Tausche deine Figur mit einer gegnerischen,Intercambia tu ficha con una rival,Échange ton pion avec un adversaire,Scambia la pedina con un avversario,Troque seu peão com um rival,Tukar bidakmu dengan lawan
+DESC_SEND_BACK,Rakip taşı geri gönder,Send a rival pawn back,Schicke eine gegnerische Figur zurück,Haz retroceder una ficha rival,Fais reculer un pion adverse,Fai indietreggiare una pedina avversaria,Faça um peão rival voltar,Mundurkan bidak lawan
+DESC_SHORTCUT,Taşın ev yolu girişine,Pawn jumps to the home lane entry,Figur springt zum Zielweg,La ficha salta a la entrada del pasillo final,Le pion saute à l'entrée du couloir final,La pedina salta all'ingresso del corridoio finale,O peão pula para a entrada do corredor final,Bidak lompat ke pintu jalur rumah
+DESC_JOKER,1–6 arası istediğin sayı,Any number from 1 to 6,Beliebige Zahl von 1 bis 6,Cualquier número del 1 al 6,N'importe quel nombre de 1 à 6,Qualsiasi numero da 1 a 6,Qualquer número de 1 a 6,Angka bebas dari 1 sampai 6
+NEW_GAME,Yeni oyun,New game,Neues Spiel,Nueva partida,Nouvelle partie,Nuova partita,Novo jogo,Permainan baru
+HOW_TO_PLAY,Nasıl oynanır,How to play,Spielanleitung,Cómo jugar,Comment jouer,Come si gioca,Como jogar,Cara bermain
+TAP_TO_CLOSE,Kapatmak için dokun,Tap to close,Zum Schließen tippen,Toca para cerrar,Touchez pour fermer,Tocca per chiudere,Toque para fechar,Ketuk untuk menutup

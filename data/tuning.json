@@ -1,0 +1,59 @@
+{
+	"board": {
+		"layout": "res://data/boards/classic.json"
+	},
+	"rules": {
+		"hand_size": 3,
+		"exit_value": 6,
+		"joker_max": 6,
+		"min_players": 2,
+		"max_players": 4,
+		"min_pawns": 2,
+		"max_pawns": 6,
+		"default_pawns": 4
+	},
+	"deck": [
+		{ "type": "forward", "value": 1, "count": 4 },
+		{ "type": "forward", "value": 2, "count": 4 },
+		{ "type": "forward", "value": 3, "count": 4 },
+		{ "type": "forward", "value": 4, "count": 4 },
+		{ "type": "forward", "value": 5, "count": 4 },
+		{ "type": "forward", "value": 6, "count": 4 },
+		{ "type": "forward", "value": 8, "count": 2 },
+		{ "type": "forward", "value": 10, "count": 2 },
+		{ "type": "back", "value": 3, "count": 3 },
+		{ "type": "back", "value": 5, "count": 2 },
+		{ "type": "exit", "value": 0, "count": 4 },
+		{ "type": "swap", "value": 0, "count": 2 },
+		{ "type": "send_back", "value": 8, "count": 2 },
+		{ "type": "shortcut", "value": 0, "count": 1 },
+		{ "type": "joker", "value": 0, "count": 2 }
+	],
+	"animation": {
+		"hop_sec": 0.12,
+		"hop_height": 0.35,
+		"boost_pause_sec": 0.3,
+		"slide_sec": 1.8,
+		"trail_sec": 0.54,
+		"capture_sec": 0.5,
+		"capture_height": 1.5,
+		"settle_sec": 0.2,
+		"home_pulse_sec": 0.45,
+		"home_pulse_scale": 1.4
+	},
+	"cards": {
+		"draw_rise_sec": 0.6,
+		"draw_land_sec": 0.6,
+		"draw_lift": 0.4,
+		"draw_lift_scale": 1.15,
+		"bot_hold_sec": 1.1,
+		"discard_sec": 0.48
+	},
+	"bot": {
+		"delay_sec": 0.9,
+		"track_base": 5.0,
+		"lane_bonus": 10.0,
+		"home_value": 90.0,
+		"rival_weight": 0.8
+	}
+}
