@@ -1,11 +1,11 @@
 class_name TurnDots
 extends Control
-## Oyuncuları sıra düzeninde renkli noktalarla gösterir; sırası gelenin çevresinde halka olur.
+## Oyuncuları sıra düzeninde renkli noktalarla gösterir; sırası gelenin çevresinde dalga
+## yayılır. Dalga oynasın diye noktalar her karede yeniden çizilir.
 
 const RADIUS := 9.0
 const GAP := 10.0
 const RING_WIDTH := 3.0
-const ARC_POINTS := 24
 
 var _seats: Array[int] = []
 var _current := 0
@@ -13,6 +13,11 @@ var _current := 0
 
 func _ready() -> void:
 	Skins.changed.connect(queue_redraw)
+
+
+func _process(_delta: float) -> void:
+	if not _seats.is_empty():
+		queue_redraw()
 
 
 ## seats sıra düzenindeki koltuklar, current sırası gelenin bu listedeki yeri.
@@ -35,4 +40,5 @@ func _draw() -> void:
 		var center := Vector2(ring + _step() * index, size.y / 2.0)
 		draw_circle(center, RADIUS, skin.seat_color(_seats[index]))
 		if index == _current:
-			draw_arc(center, ring, 0.0, TAU, ARC_POINTS, skin.highlight_color, RING_WIDTH)
+			var color := skin.highlight_color
+			PulseWave.draw_ring(self, center, ring, color, skin.outline_color, RING_WIDTH)

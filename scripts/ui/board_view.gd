@@ -66,6 +66,12 @@ func _ready() -> void:
 	Skins.changed.connect(queue_redraw)
 
 
+## Seçilebilir bir şey varken dalga oynasın diye tahta her karede yeniden çizilir.
+func _process(_delta: float) -> void:
+	if not selectable.is_empty() or not selectable_squares.is_empty():
+		queue_redraw()
+
+
 func _draw() -> void:
 	if board == null or minf(size.x, size.y) <= 0.0:
 		return
@@ -196,9 +202,7 @@ func _draw_square(square: int, active: Array[int]) -> void:
 		var fill := skin.seat_color(shortcut_seat)
 		CardSymbol.draw_house(self, bounds, fill, skin.outline_color, line)
 	if selectable_squares.has(square):
-		# Açık renkli karede de seçilsin diye beyaz çerçevenin içine koyu bir çizgi eklenir.
-		draw_rect(rect, skin.highlight_color, false, HIGHLIGHT_WIDTH)
-		draw_rect(rect.grow(-HIGHLIGHT_WIDTH), skin.outline_color, false, LINE_WIDTH)
+		_draw_wave_frame(rect)
 
 
 ## Kare oyundaki bir koltuğun kısayol karesiyse o koltuğu, değilse BoardLayout.NO_SEAT döner.
@@ -256,8 +260,12 @@ func _draw_base(seat: int) -> void:
 	var base := _base_rect(seat)
 	draw_rect(base, Color(skin.seat_color(seat), skin.base_alpha))
 	if _base_pawn(seat) != Move.NO_PAWN:
-		draw_rect(base, skin.highlight_color, false, HIGHLIGHT_WIDTH)
-		draw_rect(base.grow(-HIGHLIGHT_WIDTH), skin.outline_color, false, LINE_WIDTH)
+		_draw_wave_frame(base)
+
+
+func _draw_wave_frame(rect: Rect2) -> void:
+	var skin := Skins.current
+	PulseWave.draw_frame(self, rect, skin.highlight_color, skin.outline_color, HIGHLIGHT_WIDTH)
 
 
 func _base_rect(seat: int) -> Rect2:
@@ -363,7 +371,9 @@ func _draw_pawn(pawn: int, center: Vector2, radius: float) -> void:
 	if pawn == selected_pawn:
 		_draw_highlight_ring(center, radius, skin.selected_color)
 	elif selectable.has(pawn):
-		_draw_highlight_ring(center, radius, skin.highlight_color)
+		var ring_radius := radius + HIGHLIGHT_WIDTH
+		var color := skin.highlight_color
+		PulseWave.draw_ring(self, center, ring_radius, color, skin.outline_color, HIGHLIGHT_WIDTH)
 	BoardPainter.draw_pawn(self, center, radius, board.owners[pawn])
 
 
