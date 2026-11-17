@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/setup_screen.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/components/stepper.tscn" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/back_arrow.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="4"]
+
+[sub_resource type="ButtonGroup" id="mode_group"]
 
 [node name="SetupScreen" type="MarginContainer"]
 anchors_preset = 15
@@ -18,17 +21,21 @@ script = ExtResource("1")
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Header" type="HBoxContainer" parent="Box"]
+[node name="HeaderBar" type="PanelContainer" parent="Box"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_type_variation = &"HeaderStrip"
 
-[node name="BackButton" type="Button" parent="Box/Header"]
+[node name="Header" type="HBoxContainer" parent="Box/HeaderBar"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Box/HeaderBar/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 theme_type_variation = &"IconButton"
 
-[node name="Arrow" type="Control" parent="Box/Header/BackButton"]
+[node name="Arrow" type="Control" parent="Box/HeaderBar/Header/BackButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,11 +45,18 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="Heading" type="Label" parent="Box/Header"]
+[node name="Heading" type="Label" parent="Box/HeaderBar/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"HeadingLabel"
 text = "NEW_GAME"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Balance" type="Control" parent="Box/HeaderBar/Header"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+mouse_filter = 2
 
 [node name="TopSpace" type="Control" parent="Box"]
 layout_mode = 2
@@ -55,15 +69,45 @@ theme_type_variation = &"OptionsPanel"
 
 [node name="Box" type="VBoxContainer" parent="Box/Options"]
 layout_mode = 2
+theme_override_constants/separation = 16
 
-[node name="ModeButton" type="Button" parent="Box/Options/Box"]
+[node name="Tabs" type="HBoxContainer" parent="Box/Options/Box"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SingleTab" type="Button" parent="Box/Options/Box/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("mode_group")
+text = "MODE_SINGLE"
+autowrap_mode = 3
+
+[node name="MultiTab" type="Button" parent="Box/Options/Box/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_group = SubResource("mode_group")
+text = "MODE_MULTI"
+autowrap_mode = 3
+
+[node name="ModeHint" type="Label" parent="Box/Options/Box"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SecondaryButton"
+theme_type_variation = &"PanelHint"
+horizontal_alignment = 1
 
 [node name="CountStepper" parent="Box/Options/Box" instance=ExtResource("2")]
 unique_name_in_owner = true
 layout_mode = 2
+each_seat = true
 
 [node name="PawnStepper" parent="Box/Options/Box" instance=ExtResource("2")]
 unique_name_in_owner = true
@@ -77,5 +121,8 @@ mouse_filter = 2
 [node name="StartButton" type="Button" parent="Box"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
+custom_minimum_size = Vector2(0, 120)
+theme_type_variation = &"MenuGreenButton"
 text = "START"
+script = ExtResource("4")
+symbol = 0

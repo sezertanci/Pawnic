@@ -15,7 +15,9 @@ const BASE_COLUMNS := 3
 const BASE_SPREAD := 0.95
 const HIT_RATIO := 0.6
 const MARK_RATIO := 0.3
-const FONT_RATIO := 0.4
+const FONT_RATIO := 0.42
+## Hız sayısının koyu konturunun kalınlığı (yazı boyuna oranla).
+const TEXT_OUTLINE_RATIO := 0.3
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
 ## Daire çizimindeki nokta sayısı.
@@ -180,12 +182,12 @@ func _draw_square(square: int, active: Array[int]) -> void:
 		for seat: int in active:
 			if layout.starts[seat] == square:
 				color = skin.track_color.lerp(skin.seat_color(seat), skin.start_tint)
-		rect = _draw_tile(rect, color)
+		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, color)
 	elif layout.homes[owner] == square:
-		rect = _draw_tile(rect, skin.seat_color(owner))
-		draw_rect(rect, skin.outline_color, false, LINE_WIDTH)
+		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, skin.seat_color(owner))
 	else:
-		rect = _draw_tile(rect, Color(skin.seat_color(owner), skin.lane_alpha))
+		var tint := Color.WHITE.lerp(skin.seat_color(owner), skin.lane_tint)
+		rect = BoardPainter.draw_tile(self, rect, skin.lane_texture, tint)
 	_draw_mark(square, rect)
 	if shortcut_seat != BoardLayout.NO_SEAT:
 		var half := HOUSE_HALF * _cell_size() * MARK_RATIO
@@ -207,10 +209,6 @@ func _shortcut_seat(square: int, active: Array[int]) -> int:
 	return BoardLayout.NO_SEAT
 
 
-func _draw_tile(rect: Rect2, color: Color) -> Rect2:
-	return BoardPainter.draw_tile(self, rect, color)
-
-
 func _draw_mark(square: int, rect: Rect2) -> void:
 	var skin := Skins.current
 	var font_size := roundi(_cell_size() * FONT_RATIO)
@@ -220,15 +218,13 @@ func _draw_mark(square: int, rect: Rect2) -> void:
 	elif speed != 0 and font_size > 0:
 		var text := "%+d" % speed
 		var baseline := Vector2(rect.position.x, rect.get_center().y + font_size / 3.0)
-		draw_string(
-			ThemeDB.fallback_font,
-			baseline,
-			text,
-			HORIZONTAL_ALIGNMENT_CENTER,
-			rect.size.x,
-			font_size,
-			skin.mark_color
+		var font := ThemeDB.fallback_font
+		var outline := roundi(font_size * TEXT_OUTLINE_RATIO)
+		var align := HORIZONTAL_ALIGNMENT_CENTER
+		draw_string_outline(
+			font, baseline, text, align, rect.size.x, font_size, outline, skin.outline_color
 		)
+		draw_string(font, baseline, text, align, rect.size.x, font_size, skin.speed_text_color)
 
 
 func _draw_shield(center: Vector2, radius: float) -> void:
@@ -362,12 +358,13 @@ func _draw_shadow(center: Vector2, radius: float) -> void:
 
 
 func _draw_pawn(pawn: int, center: Vector2, radius: float) -> void:
+	# Halka taşın altında, yerde görünsün diye taştan önce çizilir.
 	var skin := Skins.current
-	BoardPainter.draw_pawn(self, center, radius, skin.seat_color(board.owners[pawn]))
 	if pawn == selected_pawn:
 		_draw_highlight_ring(center, radius, skin.selected_color)
 	elif selectable.has(pawn):
 		_draw_highlight_ring(center, radius, skin.highlight_color)
+	BoardPainter.draw_pawn(self, center, radius, board.owners[pawn])
 
 
 ## Taşın halkası: dışındaki koyu çizgi halkayı açık renkli karede de görünür kılar.

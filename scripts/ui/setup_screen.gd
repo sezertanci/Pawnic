@@ -7,7 +7,7 @@ signal back_requested
 
 enum Mode { SINGLE, MULTI }
 
-const MODE_KEYS := {Mode.SINGLE: "MODE_SINGLE", Mode.MULTI: "MODE_MULTI"}
+const HINT_KEYS := {Mode.SINGLE: "MODE_SINGLE_HINT", Mode.MULTI: "MODE_MULTI_HINT"}
 const COUNT_KEYS := {Mode.SINGLE: "SET_BOTS", Mode.MULTI: "SET_PLAYERS"}
 ## Tek oyunculu modda sayı seçici bot sayısını gösterir; insan oyuncu bir kişidir.
 const HUMAN_SEATS := 1
@@ -15,7 +15,7 @@ const HUMAN_SEATS := 1
 var _mode := Mode.SINGLE
 var _player_count := 0
 
-@onready var _mode_button: Button = %ModeButton
+@onready var _mode_hint: Label = %ModeHint
 @onready var _count: Stepper = %CountStepper
 @onready var _pawns: Stepper = %PawnStepper
 
@@ -25,7 +25,8 @@ func _ready() -> void:
 	_player_count = settings.min_players
 	_pawns.configure("SET_PAWNS", settings.min_pawns, settings.max_pawns, settings.default_pawns)
 	(%BackButton as Button).pressed.connect(back_requested.emit)
-	_mode_button.pressed.connect(_on_mode_pressed)
+	(%SingleTab as Button).pressed.connect(_set_mode.bind(Mode.SINGLE))
+	(%MultiTab as Button).pressed.connect(_set_mode.bind(Mode.MULTI))
 	_count.value_changed.connect(_on_count_changed)
 	(%StartButton as Button).pressed.connect(_on_start_pressed)
 	_refresh_mode()
@@ -34,12 +35,13 @@ func _ready() -> void:
 func _refresh_mode() -> void:
 	var settings := Tuning.settings
 	var offset := _count_offset()
-	_mode_button.text = MODE_KEYS[_mode]
+	_mode_hint.text = HINT_KEYS[_mode]
 	_count.configure(
 		COUNT_KEYS[_mode],
 		settings.min_players - offset,
 		settings.max_players - offset,
-		_player_count - offset
+		_player_count - offset,
+		offset
 	)
 
 
@@ -48,8 +50,8 @@ func _count_offset() -> int:
 	return HUMAN_SEATS if _mode == Mode.SINGLE else 0
 
 
-func _on_mode_pressed() -> void:
-	_mode = Mode.MULTI if _mode == Mode.SINGLE else Mode.SINGLE
+func _set_mode(mode: Mode) -> void:
+	_mode = mode
 	_refresh_mode()
 
 

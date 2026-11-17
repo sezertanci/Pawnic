@@ -4,7 +4,7 @@ extends Control
 
 var _rng := RandomNumberGenerator.new()
 
-@onready var _backdrop: HomeBackdrop = $Backdrop
+@onready var _backdrop: TextureRect = $Backdrop
 @onready var _home: HomeScreen = $HomeScreen
 @onready var _setup: SetupScreen = $SetupScreen
 @onready var _game_screen: GameScreen = $GameScreen

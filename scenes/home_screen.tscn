@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/home_screen.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/ui/pawn_row.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/logo_ring.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="badge"]
+[ext_resource type="Script" path="res://scripts/ui/rule_list.gd" id="rule_list"]
 
 [node name="HomeScreen" type="Control"]
 layout_mode = 3
@@ -32,14 +34,7 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="Margin/Box"]
-layout_mode = 2
-theme_type_variation = &"LogoLabel"
-text = "TITLE"
-horizontal_alignment = 1
-
-[node name="PawnRow" type="Control" parent="Margin/Box"]
-custom_minimum_size = Vector2(0, 72)
+[node name="LogoRing" type="Control" parent="Margin/Box"]
 layout_mode = 2
 script = ExtResource("2")
 
@@ -52,20 +47,29 @@ mouse_filter = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_type_variation = &"PrimaryButton"
+custom_minimum_size = Vector2(0, 120)
+theme_type_variation = &"MenuGreenButton"
 text = "RESUME"
+script = ExtResource("badge")
+symbol = 0
 
 [node name="NewGameButton" type="Button" parent="Margin/Box"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"SecondaryButton"
+custom_minimum_size = Vector2(0, 120)
+theme_type_variation = &"MenuBlueButton"
 text = "NEW_GAME"
+script = ExtResource("badge")
+symbol = 1
 
 [node name="HowToPlayButton" type="Button" parent="Margin/Box"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"GhostButton"
+custom_minimum_size = Vector2(0, 120)
+theme_type_variation = &"MenuOrangeButton"
 text = "HOW_TO_PLAY"
+script = ExtResource("badge")
+symbol = 2
 
 [node name="BottomSpace" type="Control" parent="Margin/Box"]
 layout_mode = 2
@@ -97,19 +101,28 @@ layout_mode = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="Heading" type="Label" parent="RulesOverlay/Margin/Box"]
+[node name="Panel" type="PanelContainer" parent="RulesOverlay/Margin/Box"]
 layout_mode = 2
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"RulesPanel"
+
+[node name="Box" type="VBoxContainer" parent="RulesOverlay/Margin/Box/Panel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Heading" type="Label" parent="RulesOverlay/Margin/Box/Panel/Box"]
+layout_mode = 2
+theme_type_variation = &"RulesHeading"
 text = "HOW_TO_PLAY"
 horizontal_alignment = 1
 
-[node name="Rules" type="Label" parent="RulesOverlay/Margin/Box"]
+[node name="RuleList" type="VBoxContainer" parent="RulesOverlay/Margin/Box/Panel/Box"]
 layout_mode = 2
-text = "RULES"
-autowrap_mode = 3
+mouse_filter = 2
+theme_override_constants/separation = 20
+script = ExtResource("rule_list")
 
-[node name="Close" type="Label" parent="RulesOverlay/Margin/Box"]
+[node name="OkButton" type="Button" parent="RulesOverlay/Margin/Box/Panel/Box"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_type_variation = &"PileLabel"
-text = "TAP_TO_CLOSE"
-horizontal_alignment = 1
+theme_type_variation = &"PrimaryButton"
+text = "OK"

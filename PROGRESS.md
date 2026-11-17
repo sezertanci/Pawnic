@@ -71,6 +71,8 @@
 - Çıkış kartı yerine her sayı kartıyla taş çıkarma fikri (şimdilik ertelendi). Seçenekler: taş
   yalnızca çıkış karesine konur / taş sayı − 1 ilerler / yalnızca 1 ve 6 çıkarır. Önce simülasyonla
   ölçülecek.
+- "Nasıl oynanır" ekranındaki kural metinleri (RULE_* anahtarları) daha sonra düzeltilecek;
+  ekranın yeni düzeni (panel, simgeli satırlar, Tamam düğmesi) şimdilik böyle kalıyor.
 
 ## Günlük
 - **2026-11-17:** Proje başlatıldı. Kural motoru, bot, tahta çizimi, kurulum ve oyun ekranı,

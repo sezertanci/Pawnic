@@ -16,11 +16,17 @@ func _init() -> void:
 
 func _draw() -> void:
 	var radius := size.x * CardFace.BADGE_RATIO
-	var center := Vector2.ONE * radius * CardFace.BADGE_INSET
-	var ink := get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
-	draw_circle(center, radius, get_theme_color(MARK_COLOR, CardSymbol.STYLE))
-	draw_arc(center, radius, 0.0, TAU, CardFace.BADGE_POINTS, ink, CardFace.BADGE_LINE)
+	draw_mark(self, Vector2.ONE * radius * CardFace.BADGE_INSET, radius)
+
+
+## İşareti center merkezli, radius yarıçaplı çizer (kural ekranı da kullanır).
+static func draw_mark(canvas: Control, center: Vector2, radius: float) -> void:
+	var ink := canvas.get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
+	var fill := canvas.get_theme_color(MARK_COLOR, CardSymbol.STYLE)
+	canvas.draw_circle(center, radius, fill)
+	canvas.draw_arc(center, radius, 0.0, TAU, CardFace.BADGE_POINTS, ink, CardFace.BADGE_LINE)
 	var arm := radius * CROSS_RATIO
-	var cross := get_theme_color(CROSS_COLOR, CardSymbol.STYLE)
-	draw_line(center - Vector2(arm, arm), center + Vector2(arm, arm), cross, CardFace.BADGE_LINE)
-	draw_line(center + Vector2(-arm, arm), center + Vector2(arm, -arm), cross, CardFace.BADGE_LINE)
+	var cross := canvas.get_theme_color(CROSS_COLOR, CardSymbol.STYLE)
+	var line := CardFace.BADGE_LINE
+	canvas.draw_line(center - Vector2(arm, arm), center + Vector2(arm, arm), cross, line)
+	canvas.draw_line(center + Vector2(-arm, arm), center + Vector2(arm, -arm), cross, line)

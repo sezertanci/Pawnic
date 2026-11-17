@@ -1,27 +1,52 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/stepper.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/pawn_strip.gd" id="2"]
 
-[node name="Stepper" type="HBoxContainer"]
+[node name="Stepper" type="PanelContainer"]
+theme_type_variation = &"StepperRow"
 script = ExtResource("1")
 
-[node name="Title" type="Label" parent="."]
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Left" type="VBoxContainer" parent="Row"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Row/Left"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PanelLabel"
+
+[node name="Controls" type="HBoxContainer" parent="Row/Left"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Minus" type="Button" parent="Row/Left/Controls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"RoundButton"
+text = "−"
+
+[node name="Value" type="Label" parent="Row/Left/Controls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_type_variation = &"PanelValue"
+horizontal_alignment = 1
+
+[node name="Plus" type="Button" parent="Row/Left/Controls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_type_variation = &"RoundButton"
+text = "+"
+
+[node name="Strip" type="Control" parent="Row"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="Minus" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-text = " − "
-
-[node name="Value" type="Label" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="Plus" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-text = " + "
+script = ExtResource("2")

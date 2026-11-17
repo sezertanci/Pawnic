@@ -4,9 +4,10 @@ extends Control
 ## Yer değiştir: iki taş ve aralarında karşılıklı oklar.
 ## Çıkış: kutudan dışarı çıkan taş ve ok; çıkış sayısında (+6) altına sayı da yazılır.
 ## Kısayol: ev. Joker: yıldız ve seçilebilen sayı aralığı; sayı seçilince üstte o sayı.
+## Yıldız: yalnızca yıldız (kural ekranındaki kazanma simgesi).
 ## Sembolü olmayan kartlarda gizlidir. Renkler arayüz temasındaki CardSymbol türünden okunur.
 
-enum Kind { NONE, SWAP, EXIT_FORWARD, EXIT, SEND_BACK, SHORTCUT, JOKER }
+enum Kind { NONE, SWAP, EXIT_FORWARD, EXIT, SEND_BACK, SHORTCUT, JOKER, STAR }
 
 const STYLE := &"CardSymbol"
 const PAWN_COLOR := &"pawn_color"
@@ -46,6 +47,9 @@ const BOX_PAWN_RADIUS := 0.09
 ## Taşın kutunun sol kenarından uzaklığı (kutu yarı boyuna oranla).
 const BOX_PAWN_SHIFT := 0.5
 const BOX_ARROW_END := 0.88
+## Kutunun dikey yeri (kart boyuna oranla); +6 kartında yazıya yer açmak için daha yukarıdadır.
+const EXIT_Y := 0.5
+const EXIT_FORWARD_Y := 0.4
 ## Geri yolla: taşın üstündeki dönen okun yarıçapı.
 const TURN_RADIUS := 0.15
 ## Kısayol: kartta evin kapladığı alan (kart boyuna oranla).
@@ -82,9 +86,14 @@ static func kind_for(card: Card, exit_value: int) -> Kind:
 
 ## Kartın sembolü varsa gösterir, yoksa gizlenir.
 func show_card(card: Card, settings: GameSettings) -> void:
-	_kind = kind_for(card, settings.exit_value)
-	_value = card.value
 	_joker_max = settings.joker_max
+	show_symbol(kind_for(card, settings.exit_value), card.value)
+
+
+## Kart olmadan bir sembol gösterir (ör. kural ekranı). value sıfırsa sayı yazılmaz.
+func show_symbol(kind: Kind, value: int = 0) -> void:
+	_kind = kind
+	_value = value
 	_chosen = Card.NO_VALUE
 	visible = _kind != Kind.NONE
 	queue_redraw()
@@ -109,6 +118,8 @@ func _draw() -> void:
 			_draw_caption(RANGE_TEXT % _joker_max)
 			if _chosen != Card.NO_VALUE:
 				_draw_caption(str(_chosen), CHOSEN_Y)
+		Kind.STAR:
+			_draw_star()
 
 
 ## Jokerde seçilen sayıyı kartın üst bölümünde gösterir; Card.NO_VALUE verilirse kaldırır.
@@ -129,13 +140,13 @@ func _draw_swap() -> void:
 
 
 func _draw_exit_forward() -> void:
-	_draw_exit()
+	_draw_exit(EXIT_FORWARD_Y)
 	_draw_caption("+%d" % _value)
 
 
 ## Sağ kenarı açık bir kutu; içindeki taştan dışarıya bir ok çıkar.
-func _draw_exit() -> void:
-	var center := Vector2(size.x * BOX_X, size.y / 2.0)
+func _draw_exit(center_y: float = EXIT_Y) -> void:
+	var center := Vector2(size.x * BOX_X, size.y * center_y)
 	var half := size.x * BOX_HALF
 	var opening := size.x * BOX_OPENING
 	var top := center.y - half
@@ -167,7 +178,8 @@ func _draw_send_back() -> void:
 	var arc_center := Vector2(center.x, center.y - size.x * (PAWN_RADIUS + ARROW_GAP))
 	draw_arc(arc_center, radius, PI, TAU, ARC_POINTS, _color(INK_COLOR), _line_width())
 	_draw_head(arc_center + Vector2.LEFT * radius, Vector2.DOWN)
-	_draw_caption("-%d" % _value)
+	if _value > 0:
+		_draw_caption("-%d" % _value)
 
 
 ## Ev sembolü: gövde, çatı ve kapı; ölçüler rect'e oranlıdır (tahtadaki kısayol karesi de kullanır).

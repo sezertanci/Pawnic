@@ -14,6 +14,7 @@ func _ready() -> void:
 	(%NewGameButton as Button).pressed.connect(new_game_requested.emit)
 	(%HowToPlayButton as Button).pressed.connect(_rules.show)
 	_rules.pressed.connect(_rules.hide)
+	(%OkButton as Button).pressed.connect(_rules.hide)
 	_rules.hide()
 
 
