@@ -76,6 +76,8 @@ var logo_hop_height := 0.0
 ## Kazanma ekranının küçükten büyüyerek açılma süresi (saniye) ve başladığı ölçek.
 var win_pop_time := 0.0
 var win_pop_start_scale := 0.0
+## Oyun sürerken bitiren oyuncunun duyurusunun ekranda kalma süresi (saniye).
+var finish_banner_time := 0.0
 ## Konfeti parça sayısı, düşüş hızı aralığı (piksel/saniye), salınma genişliği (piksel),
 ## salınma ve dönme hızı sınırları (radyan/saniye).
 var confetti_count := 0
@@ -177,6 +179,7 @@ func _read_effects(effects: Dictionary) -> void:
 	logo_hop_height = float(effects["logo_hop_height"])
 	win_pop_time = float(effects["win_pop_sec"])
 	win_pop_start_scale = float(effects["win_pop_start_scale"])
+	finish_banner_time = float(effects["finish_banner_sec"])
 	confetti_count = int(effects["confetti_count"])
 	confetti_min_fall_speed = float(effects["confetti_min_fall_speed"])
 	confetti_max_fall_speed = float(effects["confetti_max_fall_speed"])

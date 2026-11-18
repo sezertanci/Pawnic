@@ -35,9 +35,10 @@ func _rollout(game: GameMatch, move: Move, seed_value: int) -> float:
 	rng.seed = seed_value
 	var sim := game.determinized(rng)
 	var seat := sim.current_seat()
+	var finished_before := sim.finishers.size()
 	sim.play(move)
 	for _turn: int in range(sim.seats.size()):
-		if sim.winner() != GameMatch.NO_WINNER:
+		if sim.finishers.size() > finished_before:
 			break
 		sim.next_turn()
 		sim.begin_turn()

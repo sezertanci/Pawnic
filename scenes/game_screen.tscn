@@ -8,11 +8,7 @@
 [ext_resource type="Script" path="res://scripts/ui/card_animator.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/ui/back_arrow.gd" id="back_arrow"]
 [ext_resource type="Script" path="res://scripts/ui/frosted_glass.gd" id="glass"]
-[ext_resource type="Shader" path="res://themes/shaders/frosted_glass.gdshader" id="glass_shader"]
 [ext_resource type="PackedScene" path="res://scenes/components/win_overlay.tscn" id="win_overlay"]
-
-[sub_resource type="ShaderMaterial" id="glass_material"]
-shader = ExtResource("glass_shader")
 
 [node name="GameScreen" type="Control"]
 layout_mode = 3
@@ -70,8 +66,12 @@ text = "/"
 [node name="BotLevel" type="Label" parent="Margin/Box/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"SmallLabel"
+
+[node name="Spacer" type="Control" parent="Margin/Box/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="TurnDots" type="Control" parent="Margin/Box/Header"]
 unique_name_in_owner = true
@@ -147,7 +147,6 @@ theme_type_variation = &"GlassButton"
 [node name="Glass" type="ColorRect" parent="Margin/Box/HandArea/HandoffButton"]
 unique_name_in_owner = true
 show_behind_parent = true
-material = SubResource("glass_material")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

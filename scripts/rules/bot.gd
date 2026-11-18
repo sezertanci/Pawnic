@@ -27,7 +27,8 @@ func choose_move(game: GameMatch) -> Move:
 	if _rng.randf() < _profile.random_chance:
 		return legal[_rng.randi_range(0, legal.size() - 1)]
 	var odds := CardOdds.new(_settings, game.unseen_cards())
-	var evaluator := BotEvaluator.new(_settings, odds if _profile.read_threats else null)
+	var threat_odds := odds if _profile.read_threats else null
+	var evaluator := BotEvaluator.new(_settings, threat_odds, game.finishers.duplicate())
 	var ranked := _ranked(game, legal, odds, evaluator)
 	if _profile.rollouts == 0 or ranked.size() == 1:
 		return ranked[0]
@@ -67,10 +68,11 @@ func _ranked(
 	return ranked
 
 
-## Karşılığı hesaplanacak rakipler, sıradakinden başlayarak.
+## Karşılığı hesaplanacak rakipler, sıradakinden başlayarak; bitirmiş oyuncular atlanır.
 func _rivals(game: GameMatch) -> Array[int]:
 	var rivals: Array[int] = []
-	var count := mini(_profile.reply_rivals, game.seats.size() - 1)
-	for step: int in range(1, count + 1):
-		rivals.append(game.seats[(game.current + step) % game.seats.size()])
+	for step: int in range(1, game.seats.size()):
+		var index := (game.current + step) % game.seats.size()
+		if rivals.size() < _profile.reply_rivals and game.is_playing(index):
+			rivals.append(game.seats[index])
 	return rivals

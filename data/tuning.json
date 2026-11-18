@@ -59,6 +59,7 @@
 		"logo_hop_height": 0.35,
 		"win_pop_sec": 0.6,
 		"win_pop_start_scale": 0.3,
+		"finish_banner_sec": 2.0,
 		"confetti_count": 90,
 		"confetti_min_fall_speed": 220.0,
 		"confetti_max_fall_speed": 420.0,

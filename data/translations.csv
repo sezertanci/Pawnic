@@ -53,6 +53,12 @@ COLOR_GREEN,Yeşil,Green,Grün,Verde,Vert,Verde,Verde,Hijau
 COLOR_YELLOW,Sarı,Yellow,Gelb,Amarillo,Jaune,Giallo,Amarelo,Kuning
 HANDOFF,Kartları Aç,Show Cards,Karten Zeigen,Mostrar Cartas,Voir Les Cartes,Mostra Le Carte,Mostrar Cartas,Buka Kartu
 WIN,%s Kazandı!,%s Wins!,%s Gewinnt!,¡Gana %s!,%s Gagne !,Vince %s!,%s Venceu!,%s Menang!
+FINISHED,%s %s Oldu!,%s Finished %s!,%s Ist %s!,¡%s Queda %s!,%s Finit %s !,%s Arriva %s!,%s Fica Em %s!,%s Juara %s!
+RANK_1,1.,1st,1.,1.º,1er,1°,1º,Ke-1
+RANK_2,2.,2nd,2.,2.º,2e,2°,2º,Ke-2
+RANK_3,3.,3rd,3.,3.º,3e,3°,3º,Ke-3
+RANK_4,4.,4th,4.,4.º,4e,4°,4º,Ke-4
+ROUND_N,%d. Tur,Round %d,Runde %d,Ronda %d,Tour %d,Turno %d,Rodada %d,Ronde %d
 PILE_COUNT,%d Kart,%d Cards,%d Karten,%d Cartas,%d Cartes,%d Carte,%d Cartas,%d Kartu
 CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
 CARD_BACK,−%d,−%d,−%d,−%d,−%d,−%d,−%d,−%d

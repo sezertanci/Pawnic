@@ -25,6 +25,8 @@ var _picker := MovePicker.new()
 var _handoff_drew := false
 ## Oyuncunun dokunmasını bekleyen an; kart ya da taş uçarken false.
 var _awaiting_human := false
+## Ekranda duyurusu yapılmış bitiren oyuncu sayısı.
+var _announced := 0
 
 @onready var _clock: Label = %Clock
 @onready var _level_slash: Label = %LevelSlash
@@ -55,6 +57,7 @@ func _ready() -> void:
 
 func start(game: GameMatch) -> void:
 	_game = game
+	_announced = game.finishers.size()
 	# Her oyunun botu kendi üretecini kullanır: önceki oyunun süren araması onunla çakışmaz.
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
@@ -140,7 +143,7 @@ func _start_turn() -> void:
 	_board_view.turn_seat = seat
 	if _game.is_bot_turn():
 		_play_bot_turn()
-	elif _game.human_count() > 1:
+	elif _game.playing_human_count() > 1:
 		_show_handoff(seat, drew)
 	else:
 		_begin_human_turn(drew)
@@ -153,7 +156,16 @@ func _refresh_table() -> void:
 	_discard_pile.set_top(
 		_game.top_discard(), _game.settings, _discard_badge(), _game.top_discard_value
 	)
-	_turn_dots.show_turn(_game.seats, _game.current)
+	_refresh_turn_dots()
+
+
+## Sıra noktalarında yalnızca oynamaya devam eden oyuncular görünür.
+func _refresh_turn_dots() -> void:
+	var playing: Array[int] = []
+	for index: int in range(_game.seats.size()):
+		if _game.is_playing(index):
+			playing.append(_game.seats[index])
+	_turn_dots.show_turn(playing, playing.find(_game.current_seat()))
 
 
 ## Atılanlardaki son kartı atanın rengi; henüz kart atılmadıysa rozet görünmez.
@@ -216,10 +228,10 @@ func _show_human_turn() -> void:
 ## Oyuncunun sırası değilken ya da taş yürürken: tek insanlı oyunda el soluk ve basılamaz kalır,
 ## birden çok insan varsa el gizlenir (sıradaki oyuncu başkasının elini görmesin).
 func _show_idle_hand() -> void:
-	if _game.human_count() != 1:
+	if _game.playing_human_count() != 1:
 		_hand_view.clear()
 		return
-	var hand := _game.first_human_hand()
+	var hand := _game.first_playing_human_hand()
 	var playable: Array[bool] = []
 	playable.resize(hand.size())
 	playable.fill(false)
@@ -277,19 +289,34 @@ func _discard(card_index: int) -> void:
 
 func _finish_turn() -> void:
 	_clear_selection()
-	var winner := _game.winner()
-	if winner == GameMatch.NO_WINNER:
-		_game.next_turn()
-		_start_turn()
+	if MatchResult.is_over(_game):
+		_end_match()
 		return
+	_announce_finishers()
+	_game.next_turn()
+	_start_turn()
+
+
+## Oyun bitti: saat durur, kayıt silinir ve sıralama tablosu açılır.
+func _end_match() -> void:
 	_clock_running = false
 	SaveStore.clear_match()
 	_hand_view.clear()
-	_win_overlay.open(winner, tr("WIN") % _seat_name(winner), _seat_colors())
+	var ranking := MatchResult.ranking(_game)
+	var rounds: Array[int] = []
+	for seat: int in ranking:
+		rounds.append(MatchResult.finish_round(_game, seat))
+	_win_overlay.open(ranking, rounds, _seat_colors())
 
 
-func _seat_name(seat: int) -> String:
-	return Skins.current.seat_name(seat)
+## Bu turda yeni bitiren oyuncu varsa kısa duyuru gösterilir; oyun beklemeden sürer.
+func _announce_finishers() -> void:
+	if _game.finishers.size() == _announced:
+		return
+	_announced = _game.finishers.size()
+	var seat := _game.finishers[_announced - 1]
+	var colors: Array[Color] = [Skins.current.seat_color(seat)]
+	_win_overlay.announce(seat, _announced, colors)
 
 
 # --- Hamle seçimi ---

@@ -1,12 +1,20 @@
 class_name FrostedGlass
 extends ColorRect
 ## Arkasını bulanıklaştıran, renkli buzlu cam. Gölgelendirici köşeleri piksel boyuna göre
-## yuvarladığı için boyutu değişince kendine bildirir.
+## yuvarladığı için boyutu değişince kendine bildirir. Her cam kendi malzemesini kurar, böylece
+## renkleri birbirini etkilemez.
 
 const SIZE_PARAM := &"rect_size"
 const TINT_PARAM := &"tint"
 ## Camın rengi ne kadar baskın olsun (0: yalnızca bulanıklık, 1: düz renk).
 const TINT_STRENGTH := 0.45
+const SHADER := preload("res://themes/shaders/frosted_glass.gdshader")
+
+
+func _init() -> void:
+	var glass_material := ShaderMaterial.new()
+	glass_material.shader = SHADER
+	material = glass_material
 
 
 func _ready() -> void:

@@ -20,7 +20,6 @@ const FORWARD_COLOR := &"forward_color"
 const BACK_COLOR := &"back_color"
 const NUMBER_FONT := &"number_font"
 const LABEL_STYLE := &"CardLabel"
-const FONT_SIZE := &"font_size"
 const KIND_BY_TYPE: Dictionary[Card.Type, Kind] = {
 	Card.Type.FORWARD: Kind.FORWARD,
 	Card.Type.BACK: Kind.BACK,
@@ -279,7 +278,7 @@ func _pawn_center() -> Vector2:
 
 func _draw_caption(text: String) -> void:
 	var font := get_theme_font(ThemeKeys.FONT, LABEL_STYLE)
-	var font_size := get_theme_font_size(FONT_SIZE, LABEL_STYLE)
+	var font_size := get_theme_font_size(ThemeKeys.FONT_SIZE, LABEL_STYLE)
 	var baseline := Vector2(0.0, size.y * TEXT_Y)
 	draw_string(
 		font, baseline, text, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, _color(INK_COLOR)

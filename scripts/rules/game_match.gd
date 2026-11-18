@@ -23,6 +23,9 @@ const KEY_LAST_DISCARD_SEAT := "last_discard_seat"
 const KEY_ELAPSED := "elapsed"
 const KEY_TOP_DISCARD_VALUE := "top_discard_value"
 const KEY_BOT_LEVEL := "bot_level"
+const KEY_ROUND := "round"
+const KEY_FINISHERS := "finishers"
+const KEY_FINISH_ROUNDS := "finish_rounds"
 
 var settings: GameSettings
 var board: BoardState
@@ -39,6 +42,12 @@ var last_discard_seat := BoardLayout.NO_SEAT
 var top_discard_value := Card.NO_VALUE
 ## Oyunun başından beri geçen süre (saniye); kayıtla birlikte saklanır.
 var elapsed := 0.0
+## Kaçıncı turda olunduğu; sıra ilk oyuncuya her döndüğünde artar.
+var round_number := 1
+## Bütün taşlarını eve getiren koltuklar, bitirme sırasıyla.
+var finishers: Array[int] = []
+## finishers ile aynı sırada, her oyuncunun bitirdiği tur.
+var finish_rounds: Array[int] = []
 
 var _draw_pile: Array[Card] = []
 var _discard_pile: Array[Card] = []
@@ -102,6 +111,11 @@ static func from_dict(
 	if not Bot.Level.values().has(level):
 		return null
 	game.bot_level = level as Bot.Level
+	game.round_number = int(data.get(KEY_ROUND, 1))
+	for seat: Variant in data.get(KEY_FINISHERS, []):
+		game.finishers.append(int(seat))
+	for finish_round: Variant in data.get(KEY_FINISH_ROUNDS, []):
+		game.finish_rounds.append(int(finish_round))
 	return game if game._is_consistent() else null
 
 
@@ -122,6 +136,9 @@ func to_dict() -> Dictionary:
 		KEY_ELAPSED: elapsed,
 		KEY_TOP_DISCARD_VALUE: top_discard_value,
 		KEY_BOT_LEVEL: bot_level,
+		KEY_ROUND: round_number,
+		KEY_FINISHERS: finishers,
+		KEY_FINISH_ROUNDS: finish_rounds,
 	}
 
 
@@ -137,8 +154,18 @@ func is_bot_turn() -> bool:
 	return bots[current]
 
 
-func human_count() -> int:
-	return bots.count(false)
+## Henüz bitirmemiş insan oyuncu sayısı.
+func playing_human_count() -> int:
+	var count := 0
+	for index: int in range(seats.size()):
+		if not bots[index] and is_playing(index):
+			count += 1
+	return count
+
+
+## Sıradaki index'teki oyuncu henüz bitirmediyse true.
+func is_playing(index: int) -> bool:
+	return not finishers.has(seats[index])
 
 
 ## Oyuncu başına taş sayısı (aynı ayarlarla yeni oyun kurmak için).
@@ -146,13 +173,13 @@ func pawns_per_player() -> int:
 	return board.owners.count(seats[0])
 
 
-## İlk insan oyuncunun eli (tek kişilik oyunda bot sırasında da gösterilir);
-## insan oyuncu yoksa boş el.
-func first_human_hand() -> Array[Card]:
-	var index := bots.find(false)
-	if index == NO_INDEX:
-		return _new_hand()
-	return hands[index]
+## Henüz bitirmemiş ilk insan oyuncunun eli (tek insan kaldığında bot sırasında da gösterilir);
+## böyle bir oyuncu yoksa boş el.
+func first_playing_human_hand() -> Array[Card]:
+	for index: int in range(seats.size()):
+		if not bots[index] and is_playing(index):
+			return hands[index]
+	return _new_hand()
 
 
 func begin_turn() -> void:
@@ -196,6 +223,9 @@ func determinized(rng: RandomNumberGenerator) -> GameMatch:
 	copy.current = current
 	copy.last_discard_seat = last_discard_seat
 	copy.top_discard_value = top_discard_value
+	copy.round_number = round_number
+	copy.finishers = finishers.duplicate()
+	copy.finish_rounds = finish_rounds.duplicate()
 	copy._discard_pile = _discard_pile.duplicate()
 	var unseen := unseen_cards()
 	copy._shuffle(unseen)
@@ -226,6 +256,7 @@ func play(move: Move) -> int:
 	discard(move.card_index)
 	if joker:
 		top_discard_value = move.value
+	_record_finishers()
 	return captured
 
 
@@ -235,15 +266,33 @@ func discard(card_index: int) -> void:
 	top_discard_value = Card.NO_VALUE
 
 
+## İlk bitiren koltuk; henüz kimse bitirmediyse NO_WINNER.
 func winner() -> int:
-	for seat: int in seats:
-		if board.has_finished(seat):
-			return seat
-	return NO_WINNER
+	return NO_WINNER if finishers.is_empty() else finishers[0]
 
 
+## Sırayı bitirmemiş sıradaki oyuncuya verir; sıra ilk oyuncuya döndükçe tur artar.
 func next_turn() -> void:
-	current = (current + 1) % seats.size()
+	for _step: int in range(seats.size()):
+		current = (current + 1) % seats.size()
+		if current == 0:
+			round_number += 1
+		if is_playing(current):
+			return
+
+
+## Yeni bitiren oyuncuları kaydeder; ellerindeki kartlar atılanların altına konur.
+func _record_finishers() -> void:
+	for index: int in range(seats.size()):
+		var seat := seats[index]
+		if finishers.has(seat) or not board.has_finished(seat):
+			continue
+		finishers.append(seat)
+		finish_rounds.append(round_number)
+		var hand: Array[Card] = hands[index]
+		for card: Card in hand:
+			_discard_pile.push_front(card)
+		hand.clear()
 
 
 func _new_hand() -> Array[Card]:
@@ -286,6 +335,10 @@ func _is_consistent() -> bool:
 	if seats != expected_seats or current < 0 or current >= count:
 		return false
 	if last_discard_seat != BoardLayout.NO_SEAT and not seats.has(last_discard_seat):
+		return false
+	if finish_rounds.size() != finishers.size() or not is_playing(current):
+		return false
+	if not finishers.all(func(seat: int) -> bool: return board.has_finished(seat)):
 		return false
 	return board.owners.all(func(owner: int) -> bool: return seats.has(owner))
 

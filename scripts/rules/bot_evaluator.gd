@@ -8,13 +8,18 @@ extends RefCounted
 var _settings: GameSettings
 var _layout: BoardLayout
 var _odds: CardOdds
+## Değerlendirme başlamadan önce bitirmiş, yarışın dışındaki koltuklar.
+var _out: Array[int] = []
 
 
-## odds null ise tehdit hesaplanmaz.
-func _init(settings: GameSettings, odds: CardOdds = null) -> void:
+## odds null ise tehdit hesaplanmaz. out, oyundan önceden çıkmış (bitirmiş) koltuklardır; en iyi
+## rakip seçilirken hesaba katılmaz. Aramada yeni bitiren rakip sayılmaya devam eder,
+## böylece bot onun bitirmesini engellemeye çalışır.
+func _init(settings: GameSettings, odds: CardOdds = null, out: Array[int] = []) -> void:
 	_settings = settings
 	_layout = settings.board_layout
 	_odds = odds
+	_out = out
 
 
 ## Kendi taşlarının değerinden en iyi rakibin değerini (ağırlıklı) çıkarır.
@@ -31,8 +36,9 @@ func evaluate(board: BoardState, seat: int) -> float:
 			var kept := value * (1.0 - _settings.bot_attack_weight * _danger(board, pawn, safety))
 			rivals[owner] = rivals.get(owner, 0.0) + kept
 	var best_rival := 0.0
-	for total: float in rivals.values():
-		best_rival = maxf(best_rival, total)
+	for owner: int in rivals:
+		if not _out.has(owner):
+			best_rival = maxf(best_rival, rivals[owner])
 	return own - _settings.bot_rival_weight * best_rival
 
 

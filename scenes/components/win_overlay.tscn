@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/ui/win_overlay.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/confetti.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="badge"]
+[ext_resource type="Script" path="res://scripts/ui/pawn_icon.gd" id="pawn"]
+[ext_resource type="Script" path="res://scripts/ui/frosted_glass.gd" id="glass"]
 
 [node name="WinOverlay" type="Control"]
 layout_mode = 3
@@ -11,9 +13,11 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1")
 
 [node name="Dim" type="ColorRect" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -43,15 +47,50 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 mouse_filter = 2
+script = ExtResource("pawn")
 
-[node name="Title" type="Label" parent="Margin/Content"]
+[node name="Card" type="MarginContainer" parent="Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Glass" type="ColorRect" parent="Margin/Content/Card"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("glass")
+
+[node name="Pad" type="MarginContainer" parent="Margin/Content/Card"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="Text" type="VBoxContainer" parent="Margin/Content/Card/Pad"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Margin/Content/Card/Pad/Text"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"WinLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ReplayButton" type="Button" parent="Margin/Content"]
+[node name="Results" type="GridContainer" parent="Margin/Content/Card/Pad/Text"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_constants/h_separation = 28
+columns = 4
+
+[node name="Buttons" type="VBoxContainer" parent="Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ReplayButton" type="Button" parent="Margin/Content/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
@@ -59,7 +98,7 @@ theme_type_variation = &"MenuGreenButton"
 text = "PLAY_AGAIN"
 script = ExtResource("badge")
 
-[node name="HomeButton" type="Button" parent="Margin/Content"]
+[node name="HomeButton" type="Button" parent="Margin/Content/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4

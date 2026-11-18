@@ -217,3 +217,15 @@
   çıkan görsel (simge, tahta ve oyunun kendi çizdiği beş kart) ve ekran görüntüleri. Joker sayı
   seçenekleri ileri kartları gibi çiziliyor (`CardSymbol` ile yeşil, + işaretli). Arayüz
   düzeltmeleri tablete kuruldu; joker değişikliği yalnızca PC'de denendi.
+- **2026-11-19 (2):** İkiden fazla oyunculu oyunda bitiren oyuncu oyunu bitirmiyor, kalanlar oynamaya
+  devam ediyor. Bitiren için tahtada kısa yazı ve konfeti çıkıyor ("Kırmızı 1. Oldu!",
+  `finish_banner_sec`), elindeki kartlar atılanların altına gidiyor, sıra noktalarında artık
+  görünmüyor. Tek oyuncu kalınca ya da bütün insanlar bitirince (yalnızca botlar kalınca) oyun
+  biter; bitirmeyenler tahtadaki ilerlemelerine göre sıralanır. Kazanma ekranında sonuç tablosu
+  var: sıra, taş, ad ve bitirdiği tur (bitirmeyende "—"). Kural tarafı `GameMatch.finishers`,
+  `finish_rounds`, `round_number` ve `MatchResult`; bot önceden bitirmiş rakipleri hesaba katmıyor.
+  Kayıt sürümü değişmedi, eski kayıtlar varsayılanlarla açılıyor. Birim testleri yazıldı (95 test
+  geçiyor). Duyuru ve sonuç tablosu, okunsun diye oyuncunun renginde buzlu cam panelin üstünde
+  (`FrostedGlass` artık kendi malzemesini kuruyor). Botsuz oyunda başlığın sağa toplanması
+  düzeltildi: boşluğu artık seviye yazısı değil, ayrı bir `Spacer` dolduruyor. Tablete kuruldu,
+  sonuç tablosu tablette görüldü.
