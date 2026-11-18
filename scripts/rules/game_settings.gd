@@ -34,6 +34,14 @@ var bot_track_base := 0.0
 var bot_lane_bonus := 0.0
 var bot_home_value := 0.0
 var bot_rival_weight := 0.0
+## Tehdit okuyan botta taşın değerinin çarpılma olasılığıyla ne kadar düşeceği: kendi taşları
+## için danger, rakip taşları için attack (0: hiç, 1: tamamen).
+var bot_danger_weight := 0.0
+var bot_attack_weight := 0.0
+## Bot seviyelerinin davranışı, Bot.Level sırasıyla.
+var bot_profiles: Array[BotProfile] = []
+## Çok zor botun aramasında bütün oyuncuların yerine oynayan hızlı botun davranışı.
+var bot_rollout_policy: BotProfile
 ## Animasyon süreleri saniye, yükseklikler kare boyunun katı cinsindendir.
 var hop_time := 0.0
 var hop_height := 0.0
@@ -133,6 +141,11 @@ func _read_bot(bot: Dictionary) -> void:
 	bot_lane_bonus = float(bot["lane_bonus"])
 	bot_home_value = float(bot["home_value"])
 	bot_rival_weight = float(bot["rival_weight"])
+	bot_danger_weight = float(bot["danger_weight"])
+	bot_attack_weight = float(bot["attack_weight"])
+	bot_rollout_policy = BotProfile.from_dict(bot["rollout_policy"])
+	for level: Dictionary in bot["levels"]:
+		bot_profiles.append(BotProfile.from_dict(level))
 
 
 func _read_animation(animation: Dictionary) -> void:

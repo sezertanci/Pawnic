@@ -77,6 +77,25 @@
 		"track_base": 5.0,
 		"lane_bonus": 10.0,
 		"home_value": 90.0,
-		"rival_weight": 0.8
+		"rival_weight": 0.8,
+		"danger_weight": 0.6,
+		"attack_weight": 0.6,
+		"rollout_policy": {
+			"random_chance": 0.0, "reply_rivals": 0, "read_threats": true, "rollouts": 0, "shortlist": 0
+		},
+		"levels": [
+			{
+				"random_chance": 0.7, "reply_rivals": 0, "read_threats": false, "rollouts": 0, "shortlist": 0
+			},
+			{
+				"random_chance": 0.15, "reply_rivals": 0, "read_threats": false, "rollouts": 0, "shortlist": 0
+			},
+			{
+				"random_chance": 0.0, "reply_rivals": 1, "read_threats": true, "rollouts": 0, "shortlist": 0
+			},
+			{
+				"random_chance": 0.0, "reply_rivals": 3, "read_threats": true, "rollouts": 10, "shortlist": 4
+			}
+		]
 	}
 }

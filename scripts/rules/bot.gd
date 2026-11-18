@@ -1,60 +1,76 @@
 class_name Bot
 extends RefCounted
-## Basit bot: her yasal hamleyi tahtanın kopyasında dener, durumu en çok iyileştireni seçer.
+## Bot oyuncu. Her yasal hamleyi tahtanın kopyasında dener ve seviyesine göre seçer: kolay
+## seviyeler sık sık rastgele oynar, zor seviyeler rakiplerin karşılığını ve taşların çarpılma
+## olasılığını da hesaplar, en zor seviye en iyi adayları olası oyunlarda ileri oynatır.
+## Bot yalnızca herkesin görebildiği bilgiyi kullanır.
+## Seviyelerin ayarları GameSettings.bot_profiles içindedir.
+
+enum Level { EASY, MEDIUM, HARD, EXPERT }
+
+var _settings: GameSettings
+var _profile: BotProfile
+var _rng: RandomNumberGenerator
 
 
-static func choose_move(game: GameMatch) -> Move:
-	var best: Move = null
-	var best_score := -INF
-	for move: Move in game.legal_moves():
-		var board := game.board.clone()
-		board.apply(move)
-		var score := evaluate(board, game.current_seat())
-		if score > best_score:
-			best_score = score
-			best = move
-	return best
+func _init(profile: BotProfile, settings: GameSettings, rng: RandomNumberGenerator) -> void:
+	_settings = settings
+	_profile = profile
+	_rng = rng
 
 
-## Oynanabilir kart yoksa önce geri kartlarını atar, yoksa ilk kartı.
-static func choose_discard(hand: Array[Card]) -> int:
+## Sıradaki oyuncunun hamlesini seçer; oynanabilir kart yoksa null döner.
+func choose_move(game: GameMatch) -> Move:
+	var legal := game.legal_moves()
+	if legal.is_empty():
+		return null
+	if _rng.randf() < _profile.random_chance:
+		return legal[_rng.randi_range(0, legal.size() - 1)]
+	var odds := CardOdds.new(_settings, game.unseen_cards())
+	var evaluator := BotEvaluator.new(_settings, odds if _profile.read_threats else null)
+	var ranked := _ranked(game, legal, odds, evaluator)
+	if _profile.rollouts == 0 or ranked.size() == 1:
+		return ranked[0]
+	var policy := Bot.new(_settings.bot_rollout_policy, _settings, _rng)
+	var search := RolloutSearch.new(policy, evaluator)
+	var shortlist := ranked.slice(0, _profile.shortlist)
+	return search.best_move(game, shortlist, _profile.rollouts, _rng.randi())
+
+
+## Oynanabilir kart yoksa atılacak kart: önce geri kartları, yoksa ilk kart.
+func choose_discard(hand: Array[Card]) -> int:
 	for index: int in range(hand.size()):
 		if hand[index].type == Card.Type.BACK:
 			return index
 	return 0
 
 
-## Kendi taşlarının değerinden en iyi rakibin değerini (ağırlıklı) çıkarır.
-static func evaluate(board: BoardState, seat: int) -> float:
-	var own := 0.0
-	var rivals: Dictionary[int, float] = {}
-	for pawn: int in range(board.positions.size()):
-		var value := pawn_value(board, pawn)
-		var owner := board.owners[pawn]
-		if owner == seat:
-			own += value
+## Yasal hamleler, puanı yüksekten düşüğe.
+func _ranked(
+	game: GameMatch, legal: Array[Move], odds: CardOdds, evaluator: BotEvaluator
+) -> Array[Move]:
+	var forecast: RivalForecast = null
+	if _profile.reply_rivals > 0:
+		forecast = RivalForecast.new(odds, evaluator)
+	var rivals := _rivals(game)
+	var seat := game.current_seat()
+	var scores: Dictionary[Move, float] = {}
+	for move: Move in legal:
+		var board := game.board.clone()
+		board.apply(move)
+		if forecast == null:
+			scores[move] = evaluator.evaluate(board, seat)
 		else:
-			rivals[owner] = rivals.get(owner, 0.0) + value
-	var best_rival := 0.0
-	for total: float in rivals.values():
-		best_rival = maxf(best_rival, total)
-	return own - board.settings.bot_rival_weight * best_rival
+			scores[move] = forecast.expected_score(board, seat, rivals)
+	var ranked := legal.duplicate()
+	ranked.sort_custom(func(a: Move, b: Move) -> bool: return scores[a] > scores[b])
+	return ranked
 
 
-## Taşın değeri, çıkış karesinden bu yana evine ne kadar yaklaştığıdır.
-static func pawn_value(board: BoardState, pawn: int) -> float:
-	var settings := board.settings
-	var square := board.positions[pawn]
-	if square == BoardState.BASE:
-		return 0.0
-	if board.is_home(pawn):
-		return settings.bot_home_value
-	var seat := board.owners[pawn]
-	var layout := board.layout
-	var gained := (
-		layout.home_distance(seat, layout.starts[seat]) - layout.home_distance(seat, square)
-	)
-	var score := settings.bot_track_base + gained
-	if layout.is_private(square):
-		score += settings.bot_lane_bonus
-	return score
+## Karşılığı hesaplanacak rakipler, sıradakinden başlayarak.
+func _rivals(game: GameMatch) -> Array[int]:
+	var rivals: Array[int] = []
+	var count := mini(_profile.reply_rivals, game.seats.size() - 1)
+	for step: int in range(1, count + 1):
+		rivals.append(game.seats[(game.current + step) % game.seats.size()])
+	return rivals

@@ -24,7 +24,8 @@ func _run_setup(settings: GameSettings, players: int, pawns: int) -> bool:
 	var unfinished := 0
 	for game_index: int in range(GAMES_PER_SETUP):
 		var game := BotRunner.new_game(settings, players, pawns, game_index)
-		var turns := BotRunner.play(game, TURN_LIMIT)
+		var bots := BotRunner.same_bots(settings, players, Bot.Level.MEDIUM, game_index)
+		var turns := BotRunner.play(game, bots, TURN_LIMIT)
 		if turns == BotRunner.UNFINISHED:
 			unfinished += 1
 		else:

@@ -11,9 +11,7 @@ const LEVEL_KEY_PREFIX := "SPEED_"
 
 
 func current() -> Level:
-	var value: Variant = SaveStore.get_preference(PREFERENCE_KEY, Level.NORMAL)
-	var level := int(value) if value is float or value is int else Level.NORMAL
-	return level as Level if Level.values().has(level) else Level.NORMAL
+	return SaveStore.get_enum_preference(PREFERENCE_KEY, Level.values(), Level.NORMAL) as Level
 
 
 func select(level: Level) -> void:

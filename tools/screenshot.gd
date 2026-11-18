@@ -24,7 +24,7 @@ func _run() -> void:
 	await _frames()
 	_save(out_dir.path_join("1b_setup.png"))
 	var bot_flags: Array[bool] = [false, true, true, true]
-	main.get_node("SetupScreen").emit_signal("start_requested", bot_flags, PAWNS)
+	main.get_node("SetupScreen").emit_signal("start_requested", bot_flags, PAWNS, Bot.Level.MEDIUM)
 	var screen: Node = main.get_node("GameScreen")
 	for step: int in range(HUMAN_MOVES):
 		await _wait_for_human(screen)
@@ -45,7 +45,8 @@ func _use_separate_save() -> void:
 ## Botun seçeceği hamleyi arayüzdeki adımlarla oynar. out_dir verilirse seçim anını kaydeder.
 func _play_like_bot(screen: Node, out_dir: String) -> void:
 	var game: GameMatch = screen.get("_game")
-	var move := Bot.choose_move(game)
+	var bot: Bot = screen.get("_bot")
+	var move := bot.choose_move(game)
 	if move == null:
 		screen.call("_on_card_pressed", 0)
 		return

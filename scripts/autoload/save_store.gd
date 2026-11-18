@@ -39,6 +39,13 @@ func get_text_preference(key: String, default_value: String) -> String:
 	return value if value is String else default_value
 
 
+## Enum tercihi; kayıtlı değer sayı değilse ya da values içinde yoksa default_value döner.
+func get_enum_preference(key: String, values: Array, default_value: int) -> int:
+	var value: Variant = get_preference(key, default_value)
+	var number := int(value) if value is float or value is int else default_value
+	return number if values.has(number) else default_value
+
+
 func set_preference(key: String, value: Variant) -> void:
 	_section(PREFERENCES_KEY)[key] = value
 	_write()

@@ -58,9 +58,14 @@ script = ExtResource("back_arrow")
 [node name="Clock" type="Label" parent="Margin/Box/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"SmallLabel"
 text = "00:00"
+
+[node name="BotLevel" type="Label" parent="Margin/Box/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SmallLabel"
 
 [node name="TurnDots" type="Control" parent="Margin/Box/Header"]
 unique_name_in_owner = true

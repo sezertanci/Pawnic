@@ -55,9 +55,11 @@ func _on_demo_closed() -> void:
 	_home.show_rules()
 
 
-func _on_start_requested(bot_flags: Array[bool], pawns: int) -> void:
+func _on_start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level) -> void:
 	SaveStore.clear_match()
-	_begin(GameMatch.create(Tuning.settings, bot_flags, pawns, _rng))
+	var game := GameMatch.create(Tuning.settings, bot_flags, pawns, _rng)
+	game.bot_level = bot_level
+	_begin(game)
 
 
 func _on_resume_requested() -> void:

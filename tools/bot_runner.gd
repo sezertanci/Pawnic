@@ -17,13 +17,27 @@ static func new_game(
 	return GameMatch.create(settings, flags, pawns, rng)
 
 
+## Her koltuğa (sıra sırasıyla) aynı seviyede bir bot verir.
+static func same_bots(
+	settings: GameSettings, players: int, level: Bot.Level, seed_value: int
+) -> Array[Bot]:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var bots: Array[Bot] = []
+	for _i: int in range(players):
+		bots.append(Bot.new(settings.bot_profiles[level], settings, rng))
+	return bots
+
+
 ## Oyunu kazanan çıkana kadar oynatır; hamle sayısını, sınır aşılırsa UNFINISHED döner.
-static func play(game: GameMatch, turn_limit: int) -> int:
+## bots, sıra sırasıyla her oyuncunun botudur.
+static func play(game: GameMatch, bots: Array[Bot], turn_limit: int) -> int:
 	for turn: int in range(turn_limit):
 		game.begin_turn()
-		var move := Bot.choose_move(game)
+		var bot := bots[game.current]
+		var move := bot.choose_move(game)
 		if move == null:
-			game.discard(Bot.choose_discard(game.current_hand()))
+			game.discard(bot.choose_discard(game.current_hand()))
 		else:
 			game.play(move)
 		if game.winner() != GameMatch.NO_WINNER:

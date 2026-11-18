@@ -30,7 +30,31 @@
 - Hareket yönü tahtada, bitiş alanının çevresinde 30 saniyede bir tur atan, yarı saydam dört oklu
   yayla gösterilir; yaylar sıradaki oyuncunun rengindedir (`TurnSpinner`, 2026-11-18). "Nasıl
   oynanır" listesinin başında da "Oyun saat yönünde oynanır." maddesi var.
+- Ayarlar ekranında (`settings_overlay.gd`) ses açma/kapama, oyun hızı ve dil seçimi var.
+- Oyun simgesi ve Android başlatıcı simgeleri (`assets/icon/`) hazır.
 - El boyutu 3+1 (elde 3 kart, sırada 4. çekilir) şimdilik uygun (2026-11-18).
+- Bot zorluğu (2026-11-18): Kolay, Orta, Zor, Çok zor. "Yeni oyun" ekranında, yalnızca tek
+  oyunculu modda seçim düğmeleriyle seçilir; son seçim tercih olarak saklanır (`Difficulty`
+  autoload'u), varsayılan Orta. Bütün botlar aynı seviyede oynar; seviye adı oyun ekranının üst
+  çubuğunda saatin yanında yazar ve kayıtlı oyunla birlikte saklanır. Seviye ayarları
+  `tuning.json` → `bot.levels`: Kolay %70, Orta %15 olasılıkla rastgele oynar (bu ikisi
+  değişmeyecek). Zor sıradaki rakibin karşılığını hesaplar (`RivalForecast`) ve tehdit okur;
+  Çok zor bütün rakiplerinkini hesaplar, tehdit okur ve Monte Carlo arama yapar.
+- Botta hile yok (2026-11-18): bot yalnızca herkesin görebildiği bilgiyi kullanır. Kartların
+  sırasını bilmez; yalnızca göremediği kartların (deste + rakip eller) dağılımını bilir
+  (`GameMatch.unseen_cards`, `CardOdds`). Botların sana karşı birleşmesi önerildi, uygulanmadı.
+- Tehdit okuma (`bot.levels[].read_threats`): ortak yoldaki her taşın değeri, sıradaki turda
+  çarpılma olasılığı kadar düşürülür (`BotEvaluator`; kendi taşlarına `danger_weight`, rakip
+  taşlarına `attack_weight`, ikisi de 0,6). Ağırlıklar öz-oyunla seçildi: tehdit okuyan bot aynı
+  botun tehditsiz sürümünü %58–60 yener, 0,6 üstünde kazanç artmıyor.
+- Monte Carlo arama (`RolloutSearch`, yalnızca Çok zor): en iyi 4 aday (`shortlist`), her biri
+  10 olası oyunda (`rollouts`) denenir. Her olası oyunda göremediği kartlar yeniden karıştırılıp
+  dağıtılır (`GameMatch.determinized`), aday oynanır, herkes bir kez tehdit okuyan hızlı botla
+  (`bot.rollout_policy`) oynar ve tahta puanlanır. 30 deneme 10'dan belirgin güçlü değil, süresi
+  iki kat. Kart saklama (`hold_cards`, `hold_values`) aramanın yerine geçtiği için kaldırıldı.
+- Bot hamlesi oyunda `WorkerThreadPool` ile `bot_delay` süresince arka planda düşünülür.
+- Hız karesi yalnızca ileri kartıyla (joker dahil) çalışır; geri kartlarında da çalışması
+  konuşuldu, şimdilik olduğu gibi kalıyor (2026-11-18).
 - Düzensiz hız kareleri renklere avantaj sağlamıyor (2026-11-18, `tools/seat_balance.gd`, kurulum başına
   2000 bot oyunu, ilk oynayan sırayla değişerek): 2 oyuncuda yeşil %50,3 / kırmızı %49,7; 4 oyuncuda
   bütün renkler %23,8–26,5 arası, hiçbiri anlamlı sapma sınırını (±1,9 puan) geçmedi.
@@ -67,8 +91,8 @@
 
 ## Açık konular
 - Oyun süresi uzun olabilir (4 taşta oyuncu başına ~55 tur). Deneme sonrası kısaltma gerekebilir.
-- Hangi ek temaların olacağı kararlaştırılmadı.
-- Dil ve tema seçimi için ayarlar ekranı yok (altyapı hazır). Ses açma/kapama ayarı da yok.
+- Hangi ek temaların olacağı kararlaştırılmadı. Ayarlar ekranında tema seçimi yok; şimdilik tek
+  tema (`classic`) olduğu için gerek yok, ikinci tema gelince eklenecek.
 - AdMob eklentisi seçilmedi; UMP rıza ekranı eklenecek (hedef kitle 13 yaş ve üstü).
 - Play Billing için resmi eklenti eklenecek; ürün listesi belli değil.
 - Yükleme (upload) anahtarı oluşturulmadı; AAB release derlemesi bunu bekliyor.
@@ -76,13 +100,10 @@
 - Kullanıcının tablet denemesinden çıkan değişiklik listesi bekleniyor.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
-- Yer değiştirmede taşlar düz kayıyor, ışık kuyruğu yok.
-- Proje simgesi yok (dışa aktarmada uyarı veriyor).
-- Bot basit (tek hamle ileri bakar); zorluk seviyesi yok. Karar: zorluk "Yeni oyun" ekranında
-  seçilecek, oyun ekranında çeviri dosyasından gelen yazıyla gösterilecek. Satrançtaki gibi
-  kademeli olacak; en zor seviyede oyuncu neredeyse hep kaybetmeli. Dört seviye: Kolay, Orta,
-  Zor, Çok zor. Bütün botlar aynı zorlukta; üst çubukta saatin yanında tek yazı. Botun her
-  seviyedeki davranışı henüz tasarlanmadı.
+- Çok zor'un gücü (2026-11-18, iki oyuncu, 100 oyun): Orta'yı %85, Zor'u %60 yener (aramadan
+  önce %63 ve %44). PC'de hamle başına ortalama 55 ms. Tablette düşünme süresi ölçülmedi; bot
+  bekleme süresini (0,9 sn) aşarsa `rollouts` düşürülür ya da süre sınırı eklenir. Atılacak kart
+  seçimi henüz aramayla yapılmıyor (önce geri kartı, yoksa ilk kart).
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
@@ -171,3 +192,13 @@
   içinden `MoveAnimationBuilder` sınıfına ayrıldı. Tipsiz sözlükler tipli `Dictionary` oldu.
   Kullanılmayan kod (`is_animating`, `TITLE` çevirisi) silindi. Kurallardaki hız simgesi tahtadaki
   hız karesiyle aynı iri sayıyla çiziliyor (`BigNumber.draw_speed`, ortak).
+- **2026-11-18 (3):** Bot zorluk seviyeleri. `Bot` artık seviyeli bir nesne; değerlendirme
+  `BotEvaluator`, rakip tahmini `RivalForecast` sınıfında. Ayarlar ve yeni oyun ekranının seçim
+  düğmeleri ortak `ChoiceButtons` yardımcısını kullanıyor. Seviyeleri birbirine karşı ölçen
+  `tools/level_ladder.gd` eklendi. Kart saklama değerleri ölçümle dörtte birine indirildi
+  (eski değerlerle Çok zor, Zor'a %44 kaybediyordu).
+- **2026-11-18 (4):** Zor ve Çok zor güçlendi, hile eklenmedi. Yeni sınıflar: `CardOdds`
+  (görünmeyen kartların dağılımı), `RolloutSearch` (Monte Carlo arama). `BotEvaluator` nesne oldu,
+  tehdit okuyor. `GameMatch.unseen_cards` ve `determinized` eklendi. `Bot` artık seviye yerine
+  `BotProfile` alıyor. Bot hamlesi arka plan iş parçacığında düşünülüyor. Testler
+  `tests/unit/test_bot_reading.gd` (88 test geçiyor). Tablete kuruldu.

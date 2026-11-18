@@ -6,7 +6,7 @@ extends Control
 ## Oyun bitip oyuncu kutlama ekranından ana ekrana dönmek istediğinde gelir.
 signal finished
 ## Oyun bitip oyuncu aynı ayarlarla yeniden oynamak istediğinde gelir.
-signal replay_requested(bot_flags: Array[bool], pawns: int)
+signal replay_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
 ## Oyuncu geri düğmesiyle ana ekrana döndüğünde gelir; oyun kayıtlı kalır.
 signal left
 
@@ -16,6 +16,8 @@ const SECONDS_PER_HOUR := 3600
 const JOKER_CARD_SCALE := 0.7
 
 var _game: GameMatch
+## Bütün bot oyuncuların ortak botu; seviyesi oyunla birlikte kaydedilir.
+var _bot: Bot
 ## Oyun sürerken true; geçen süre yalnızca bu sırada sayılır.
 var _clock_running := false
 var _picker := MovePicker.new()
@@ -25,6 +27,7 @@ var _handoff_drew := false
 var _awaiting_human := false
 
 @onready var _clock: Label = %Clock
+@onready var _bot_level: Label = %BotLevel
 @onready var _turn_dots: TurnDots = %TurnDots
 @onready var _deck_pile: PileView = %DeckPile
 @onready var _discard_pile: PileView = %DiscardPile
@@ -51,6 +54,12 @@ func _ready() -> void:
 
 func start(game: GameMatch) -> void:
 	_game = game
+	# Her oyunun botu kendi üretecini kullanır: önceki oyunun süren araması onunla çakışmaz.
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_bot = Bot.new(game.settings.bot_profiles[game.bot_level], game.settings, rng)
+	_bot_level.visible = game.bots.has(true)
+	_bot_level.text = Difficulty.level_key(game.bot_level)
 	_board_view.board = game.board
 	_cards.settings = game.settings
 	_cards.speed_scale = GameSpeed.speed_scale()
@@ -143,13 +152,21 @@ func _discard_badge() -> Color:
 	return Skins.current.seat_color(_game.last_discard_seat)
 
 
+## Bot hamlesini arka planda düşünür; ekran bu sırada akıcı kalır. Kart, en az bot_delay
+## kadar beklendikten ve düşünme bittikten sonra açılır.
 func _play_bot_turn() -> void:
 	var game := _game
+	var bot := _bot
+	var result: Array[Move] = []
+	var task := WorkerThreadPool.add_task(func() -> void: result.append(bot.choose_move(game)))
 	await get_tree().create_timer(_game.settings.bot_delay).timeout
+	while not WorkerThreadPool.is_task_completed(task):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(task)
 	if game != _game:
 		return
-	var move := Bot.choose_move(_game)
-	var card_index := Bot.choose_discard(_game.current_hand()) if move == null else move.card_index
+	var move := result[0]
+	var card_index := _bot.choose_discard(_game.current_hand()) if move == null else move.card_index
 	var color := Skins.current.seat_color(_game.current_seat())
 	var chosen := Card.NO_VALUE if move == null else move.value
 	await _cards.reveal_card(_hand_card(card_index), color, chosen)
@@ -396,7 +413,7 @@ func _seat_colors() -> Array[Color]:
 
 func _on_replay_pressed() -> void:
 	_win_overlay.close()
-	replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player())
+	replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player(), _game.bot_level)
 
 
 func _on_home_pressed() -> void:

@@ -79,6 +79,7 @@ func test_from_dict_after_to_dict_restores_match() -> void:
 	game.discard(0)
 	game.next_turn()
 	game.elapsed = 333.5
+	game.bot_level = Bot.Level.EXPERT
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(game.to_dict()))
 
 	var copy := GameMatch.from_dict(_settings, saved, _rng())
@@ -86,6 +87,7 @@ func test_from_dict_after_to_dict_restores_match() -> void:
 	assert_not_null(copy)
 	assert_eq(JSON.stringify(copy.to_dict()), JSON.stringify(game.to_dict()))
 	assert_eq(copy.elapsed, 333.5)
+	assert_eq(copy.bot_level, Bot.Level.EXPERT)
 
 
 func test_from_dict_with_other_version_returns_null() -> void:

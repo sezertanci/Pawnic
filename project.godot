@@ -21,6 +21,7 @@ Ads="*res://scripts/autoload/ads.gd"
 Iap="*res://scripts/autoload/iap.gd"
 Sound="*res://scripts/autoload/sound.gd"
 GameSpeed="*res://scripts/autoload/game_speed.gd"
+Difficulty="*res://scripts/autoload/difficulty.gd"
 
 [debug]
 

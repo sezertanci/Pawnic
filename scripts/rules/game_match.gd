@@ -22,11 +22,14 @@ const KEY_CURRENT := "current"
 const KEY_LAST_DISCARD_SEAT := "last_discard_seat"
 const KEY_ELAPSED := "elapsed"
 const KEY_TOP_DISCARD_VALUE := "top_discard_value"
+const KEY_BOT_LEVEL := "bot_level"
 
 var settings: GameSettings
 var board: BoardState
 var seats: Array[int] = []
 var bots: Array[bool] = []
+## Bütün botların zorluk seviyesi.
+var bot_level := Bot.Level.MEDIUM
 ## Her oyuncunun eli (Array[Card]).
 var hands: Array[Array] = []
 var current := 0
@@ -95,6 +98,10 @@ static func from_dict(
 	game.last_discard_seat = int(data.get(KEY_LAST_DISCARD_SEAT, BoardLayout.NO_SEAT))
 	game.elapsed = float(data.get(KEY_ELAPSED, 0.0))
 	game.top_discard_value = int(data.get(KEY_TOP_DISCARD_VALUE, Card.NO_VALUE))
+	var level := int(data.get(KEY_BOT_LEVEL, Bot.Level.MEDIUM))
+	if not Bot.Level.values().has(level):
+		return null
+	game.bot_level = level as Bot.Level
 	return game if game._is_consistent() else null
 
 
@@ -114,6 +121,7 @@ func to_dict() -> Dictionary:
 		KEY_LAST_DISCARD_SEAT: last_discard_seat,
 		KEY_ELAPSED: elapsed,
 		KEY_TOP_DISCARD_VALUE: top_discard_value,
+		KEY_BOT_LEVEL: bot_level,
 	}
 
 
@@ -159,6 +167,43 @@ func draw_count() -> int:
 ## Atılanların en üstündeki kart; atılan kart yoksa null.
 func top_discard() -> Card:
 	return null if _discard_pile.is_empty() else _discard_pile.back()
+
+
+## Sıradaki oyuncunun göremediği kartlar: deste ve diğer oyuncuların elleri. Bu, desteden
+## atılanların ve kendi elinin çıkarılmasıyla herkesin bulabileceği bilgidir; sıra bilgisi içermez.
+func unseen_cards() -> Array[Card]:
+	var cards: Array[Card] = _draw_pile.duplicate()
+	for index: int in range(hands.size()):
+		if index != current:
+			cards.append_array(hands[index])
+	return cards
+
+
+## Sıradaki oyuncunun gördüğü bilgiyle tutarlı bir olası oyun: tahta, atılanlar ve kendi eli
+## aynı kalır; göremediği kartlar karıştırılıp diğer ellere (aynı sayıda) ve desteye dağıtılır.
+## Bot aramasında kullanılır; botun gerçek kartları ya da destenin sırasını bilmesini önler.
+func determinized(rng: RandomNumberGenerator) -> GameMatch:
+	var copy := GameMatch.new(settings, rng)
+	copy.board = board.clone()
+	copy.seats = seats
+	copy.bots = bots
+	copy.bot_level = bot_level
+	copy.current = current
+	copy.last_discard_seat = last_discard_seat
+	copy.top_discard_value = top_discard_value
+	copy._discard_pile = _discard_pile.duplicate()
+	var unseen := unseen_cards()
+	copy._shuffle(unseen)
+	for index: int in range(hands.size()):
+		var hand: Array[Card] = []
+		if index == current:
+			hand.assign(hands[index])
+		else:
+			for _card: Card in hands[index]:
+				hand.append(unseen.pop_back())
+		copy.hands.append(hand)
+	copy._draw_pile = unseen
+	return copy
 
 
 func legal_moves() -> Array[Move]:
