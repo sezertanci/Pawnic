@@ -308,7 +308,8 @@ func _on_card_pressed(card_index: int) -> void:
 		_show_pawns()
 
 
-## Joker için sayılar küçük kartlar olarak elin yerinde görünür; sayı seçilince el geri gelir.
+## Joker için sayılar, ileri kartları gibi iri ve işaretli sayılı küçük kartlar olarak elin yerinde
+## görünür; sayı seçilince el geri gelir.
 func _show_values(card_index: int) -> void:
 	var card_size := _hand_view.card_size() * JOKER_CARD_SCALE
 	_hand_view.hide()
@@ -316,7 +317,9 @@ func _show_values(card_index: int) -> void:
 	for value: int in _picker.values():
 		var button := _add_joker_button(_on_value_pressed.bind(card_index, value), card_size)
 		button.theme_type_variation = HandView.CARD_VARIATION
-		button.text = str(value)
+		var symbol := CardSymbol.new()
+		symbol.show_symbol(CardSymbol.Kind.FORWARD, value)
+		button.add_child(symbol)
 	_add_joker_button(_on_values_back_pressed, card_size).add_child(BackArrow.new())
 
 
