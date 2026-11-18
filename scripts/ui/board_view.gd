@@ -8,14 +8,15 @@ extends Control
 signal pawn_pressed(pawn: int)
 signal square_pressed(square: int)
 
-const CELL_GAP := 2.0
 const PAWN_RATIO := 0.34
 const STACK_SPREAD := 0.22
 const STACK_SHRINK := 0.65
 const BASE_COLUMNS := 3
 const BASE_SPREAD := 0.95
 const HIT_RATIO := 0.6
-const MARK_RATIO := 0.3
+const MARK_RATIO := 0.4
+## Hız karesindeki sayının çizildiği alanın kare yüzüne oranla genişliği.
+const NUMBER_SCALE := 1.25
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
 ## Hücrenin merkezi (hücre boyuna oranla).
@@ -165,8 +166,7 @@ func _to_pixels(cell: Vector2) -> Vector2:
 
 
 func _cell_rect(cell: Vector2i) -> Rect2:
-	var gap := Vector2.ONE * CELL_GAP
-	return Rect2(_to_pixels(Vector2(cell)) + gap, Vector2.ONE * _cell_size() - gap * 2.0)
+	return Rect2(_to_pixels(Vector2(cell)), Vector2.ONE * _cell_size())
 
 
 func _active_seats() -> Array[int]:
@@ -259,7 +259,8 @@ func _draw_mark(square: int, rect: Rect2) -> void:
 	if board.layout.safe[square]:
 		_draw_shield(rect.get_center(), _cell_size() * MARK_RATIO)
 	elif speed != 0:
-		BigNumber.draw_speed(self, rect, speed)
+		var grow := rect.size.x * (NUMBER_SCALE - 1.0) / 2.0
+		BigNumber.draw_speed(self, rect.grow_individual(grow, 0.0, grow, 0.0), speed)
 
 
 func _draw_shield(center: Vector2, radius: float) -> void:
