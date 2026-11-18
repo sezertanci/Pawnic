@@ -323,7 +323,7 @@ func _on_pawn_pressed(pawn: int) -> void:
 	elif _picker.stage == MovePicker.Stage.TARGET:
 		_show_pawns()
 	elif _picker.stage == MovePicker.Stage.DESTINATION:
-		_set_selectable([], _picker.selectable_squares())
+		_set_selectable(_picker.selectable_pawns(), _picker.selectable_squares())
 
 
 func _on_square_pressed(square: int) -> void:

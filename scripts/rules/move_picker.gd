@@ -10,6 +10,8 @@ var stage := Stage.CARD
 
 var _legal: Array[Move] = []
 var _candidates: Array[Move] = []
+## Kart (joker'de değer) seçildikten sonraki hamleler; taş seçimi değiştirilirken buradan başlanır.
+var _pawn_moves: Array[Move] = []
 
 
 ## Yeni sıranın yasal hamleleriyle seçimi baştan başlatır.
@@ -21,6 +23,7 @@ func reset(legal: Array[Move]) -> void:
 ## Seçimi iptal edip kart seçimine döner.
 func cancel() -> void:
 	_candidates.clear()
+	_pawn_moves.clear()
 	stage = Stage.CARD
 
 
@@ -37,6 +40,7 @@ func pick_card(card_index: int) -> void:
 	_candidates.assign(
 		_legal.filter(func(move: Move) -> bool: return move.card_index == card_index)
 	)
+	_pawn_moves.assign(_candidates)
 	stage = Stage.VALUE if values().size() > 1 else Stage.PAWN
 
 
@@ -52,6 +56,7 @@ func values() -> Array[int]:
 
 func pick_value(value: int) -> void:
 	_candidates.assign(_candidates.filter(func(move: Move) -> bool: return move.value == value))
+	_pawn_moves.assign(_candidates)
 	stage = Stage.PAWN
 
 
@@ -64,14 +69,35 @@ func candidates() -> Array[Move]:
 	return result
 
 
-## Bu adımda dokunulabilecek taşlar.
+## Bu adımda dokunulabilecek taşlar. Hedef ya da varış seçilirken seçimi değiştirmek için
+## aynı kartla oynanabilecek diğer kendi taşları da dokunulabilir.
 func selectable_pawns() -> Array[int]:
 	var result: Array[int] = []
+	if stage == Stage.TARGET:
+		for move: Move in _candidates:
+			_append_unique(result, move.target)
+	if stage == Stage.TARGET or stage == Stage.DESTINATION:
+		for pawn: int in _other_pawns():
+			_append_unique(result, pawn)
+		return result
 	for move: Move in _candidates:
-		var pawn := move.target if stage == Stage.TARGET else move.pawn
-		if not result.has(pawn):
-			result.append(pawn)
+		_append_unique(result, move.pawn)
 	return result
+
+
+## Seçili taş dışında, seçili kartla oynanabilecek kendi taşları.
+func _other_pawns() -> Array[int]:
+	var result: Array[int] = []
+	var selected := selected_pawn()
+	for move: Move in _pawn_moves:
+		if move.pawn != selected:
+			_append_unique(result, move.pawn)
+	return result
+
+
+static func _append_unique(values: Array[int], value: int) -> void:
+	if not values.has(value):
+		values.append(value)
 
 
 ## Hedef taş ya da varış karesi seçilirken hamlesi yapılacak taş; başka aşamada NO_PAWN.
@@ -87,6 +113,9 @@ func pick_pawn(pawn: int) -> Move:
 		for move: Move in _candidates:
 			if move.target == pawn:
 				return move
+	if _other_pawns().has(pawn):
+		_candidates.assign(_pawn_moves)
+	elif stage != Stage.PAWN:
 		return null
 	_candidates.assign(_candidates.filter(func(move: Move) -> bool: return move.pawn == pawn))
 	if _candidates.is_empty():
