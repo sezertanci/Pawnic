@@ -26,7 +26,7 @@ WIN,%s kazandı!,%s wins!,%s gewinnt!,¡Gana %s!,%s gagne !,Vince %s!,%s venceu!
 PILE_DECK_COUNT,%d kart,%d cards,%d Karten,%d cartas,%d cartes,%d carte,%d cartas,%d kartu
 PILE_DISCARD,Atılanlar,Discards,Ablage,Descartes,Défausse,Scarti,Descartes,Buangan
 CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
-CARD_BACK,-%d,-%d,-%d,-%d,-%d,-%d,-%d,-%d
+CARD_BACK,−%d,−%d,−%d,−%d,−%d,−%d,−%d,−%d
 CARD_EXIT,Çıkış,Exit,Ausstieg,Salida,Sortie,Uscita,Saída,Keluar
 CARD_SWAP,Yer değiştir,Swap,Tauschen,Intercambio,Échange,Scambio,Troca,Tukar
 CARD_SEND_BACK,Geri yolla %d,Send back %d,Zurückschicken %d,Devolver %d,Renvoi %d,Rimanda %d,Devolve %d,Pukul mundur %d

@@ -30,8 +30,9 @@
 - Yer değiştirme ve çarpma yalnızca ana yoldaki taşlara uygulanır; güvenli karedeki rakip taş korunur.
   Yer değiştirmede oyuncunun kendi taşı güvenli karede de seçilebilir (2026-11-17, tablet denemesi).
 - Güvenli olmayan karede kendi taşının üstüne konulamaz.
-- Deste (44 kart): İleri 1–6 (4'er), İleri 8 ve 10 (2'şer), Geri 3 (3), Geri 5 (2), Çıkış (4),
-  Yer değiştir (2), Geri yolla 8 (2), Kısayol (1), Joker (2).
+- Deste (52 kart): İleri 2–12, adetleri iki zarın gelme olasılığına göre (2 ve 12'den 1, 7'den 6;
+  toplam 36), Geri 3 (3), Geri 5 (2), Çıkış (4), Yer değiştir (2), Geri yolla 8 (2), Kısayol (1),
+  Joker (2, 1–6 arası) (2026-11-18: oyun normalde iki zarla oynandığı için).
   - Taş başlangıçtan Çıkış, İleri 6 veya Joker 6 ile çıkar.
   - Geri 3/5 kendi taşını geri götürür (ceza kartı); üstüne geldiği rakibi çarpar.
   - Geri yolla 8 rakip taşı 8 kare geri gönderir. Taş kendi renginden bir taşın üstüne düşecekse
@@ -144,3 +145,7 @@
   simgesini gösteriyor, altında sayı yazıyor.
 - **2026-11-17 (17):** Işınlanma kayması 1,8 sn'ye çıktı; kuyruk 0,54 sn, ışınlanma sesi de 1,8 sn.
 - **2026-11-17 (18):** Ana ekran tasarlandı: büyük logo ve dört renkli taş, Devam et (yeşil) / Yeni oyun (mavi) / Nasıl oynanır düğmeleri; kurallar ayrı katmanda. Arka planda kenarda soluk kareli yol ve üstünde zıplayarak dolaşan dört taş (`HomeBackdrop`). Mod, oyuncu ve taş seçimi geri düğmeli ayrı "Yeni oyun" ekranına taşındı. Oyun ekranının sol üstüne geri düğmesi eklendi: oyunu bitirmez, ana ekrana döner, geçen süre kaydedilir, devam edilince o sıra baştan oynanır. Taş/kare çizimi `BoardPainter` içinde ortaklaştı. Temaya `PrimaryButton`, `SecondaryButton`, `GhostButton`, `IconButton`, `LogoLabel`, `HeadingLabel`, `OptionsPanel`, `WideMargin` eklendi.
+- **2026-11-18:** Deste iki zar oranında İleri 2–12 oldu (İleri 1 kalktı). İleri ve geri kartlarında
+  sayı, Titan One yazı tipiyle (OFL, `assets/fonts/`) iri, koyu konturlu ve gölgeli çiziliyor; ileri
+  yeşil, geri kırmızı (`CardSymbol` temasında `forward_color`, `back_color`, `number_font`). Geri
+  kartlarında eksi işareti gerçek eksi (−). Sembollü kartlar (çıkış, geri yolla vb.) ayrıca ele alınacak.

@@ -1,23 +1,29 @@
 class_name CardSymbol
 extends Control
-## Sayı kartları dışındaki kartlarda yazının yerine çizilen sembol:
+## Kartlarda yazının yerine çizilen sembol:
+## İleri ve geri: iri, konturlu ve gölgeli renkli sayı (+7, −5).
 ## Yer değiştir: iki taş ve aralarında karşılıklı oklar.
 ## Çıkış: kutudan dışarı çıkan taş ve ok; çıkış sayısında (+6) altına sayı da yazılır.
 ## Kısayol: ev. Joker: yıldız ve seçilebilen sayı aralığı; sayı seçilince üstte o sayı.
 ## Yıldız: yalnızca yıldız (kural ekranındaki kazanma simgesi).
 ## Sembolü olmayan kartlarda gizlidir. Renkler arayüz temasındaki CardSymbol türünden okunur.
 
-enum Kind { NONE, SWAP, EXIT_FORWARD, EXIT, SEND_BACK, SHORTCUT, JOKER, STAR }
+enum Kind { NONE, FORWARD, BACK, SWAP, EXIT_FORWARD, EXIT, SEND_BACK, SHORTCUT, JOKER, STAR }
 
 const STYLE := &"CardSymbol"
 const PAWN_COLOR := &"pawn_color"
 const RIVAL_COLOR := &"rival_color"
 const STAR_COLOR := &"star_color"
 const INK_COLOR := &"ink_color"
+const FORWARD_COLOR := &"forward_color"
+const BACK_COLOR := &"back_color"
+const NUMBER_FONT := &"number_font"
 const LABEL_STYLE := &"CardLabel"
 const FONT_NAME := &"font"
 const FONT_SIZE := &"font_size"
 const KIND_BY_TYPE := {
+	Card.Type.FORWARD: Kind.FORWARD,
+	Card.Type.BACK: Kind.BACK,
 	Card.Type.SWAP: Kind.SWAP,
 	Card.Type.EXIT: Kind.EXIT,
 	Card.Type.SEND_BACK: Kind.SEND_BACK,
@@ -63,6 +69,13 @@ const STAR_OUTER := 0.26
 const STAR_INNER := 0.11
 const STAR_POINTS := 5
 const RANGE_TEXT := "1–%d"
+## İri sayı: yazı boyu, kontur kalınlığı, gölge kayması ve iki yandaki boşluk (kart genişliğine
+## oranla). Rakamların yüksekliği yazı boyunun DIGIT_HEIGHT katıdır; dikey ortalamada kullanılır.
+const NUMBER_SIZE := 0.6
+const NUMBER_OUTLINE := 0.08
+const NUMBER_SHADOW := Vector2(0.025, 0.035)
+const NUMBER_MARGIN := 0.08
+const DIGIT_HEIGHT := 0.72
 
 var _kind := Kind.NONE
 var _value := 0
@@ -103,6 +116,10 @@ func show_symbol(kind: Kind, value: int = 0) -> void:
 
 func _draw() -> void:
 	match _kind:
+		Kind.FORWARD:
+			_draw_number(Card.Type.FORWARD, FORWARD_COLOR)
+		Kind.BACK:
+			_draw_number(Card.Type.BACK, BACK_COLOR)
 		Kind.SWAP:
 			_draw_swap()
 		Kind.EXIT_FORWARD:
@@ -128,6 +145,30 @@ func _draw() -> void:
 func show_chosen(value: int) -> void:
 	_chosen = value
 	queue_redraw()
+
+
+## Kartın ortasına sığacak iri sayı: önce kaymış koyu gölge, sonra koyu kontur ve renkli dolgu.
+func _draw_number(type: Card.Type, color_name: StringName) -> void:
+	var text := tr(Card.LABEL_KEYS[type]) % _value
+	var font := get_theme_font(NUMBER_FONT, STYLE)
+	var outline := roundi(size.x * NUMBER_OUTLINE)
+	var font_size := _number_font_size(font, text, outline)
+	var baseline := Vector2(0.0, (size.y + font_size * DIGIT_HEIGHT) / 2.0)
+	var shadow := baseline + NUMBER_SHADOW * size.x
+	var ink := _color(INK_COLOR)
+	var center := HORIZONTAL_ALIGNMENT_CENTER
+	draw_string_outline(font, shadow, text, center, size.x, font_size, outline, ink)
+	draw_string(font, shadow, text, center, size.x, font_size, ink)
+	draw_string_outline(font, baseline, text, center, size.x, font_size, outline, ink)
+	draw_string(font, baseline, text, center, size.x, font_size, _color(color_name))
+
+
+## Sayı NUMBER_SIZE boyunda yazılır; kontur dahil karta sığmazsa sığacak kadar küçültülür.
+func _number_font_size(font: Font, text: String, outline: int) -> int:
+	var font_size := roundi(size.x * NUMBER_SIZE)
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + outline
+	var room := size.x * (1.0 - NUMBER_MARGIN * 2.0)
+	return font_size if width <= room else floori(font_size * room / width)
 
 
 func _draw_swap() -> void:
