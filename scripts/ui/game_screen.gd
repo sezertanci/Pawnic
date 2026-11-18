@@ -53,6 +53,8 @@ func start(game: GameMatch) -> void:
 	_game = game
 	_board_view.board = game.board
 	_cards.settings = game.settings
+	_cards.speed_scale = GameSpeed.speed_scale()
+	_board_view.speed_scale = GameSpeed.speed_scale()
 	_hand_view.slot_count = game.settings.hand_size + 1
 	_hide_overlays()
 	_clock_running = true

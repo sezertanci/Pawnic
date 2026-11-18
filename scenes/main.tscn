@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/images/background.png" id="5"]
 [ext_resource type="Script" path="res://scripts/ui/aspect_column.gd" id="6"]
 [ext_resource type="Shader" path="res://themes/shaders/soft_blur.gdshader" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/demo_screen.tscn" id="8"]
 
 [sub_resource type="ShaderMaterial" id="backdrop_blur"]
 shader = ExtResource("7")
@@ -62,5 +63,9 @@ visible = false
 layout_mode = 1
 
 [node name="GameScreen" parent="Column" instance=ExtResource("3")]
+visible = false
+layout_mode = 1
+
+[node name="DemoScreen" parent="Column" instance=ExtResource("8")]
 visible = false
 layout_mode = 1

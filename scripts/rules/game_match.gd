@@ -204,7 +204,7 @@ func _new_hand() -> Array[Card]:
 func _build_deck() -> void:
 	for entry: Dictionary in settings.deck:
 		var type: Card.Type = Card.TYPE_BY_NAME[entry["type"]]
-		for _i: int in range(int(entry["count"])):
+		for _i: int in range(int(entry[GameSettings.KEY_CARD_COUNT])):
 			_draw_pile.append(Card.new(type, int(entry["value"])))
 	_shuffle(_draw_pile)
 

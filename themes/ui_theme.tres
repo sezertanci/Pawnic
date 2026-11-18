@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" path="res://assets/images/button_blue.png" id="button_blue"]
 [ext_resource type="Texture2D" path="res://assets/images/button_orange.png" id="button_orange"]
 [ext_resource type="Texture2D" path="res://assets/images/button_green_plain.png" id="button_green_plain"]
+[ext_resource type="Texture2D" path="res://assets/images/button_orange_plain.png" id="button_orange_plain"]
+[ext_resource type="Texture2D" path="res://assets/images/button_orange_round.png" id="button_orange_round"]
 
 [sub_resource type="StyleBoxFlat" id="overlay_style"]
 bg_color = Color(0.08, 0.08, 0.11, 0.97)
@@ -416,6 +418,16 @@ texture_margin_left = 50.0
 texture_margin_right = 50.0
 modulate_color = Color(1, 1, 1, 1)
 
+[sub_resource type="StyleBoxTexture" id="menu_orange_plain"]
+content_margin_left = 40.0
+content_margin_top = 14.0
+content_margin_right = 40.0
+content_margin_bottom = 22.0
+texture = ExtResource("button_orange_plain")
+texture_margin_left = 50.0
+texture_margin_right = 50.0
+modulate_color = Color(1, 1, 1, 1)
+
 [sub_resource type="StyleBoxTexture" id="menu_green_plain_pressed"]
 content_margin_left = 40.0
 content_margin_top = 20.0
@@ -424,6 +436,24 @@ content_margin_bottom = 22.0
 texture = ExtResource("button_green_plain")
 texture_margin_left = 50.0
 texture_margin_right = 50.0
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="menu_orange_plain_pressed"]
+content_margin_left = 40.0
+content_margin_top = 20.0
+content_margin_right = 40.0
+content_margin_bottom = 22.0
+texture = ExtResource("button_orange_plain")
+texture_margin_left = 50.0
+texture_margin_right = 50.0
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="menu_orange_round"]
+texture = ExtResource("button_orange_round")
+modulate_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="menu_orange_round_pressed"]
+texture = ExtResource("button_orange_round")
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
 [resource]
@@ -695,3 +725,27 @@ MenuPlainGreenButton/styles/pressed = SubResource("menu_green_plain_pressed")
 MenuPlainGreenButton/styles/hover_pressed = SubResource("menu_green_plain_pressed")
 MenuPlainGreenButton/styles/disabled = SubResource("menu_green_plain")
 MenuPlainGreenButton/styles/focus = SubResource("card_focus")
+MenuPlainOrangeButton/base_type = &"Button"
+MenuPlainOrangeButton/font_sizes/font_size = 36
+MenuPlainOrangeButton/constants/outline_size = 10
+MenuPlainOrangeButton/colors/font_outline_color = Color(0.12, 0.18, 0.3, 1)
+MenuPlainOrangeButton/colors/font_color = Color(1, 1, 1, 1)
+MenuPlainOrangeButton/colors/font_hover_color = Color(1, 1, 1, 1)
+MenuPlainOrangeButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+MenuPlainOrangeButton/colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+MenuPlainOrangeButton/colors/font_focus_color = Color(1, 1, 1, 1)
+MenuPlainOrangeButton/styles/normal = SubResource("menu_orange_plain")
+MenuPlainOrangeButton/styles/hover = SubResource("menu_orange_plain")
+MenuPlainOrangeButton/styles/pressed = SubResource("menu_orange_plain_pressed")
+MenuPlainOrangeButton/styles/hover_pressed = SubResource("menu_orange_plain_pressed")
+MenuPlainOrangeButton/styles/disabled = SubResource("menu_orange_plain")
+MenuPlainOrangeButton/styles/focus = SubResource("card_focus")
+MenuRoundOrangeButton/base_type = &"Button"
+MenuRoundOrangeButton/colors/font_color = Color(1, 1, 1, 1)
+MenuRoundOrangeButton/colors/font_outline_color = Color(0.12, 0.18, 0.3, 1)
+MenuRoundOrangeButton/styles/normal = SubResource("menu_orange_round")
+MenuRoundOrangeButton/styles/hover = SubResource("menu_orange_round")
+MenuRoundOrangeButton/styles/pressed = SubResource("menu_orange_round_pressed")
+MenuRoundOrangeButton/styles/hover_pressed = SubResource("menu_orange_round_pressed")
+MenuRoundOrangeButton/styles/disabled = SubResource("menu_orange_round")
+MenuRoundOrangeButton/styles/focus = SubResource("card_focus")

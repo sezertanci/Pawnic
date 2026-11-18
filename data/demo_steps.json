@@ -1,0 +1,201 @@
+{
+	"seats": [2, 0],
+	"pawns_per_seat": 2,
+	"pause_sec": 1.2,
+	"speed": 0.6,
+	"steps": [
+		{
+			"text": "DEMO_DRAW",
+			"pawns": ["base", "base", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 3 },
+				{ "type": "back", "value": 3 },
+				{ "type": "swap", "value": 0 },
+				{ "type": "exit", "value": 0 }
+			],
+			"draw": true
+		},
+		{
+			"text": "DEMO_EXIT",
+			"pawns": ["base", "base", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 7 },
+				{ "type": "exit", "value": 0 },
+				{ "type": "back", "value": 5 },
+				{ "type": "forward", "value": 2 }
+			],
+			"card": 1,
+			"pawn": 0,
+			"to": "ring:36"
+		},
+		{
+			"text": "DEMO_FORWARD",
+			"pawns": ["ring:36", "base", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 5 },
+				{ "type": "forward", "value": 9 },
+				{ "type": "swap", "value": 0 },
+				{ "type": "back", "value": 3 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "ring:41"
+		},
+		{
+			"text": "DEMO_BOOST_UP",
+			"pawns": ["ring:41", "base", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 2 },
+				{ "type": "forward", "value": 5 },
+				{ "type": "exit", "value": 0 },
+				{ "type": "back", "value": 5 }
+			],
+			"card": 1,
+			"pawn": 0,
+			"to": "ring:51"
+		},
+		{
+			"text": "DEMO_BOOST_DOWN",
+			"pawns": ["ring:47", "base", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 6 },
+				{ "type": "forward", "value": 8 },
+				{ "type": "swap", "value": 0 },
+				{ "type": "shortcut", "value": 0 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "ring:51"
+		},
+		{
+			"text": "DEMO_CAPTURE",
+			"pawns": ["ring:51", "base", "ring:55", "base"],
+			"hand": [
+				{ "type": "forward", "value": 4 },
+				{ "type": "back", "value": 3 },
+				{ "type": "forward", "value": 10 },
+				{ "type": "exit", "value": 0 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "ring:55"
+		},
+		{
+			"text": "DEMO_SHIELD",
+			"pawns": ["ring:52", "base", "ring:1", "base"],
+			"hand": [
+				{ "type": "forward", "value": 3 },
+				{ "type": "forward", "value": 5 },
+				{ "type": "back", "value": 5 },
+				{ "type": "forward", "value": 11 }
+			],
+			"card": 1,
+			"pawn": 0,
+			"to": "ring:1"
+		},
+		{
+			"text": "DEMO_BACK",
+			"pawns": ["ring:3", "base", "ring:0", "base"],
+			"hand": [
+				{ "type": "forward", "value": 7 },
+				{ "type": "back", "value": 3 },
+				{ "type": "exit", "value": 0 },
+				{ "type": "forward", "value": 1 }
+			],
+			"card": 1,
+			"pawn": 0,
+			"to": "ring:0"
+		},
+		{
+			"text": "DEMO_SEND_BACK",
+			"pawns": ["ring:12", "base", "ring:30", "base"],
+			"hand": [
+				{ "type": "send_back", "value": 8 },
+				{ "type": "forward", "value": 4 },
+				{ "type": "back", "value": 5 },
+				{ "type": "forward", "value": 9 }
+			],
+			"card": 0,
+			"pawn": 2,
+			"to": "ring:22"
+		},
+		{
+			"text": "DEMO_SWAP",
+			"pawns": ["ring:40", "base", "ring:30", "base"],
+			"hand": [
+				{ "type": "forward", "value": 2 },
+				{ "type": "swap", "value": 0 },
+				{ "type": "forward", "value": 12 },
+				{ "type": "back", "value": 3 }
+			],
+			"card": 1,
+			"pawn": 0,
+			"target": 2,
+			"to": "ring:30"
+		},
+		{
+			"text": "DEMO_SHORTCUT",
+			"pawns": ["ring:20", "base", "ring:44", "base"],
+			"hand": [
+				{ "type": "shortcut", "value": 0 },
+				{ "type": "forward", "value": 6 },
+				{ "type": "back", "value": 5 },
+				{ "type": "forward", "value": 3 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "ring:35"
+		},
+		{
+			"text": "DEMO_JOKER",
+			"pawns": ["ring:30", "base", "ring:12", "base"],
+			"hand": [
+				{ "type": "forward", "value": 1 },
+				{ "type": "joker", "value": 0 },
+				{ "type": "back", "value": 3 },
+				{ "type": "swap", "value": 0 }
+			],
+			"card": 1,
+			"pawn": 1,
+			"to": "ring:36"
+		},
+		{
+			"text": "DEMO_HOME_LANE",
+			"pawns": ["ring:33", "base", "ring:5", "base"],
+			"hand": [
+				{ "type": "forward", "value": 5 },
+				{ "type": "forward", "value": 10 },
+				{ "type": "back", "value": 5 },
+				{ "type": "send_back", "value": 8 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "lane2:2"
+		},
+		{
+			"text": "DEMO_DISCARD",
+			"pawns": ["lane2:4", "lane2:5", "base", "base"],
+			"hand": [
+				{ "type": "forward", "value": 5 },
+				{ "type": "back", "value": 3 },
+				{ "type": "swap", "value": 0 },
+				{ "type": "send_back", "value": 8 }
+			],
+			"card": 0,
+			"discard": true
+		},
+		{
+			"text": "DEMO_WIN",
+			"pawns": ["lane2:4", "lane2:5", "ring:20", "base"],
+			"hand": [
+				{ "type": "forward", "value": 1 },
+				{ "type": "forward", "value": 8 },
+				{ "type": "back", "value": 5 },
+				{ "type": "exit", "value": 0 }
+			],
+			"card": 0,
+			"pawn": 0,
+			"to": "lane2:5"
+		}
+	]
+}

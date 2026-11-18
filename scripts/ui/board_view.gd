@@ -55,6 +55,8 @@ var selected_pawn := Move.NO_PAWN
 ## yapacak oyuncu; yollar onun renginde önizlenir.
 var preview_paths: Array[PackedInt32Array] = []
 var preview_seat := BoardLayout.NO_SEAT
+## Taş animasyonlarının hız çarpanı.
+var speed_scale := 1.0
 
 var _centers: Array[Vector2] = []
 ## Evdeki taşlar, eve geliş sırasıyla; yamuktaki dizilim bu sıraya göredir.
@@ -117,7 +119,7 @@ func animate_move(move: Move, path: Array[int], before: Array[Vector2]) -> void:
 	# Başlangıç anındaki sesler (ör. ışınlanma) tween'in ilk adımını beklemez.
 	for cue: StringName in animation.cues_between(-INF, _time):
 		Sound.play(cue)
-	_tween = create_tween()
+	_tween = create_tween().set_speed_scale(speed_scale)
 	_tween.tween_method(_set_time, 0.0, animation.duration(), animation.duration())
 	await _tween.finished
 	_animation = null

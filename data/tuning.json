@@ -43,7 +43,8 @@
 		"capture_sec": 0.5,
 		"capture_height": 1.5,
 		"settle_sec": 0.2,
-		"home_shrink_sec": 0.3
+		"home_shrink_sec": 0.3,
+		"speed_levels": [0.6, 1.0, 1.5]
 	},
 	"cards": {
 		"draw_rise_sec": 0.6,

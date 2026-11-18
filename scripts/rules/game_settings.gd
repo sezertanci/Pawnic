@@ -10,6 +10,8 @@ const KEY_BOT := "bot"
 const KEY_ANIMATION := "animation"
 const KEY_CARDS := "cards"
 const KEY_DECK := "deck"
+## Destedeki her öğenin kart sayısı anahtarı.
+const KEY_CARD_COUNT := "count"
 const KEY_EFFECTS := "effects"
 const KEY_UI := "ui"
 const REQUIRED_KEYS: Array[String] = [
@@ -48,6 +50,8 @@ var capture_height := 0.0
 var settle_time := 0.0
 ## Eve giren taşın bitiş karesindeki küçük cama girerken küçülme süresi.
 var home_shrink_time := 0.0
+## Oyun hızı seviyelerinin (yavaş, normal, hızlı) animasyon hız çarpanları.
+var speed_levels: Array[float] = []
 ## Kart animasyonu süreleri saniye cinsindendir.
 var card_draw_rise := 0.0
 var card_draw_land := 0.0
@@ -100,6 +104,14 @@ static func load_from(path: String) -> GameSettings:
 	return settings
 
 
+## Destedeki toplam kart sayısı.
+func deck_size() -> int:
+	var total := 0
+	for entry: Dictionary in deck:
+		total += int(entry[KEY_CARD_COUNT])
+	return total
+
+
 func _read_board(board: Dictionary) -> void:
 	board_layout = BoardLayout.load_from(board["layout"])
 
@@ -134,6 +146,8 @@ func _read_animation(animation: Dictionary) -> void:
 	capture_height = float(animation["capture_height"])
 	settle_time = float(animation["settle_sec"])
 	home_shrink_time = float(animation["home_shrink_sec"])
+	for level: Variant in animation["speed_levels"]:
+		speed_levels.append(float(level))
 
 
 func _read_cards(cards: Dictionary) -> void:

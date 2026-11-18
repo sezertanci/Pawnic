@@ -18,6 +18,10 @@
   taş girer). Yol ayrımında oyuncu varış karesini tahtada seçer. Şimdilik tek tahta var
   (`classic.json`, eski tahtanın aynısı); hangi tahtanın kullanılacağı `tuning.json`'dan gelir,
   tahta seçim ekranı yok.
+- Oyun hızı: Ayarlar'da Yavaş / Normal / Hızlı (`GameSpeed` autoload'u, tercih olarak saklanır).
+  Normal eski hızdır; çarpanlar `tuning.json` → `animation.speed_levels`. Yalnızca kart uçuşları
+  ve taş yürüyüşü hızlanır/yavaşlar; botun bekleme süreleri etkilenmez. "Nasıl oynanır"
+  demosu oyuncunun ayarından bağımsız, `demo_steps.json` → `speed` ile sabit yavaş oynar.
 
 ## Prototip kuralları (deneme için, değişebilir)
 - Tahta: 56 karelik ana yol, her renge 5 karelik ev yolu. Güvenli kareler: çıkış kareleri ve her

@@ -1,5 +1,5 @@
 extends Control
-## Ana sahne: ana ekran, yeni oyun ekranı ve oyun ekranı arasında geçişi yapar,
+## Ana sahne: ana ekran, yeni oyun ekranı, oyun ekranı ve demo arasında geçişi yapar,
 ## yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede sütunun yanlarını dolduran
 ## düz renk yalnızca menü ekranlarında görünür; arka plan, düğmeler öne çıksın diye hafifçe
 ## bulanıklaştırılır.
@@ -13,6 +13,7 @@ var _rng := RandomNumberGenerator.new()
 @onready var _home: HomeScreen = $Column/HomeScreen
 @onready var _setup: SetupScreen = $Column/SetupScreen
 @onready var _game_screen: GameScreen = $Column/GameScreen
+@onready var _demo: DemoScreen = $Column/DemoScreen
 
 
 func _ready() -> void:
@@ -26,6 +27,8 @@ func _ready() -> void:
 	_game_screen.finished.connect(_show_home)
 	_game_screen.replay_requested.connect(_on_start_requested)
 	_game_screen.left.connect(_show_home)
+	_home.demo_requested.connect(_on_demo_requested)
+	_demo.closed.connect(_on_demo_closed)
 	_show_home()
 
 
@@ -36,10 +39,20 @@ func _show_home() -> void:
 
 ## Verilen ekranı gösterir, ötekileri gizler.
 func _show_only(screen: Control) -> void:
-	for other: Control in [_home, _setup, _game_screen]:
+	for other: Control in [_home, _setup, _game_screen, _demo]:
 		other.visible = other == screen
-	_backdrop.visible = screen != _game_screen
+	_backdrop.visible = screen != _game_screen and screen != _demo
 	_sides.visible = _backdrop.visible
+
+
+func _on_demo_requested() -> void:
+	_show_only(_demo)
+	_demo.open()
+
+
+func _on_demo_closed() -> void:
+	_show_home()
+	_home.show_rules()
 
 
 func _on_start_requested(bot_flags: Array[bool], pawns: int) -> void:

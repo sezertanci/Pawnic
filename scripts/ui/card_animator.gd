@@ -7,6 +7,8 @@ extends Control
 var settings: GameSettings
 var deck_pile: PileView
 var discard_pile: PileView
+## Kart uçuşlarının hız çarpanı; botun kartı gösterme süresini etkilemez.
+var speed_scale := 1.0
 
 
 ## Kapalı kart desteden büyüyerek kalkar, yolda açılır ve elin boş yerine iner.
@@ -65,7 +67,7 @@ func _to_discard(card: CardFace) -> void:
 
 ## Kartı verilen yere, boya ve ölçeğe aynı anda götürür.
 func _fly(card: CardFace, target: Rect2, duration: float, card_scale: float) -> void:
-	var tween := create_tween().set_parallel()
+	var tween := create_tween().set_parallel().set_speed_scale(speed_scale)
 	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(card, "position", target.position, duration)
 	tween.tween_property(card, "size", target.size, duration)
