@@ -118,6 +118,7 @@ func _start_turn() -> void:
 	_show_idle_hand()
 	_refresh_table()
 	var seat := _game.current_seat()
+	_board_view.turn_seat = seat
 	if _game.is_bot_turn():
 		_play_bot_turn()
 	elif _game.human_count() > 1:

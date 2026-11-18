@@ -12,6 +12,7 @@ const LABEL_VARIATION := &"RuleLabel"
 const SUBHEADING_VARIATION := &"RulesSubheading"
 const CARDS_HEADING := "RULES_CARDS"
 const RULES: Dictionary[RuleIcon.Icon, String] = {
+	RuleIcon.Icon.DIRECTION: "RULE_DIRECTION",
 	RuleIcon.Icon.CARDS: "RULE_DRAW",
 	RuleIcon.Icon.EXIT: "RULE_EXIT",
 	RuleIcon.Icon.CAPTURE: "RULE_CAPTURE",

@@ -23,6 +23,18 @@
   ve taş yürüyüşü hızlanır/yavaşlar; botun bekleme süreleri etkilenmez. "Nasıl oynanır"
   demosu oyuncunun ayarından bağımsız, `demo_steps.json` → `speed` ile sabit yavaş oynar.
 
+- Tahta düzeni ekran oranına göre değişmeyecek (2026-11-18: 13×17 ve altıgen taslakları çizildi,
+  vazgeçildi). Bunun yerine kareler bitişik çiziliyor, üstlerindeki sayı ve simgeler büyütüldü.
+- Başlangıçtaki aynı taşlar arasından çıkışta taş seçmeyi kolaylaştırma fikrine gerek görülmedi
+  (2026-11-18). Her sayı kartıyla taş çıkarma fikri de şimdilik gündemde değil.
+- Hareket yönü tahtada, bitiş alanının çevresinde 30 saniyede bir tur atan, yarı saydam dört oklu
+  yayla gösterilir; yaylar sıradaki oyuncunun rengindedir (`TurnSpinner`, 2026-11-18). "Nasıl
+  oynanır" listesinin başında da "Oyun saat yönünde oynanır." maddesi var.
+- El boyutu 3+1 (elde 3 kart, sırada 4. çekilir) şimdilik uygun (2026-11-18).
+- Düzensiz hız kareleri renklere avantaj sağlamıyor (2026-11-18, `tools/seat_balance.gd`, kurulum başına
+  2000 bot oyunu, ilk oynayan sırayla değişerek): 2 oyuncuda yeşil %50,3 / kırmızı %49,7; 4 oyuncuda
+  bütün renkler %23,8–26,5 arası, hiçbiri anlamlı sapma sınırını (±1,9 puan) geçmedi.
+
 ## Prototip kuralları (deneme için, değişebilir)
 - Tahta: 56 karelik ana yol, her renge 5 karelik ev yolu. Güvenli kareler: çıkış kareleri ve her
   kenarda bir kare daha. Hız kareleri her kenarda iki tane, değerleri karışık:
@@ -62,20 +74,18 @@
 - Yükleme (upload) anahtarı oluşturulmadı; AAB release derlemesi bunu bekliyor.
 - Çeviriler Claude tarafından yazıldı; anadili konuşan biri tarafından kontrol edilmeli.
 - Kullanıcının tablet denemesinden çıkan değişiklik listesi bekleniyor.
-- El boyutu (3+1) deneme sonrası kesinleşecek.
-- Kartlarda ve tahtada hareket yönünü gösteren ok yok.
-- Hız kareleri artık simetrik değil; renkler arasında avantaj farkı olup olmadığı simülasyonla ölçülmedi.
+- İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
+  Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
 - Yer değiştirmede taşlar düz kayıyor, ışık kuyruğu yok.
 - Proje simgesi yok (dışa aktarmada uyarı veriyor).
-- Bot basit (tek hamle ileri bakar); zorluk seviyesi yok.
+- Bot basit (tek hamle ileri bakar); zorluk seviyesi yok. Karar: zorluk "Yeni oyun" ekranında
+  seçilecek, oyun ekranında çeviri dosyasından gelen yazıyla gösterilecek. Satrançtaki gibi
+  kademeli olacak; en zor seviyede oyuncu neredeyse hep kaybetmeli. Dört seviye: Kolay, Orta,
+  Zor, Çok zor. Bütün botlar aynı zorlukta; üst çubukta saatin yanında tek yazı. Botun her
+  seviyedeki davranışı henüz tasarlanmadı.
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
-- Başlangıçtaki taşlar birbirinin aynı olduğu için çıkışta taş seçmek gereksiz. Seçenekler: tek
-  anlamlı hamlesi olan kartı dokununca oynamak, çıkış karesine dokunmak, kartta onay.
-- Çıkış kartı yerine her sayı kartıyla taş çıkarma fikri (şimdilik ertelendi). Seçenekler: taş
-  yalnızca çıkış karesine konur / taş sayı − 1 ilerler / yalnızca 1 ve 6 çıkarır. Önce simülasyonla
-  ölçülecek.
 - "Nasıl oynanır" ekranındaki kural metinleri (RULE_* anahtarları) daha sonra düzeltilecek;
   ekranın yeni düzeni (panel, simgeli satırlar, Tamam düğmesi) şimdilik böyle kalıyor.
 

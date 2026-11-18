@@ -1,10 +1,10 @@
 class_name RuleIcon
 extends Control
 ## "Nasıl oynanır" ekranında bir kuralın yanındaki küçük simge: açık renkli yuvarlak bir kutu ve
-## içinde kurala özel çizim. Kartlardaki semboller (çıkış, geri yolla, ev, yıldız) ve atma işareti
-## yeniden kullanılır; renkler arayüz temasından okunur.
+## içinde kurala özel çizim. Kartlardaki semboller (çıkış, geri yolla, ev, yıldız), atma işareti
+## ve tahtadaki dönen sıra okunun yayları yeniden kullanılır; renkler arayüz temasından okunur.
 
-enum Icon { CARDS, EXIT, CAPTURE, BOOST, HOME, DISCARD, WIN }
+enum Icon { DIRECTION, CARDS, EXIT, CAPTURE, BOOST, HOME, DISCARD, WIN }
 
 const STYLE := &"RuleIcon"
 const PANEL := &"panel"
@@ -27,6 +27,11 @@ const EDGE_COUNT := 4
 const BOOST_SPEEDS: Array[int] = [4, -2]
 ## Atma işaretinin yarıçapı (kutuya oranla).
 const DISCARD_RADIUS := 0.3
+## Yön simgesi: tahtadaki dönen ok gibi saat yönünde dört oklu yay, ileri kartı renginde.
+## Yarıçap, çizgi kalınlığı ve ok başının yarı genişliği kutuya oranla.
+const DIRECTION_RADIUS := 0.3
+const DIRECTION_LINE := 0.07
+const DIRECTION_HEAD := 0.11
 
 var _icon := Icon.CARDS
 var _symbol := CardSymbol.new()
@@ -53,6 +58,22 @@ func _draw() -> void:
 			_draw_speeds()
 		Icon.DISCARD:
 			DiscardMark.draw_mark(self, size / 2.0, size.x * DISCARD_RADIUS)
+		Icon.DIRECTION:
+			_draw_direction()
+
+
+## Saat yönünde dönen dört oklu yay.
+func _draw_direction() -> void:
+	var color := get_theme_color(CardSymbol.FORWARD_COLOR, CardSymbol.STYLE)
+	var side := size.x
+	TurnSpinner.draw_arrows(
+		self,
+		size / 2.0,
+		side * DIRECTION_RADIUS,
+		side * DIRECTION_LINE,
+		side * DIRECTION_HEAD,
+		color
+	)
 
 
 ## Örnek hız değerleri kutuyu eşit genişlikte bölerek yan yana çizilir.

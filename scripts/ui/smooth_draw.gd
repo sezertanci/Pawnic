@@ -47,13 +47,14 @@ static func circle(
 	canvas.draw_circle(center, radius - width / 2.0, fill, true, -1.0, true)
 
 
-## Yayın noktaları (from'dan to'ya, radyan); stroke ile çizilmek içindir.
+## Yayın noktaları (from'dan to'ya, radyan); stroke ile çizilmek içindir. Büyük yaylarda
+## köşeler görünmesin diye count artırılabilir.
 static func arc_points(
-	center: Vector2, radius: float, from: float, to: float
+	center: Vector2, radius: float, from: float, to: float, count: int = ARC_POINTS
 ) -> PackedVector2Array:
 	var points := PackedVector2Array()
-	for index: int in range(ARC_POINTS + 1):
-		var angle := lerpf(from, to, float(index) / ARC_POINTS)
+	for index: int in range(count + 1):
+		var angle := lerpf(from, to, float(index) / count)
 		points.append(center + Vector2.from_angle(angle) * radius)
 	return points
 

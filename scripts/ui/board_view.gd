@@ -58,6 +58,11 @@ var preview_paths: Array[PackedInt32Array] = []
 var preview_seat := BoardLayout.NO_SEAT
 ## Taş animasyonlarının hız çarpanı.
 var speed_scale := 1.0
+## Sırası gelen koltuk; ortadaki dönen ok bu renkte çizilir. NO_SEAT iken ok gösterilmez.
+var turn_seat := BoardLayout.NO_SEAT:
+	set(value):
+		turn_seat = value
+		_update_spinner()
 
 var _centers: Array[Vector2] = []
 ## Evdeki taşlar, eve geliş sırasıyla; yamuktaki dizilim bu sıraya göredir.
@@ -65,12 +70,17 @@ var _home_order: Array[int] = []
 var _radii: Array[float] = []
 ## Oynanmakta olan hamlenin animasyonu; yoksa null.
 var _animation: PawnAnimation
+## Ortadaki dönen sıra oku; turn_seat NO_SEAT iken gizlidir.
+var _spinner := TurnSpinner.new()
 var _tween: Tween
 var _time := 0.0
 
 
 func _ready() -> void:
 	Skins.changed.connect(queue_redraw)
+	Skins.changed.connect(_update_spinner)
+	add_child(_spinner)
+	_update_spinner()
 
 
 ## Seçilebilir bir şey ya da yol önizlemesi varken dalga ve varış ışığı oynasın diye tahta her
@@ -87,6 +97,9 @@ func _draw() -> void:
 	var active := _active_seats()
 	_draw_links(active)
 	_draw_home_tray(active)
+	var area := _home_area()
+	_spinner.position = area.get_center()
+	_spinner.half = area.size.x / 2.0
 	for square: int in range(board.layout.square_count()):
 		if _is_visible(square, active):
 			_draw_square(square, active)
@@ -225,6 +238,14 @@ func _draw_home_tray(active: Array[int]) -> void:
 		sides.append(_home_side(seat))
 		colors.append(skin.seat_color(seat) if active.has(seat) else skin.mark_color)
 	HomeTray.draw(self, _home_area(), sides, colors, skin, _cell_size())
+
+
+## Dönen oku sıradaki oyuncunun rengine boyar; sıra kimsede değilse gizler.
+func _update_spinner() -> void:
+	_spinner.visible = turn_seat != BoardLayout.NO_SEAT
+	_spinner.set_process(_spinner.visible)
+	if _spinner.visible:
+		_spinner.color = Skins.current.seat_color(turn_seat)
 
 
 ## Bitiş karelerinin hücrelerini kapsayan alan (piksel).
