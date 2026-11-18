@@ -31,8 +31,6 @@ extends Resource
 @export var shortcut_lighten := 0.6
 ## Ev yolundaki çimenin sahibinin rengine ne kadar boyanacağı.
 @export var lane_tint := 0.3
-## Başlangıç alanının saydamlığı.
-@export var base_alpha := 0.25
 ## Çıkış karesinin oyuncu rengine ne kadar boyanacağı.
 @export var start_tint := 0.5
 

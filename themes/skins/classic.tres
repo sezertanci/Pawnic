@@ -28,5 +28,4 @@ lane_texture = ExtResource("grass")
 pawn_textures = Array[Texture2D]([ExtResource("pawn_red"), ExtResource("pawn_blue"), ExtResource("pawn_green"), ExtResource("pawn_yellow")])
 shortcut_lighten = 0.6
 lane_tint = 0.3
-base_alpha = 0.22
 start_tint = 0.55

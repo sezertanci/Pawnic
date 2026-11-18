@@ -56,3 +56,32 @@ static func arc_points(
 		var angle := lerpf(from, to, float(index) / ARC_POINTS)
 		points.append(center + Vector2.from_angle(angle) * radius)
 	return points
+
+
+## İki nokta sırası arasını köşe renkli dörtgenlerle doldurur; renkler şerit boyunca ve iki
+## kenar arasında yumuşakça geçer. Sıraların ve renklerin boyu aynı olmalıdır.
+static func ribbon(
+	canvas: CanvasItem,
+	side_a: PackedVector2Array,
+	side_b: PackedVector2Array,
+	colors_a: PackedColorArray,
+	colors_b: PackedColorArray
+) -> void:
+	for index: int in range(side_a.size() - 1):
+		var next := index + 1
+		var quad := PackedVector2Array([side_a[index], side_a[next], side_b[next], side_b[index]])
+		var colors := PackedColorArray(
+			[colors_a[index], colors_a[next], colors_b[next], colors_b[index]]
+		)
+		canvas.draw_primitive(quad, colors, PackedVector2Array())
+
+
+## Kırık çizginin her noktası için baştan yol boyunca uzaklığın toplam uzunluğa oranı (0..1).
+static func path_progress(points: PackedVector2Array) -> PackedFloat32Array:
+	var distances := PackedFloat32Array([0.0])
+	for index: int in range(1, points.size()):
+		distances.append(distances[index - 1] + points[index - 1].distance_to(points[index]))
+	var total := distances[distances.size() - 1]
+	for index: int in range(distances.size()):
+		distances[index] = distances[index] / total if total > 0.0 else 0.0
+	return distances

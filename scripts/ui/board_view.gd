@@ -240,9 +240,8 @@ func _draw_links(active: Array[int]) -> void:
 
 ## Başlangıç alanı; içinden taş seçilebiliyorsa seçilebilir kare gibi çerçevelenir.
 func _draw_base(seat: int) -> void:
-	var skin := Skins.current
 	var base := _base_rect(seat)
-	draw_rect(base, Color(skin.seat_color(seat), skin.base_alpha))
+	BasePainter.draw_base(self, base, Skins.current.seat_color(seat), _cell_size())
 	if _base_pawn(seat) != Move.NO_PAWN:
 		_draw_wave_frame(base)
 
@@ -345,36 +344,22 @@ func _draw_trail(pawn: int) -> void:
 		return
 	var color := Skins.current.seat_color(board.owners[pawn]).lightened(TRAIL_LIGHTEN)
 	var fades := _trail_fades(points)
-	var colors: Array[Color] = []
-	var edges: Array[Vector2] = []
+	var colors := PackedColorArray()
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
 	for index: int in range(points.size()):
 		colors.append(Color(color, TRAIL_ALPHA * pow(fades[index], TRAIL_FADE_POWER)))
-		edges.append(_trail_normal(points, index) * _radii[pawn] * fades[index])
-	for index: int in range(points.size() - 1):
-		var next := index + 1
-		var quad := PackedVector2Array(
-			[
-				points[index] + edges[index],
-				points[next] + edges[next],
-				points[next] - edges[next],
-				points[index] - edges[index],
-			]
-		)
-		var quad_colors := PackedColorArray(
-			[colors[index], colors[next], colors[next], colors[index]]
-		)
-		draw_primitive(quad, quad_colors, PackedVector2Array())
+		var edge := _trail_normal(points, index) * _radii[pawn] * fades[index]
+		left.append(points[index] + edge)
+		right.append(points[index] - edge)
+	SmoothDraw.ribbon(self, left, right, colors, colors)
 
 
 ## Her köşenin taştan yol boyunca uzaklığına göre 1'den (taş) 0'a (uç) inen oranı.
 static func _trail_fades(points: Array[Vector2]) -> Array[float]:
-	var distances: Array[float] = [0.0]
-	for index: int in range(1, points.size()):
-		distances.append(distances[index - 1] + points[index - 1].distance_to(points[index]))
-	var total := distances[distances.size() - 1]
 	var fades: Array[float] = []
-	for distance: float in distances:
-		fades.append(1.0 - distance / total)
+	for progress: float in SmoothDraw.path_progress(PackedVector2Array(points)):
+		fades.append(1.0 - progress)
 	return fades
 
 
