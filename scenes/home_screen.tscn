@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/ui/logo_ring.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="badge"]
 [ext_resource type="Script" path="res://scripts/ui/rule_list.gd" id="rule_list"]
+[ext_resource type="Script" path="res://scripts/ui/wide_button.gd" id="wide"]
 
 [node name="HomeScreen" type="Control"]
 layout_mode = 3
@@ -48,7 +49,6 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
-custom_minimum_size = Vector2(520, 120)
 theme_type_variation = &"MenuGreenButton"
 text = "RESUME"
 script = ExtResource("badge")
@@ -58,7 +58,6 @@ symbol = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
-custom_minimum_size = Vector2(520, 120)
 theme_type_variation = &"MenuBlueButton"
 text = "NEW_GAME"
 script = ExtResource("badge")
@@ -68,7 +67,6 @@ symbol = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
-custom_minimum_size = Vector2(520, 120)
 theme_type_variation = &"MenuOrangeButton"
 text = "HOW_TO_PLAY"
 script = ExtResource("badge")
@@ -128,6 +126,6 @@ script = ExtResource("rule_list")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
-custom_minimum_size = Vector2(520, 0)
 theme_type_variation = &"PrimaryButton"
 text = "OK"
+script = ExtResource("wide")

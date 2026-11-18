@@ -42,7 +42,7 @@ Yükleme anahtarı ve şifreleri depoya girmez. Godot bunları `.godot/export_cr
 tutar. Play'de uygulama imzalama (Play App Signing) kullanılır.
 
 ## Klasörler
-- `data/tuning.json`: kullanılan tahta dosyası, kural, deste ve bot ayarları
+- `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu)
 - `data/boards/`: tahta tasarımları (aşağıda)
 - `data/translations.csv`: oyuncuya görünen metinlerin 8 dildeki karşılıkları
 - `scripts/rules/`: kural motoru (`BoardState`, `GameMatch`, `MovePicker`), kartlar ve bot

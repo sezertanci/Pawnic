@@ -13,14 +13,15 @@
 		"default_pawns": 4
 	},
 	"deck": [
-		{ "type": "forward", "value": 2, "count": 1 },
-		{ "type": "forward", "value": 3, "count": 2 },
+		{ "type": "forward", "value": 1, "count": 3 },
+		{ "type": "forward", "value": 2, "count": 3 },
+		{ "type": "forward", "value": 3, "count": 3 },
 		{ "type": "forward", "value": 4, "count": 3 },
-		{ "type": "forward", "value": 5, "count": 4 },
-		{ "type": "forward", "value": 6, "count": 5 },
-		{ "type": "forward", "value": 7, "count": 6 },
-		{ "type": "forward", "value": 8, "count": 5 },
-		{ "type": "forward", "value": 9, "count": 4 },
+		{ "type": "forward", "value": 5, "count": 3 },
+		{ "type": "forward", "value": 6, "count": 2 },
+		{ "type": "forward", "value": 7, "count": 4 },
+		{ "type": "forward", "value": 8, "count": 4 },
+		{ "type": "forward", "value": 9, "count": 3 },
 		{ "type": "forward", "value": 10, "count": 3 },
 		{ "type": "forward", "value": 11, "count": 2 },
 		{ "type": "forward", "value": 12, "count": 1 },
@@ -63,6 +64,10 @@
 		"confetti_sway": 30.0,
 		"confetti_max_sway_speed": 4.0,
 		"confetti_max_spin": 8.0
+	},
+	"ui": {
+		"button_width": 520,
+		"button_height": 120
 	},
 	"bot": {
 		"delay_sec": 0.9,

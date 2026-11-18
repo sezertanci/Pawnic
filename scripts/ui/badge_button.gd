@@ -1,5 +1,5 @@
 class_name BadgeButton
-extends Button
+extends WideButton
 ## Ana ekran düğmesi: dokusunun solundaki yuvarlağın içine seçilen simgeyi çizer.
 ## Simgenin yeri ve boyu düğme yüksekliğine oranla verilir.
 

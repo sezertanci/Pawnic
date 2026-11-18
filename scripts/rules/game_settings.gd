@@ -1,6 +1,6 @@
 class_name GameSettings
 extends RefCounted
-## Kural, bot, taş, kart animasyonu ve ekran efekti ayarları. Değerler data/tuning.json
+## Kural, bot, taş, kart animasyonu, ekran efekti ve arayüz ayarları. Değerler data/tuning.json
 ## dosyasından okunur.
 
 const DEFAULT_PATH := "res://data/tuning.json"
@@ -11,8 +11,9 @@ const KEY_ANIMATION := "animation"
 const KEY_CARDS := "cards"
 const KEY_DECK := "deck"
 const KEY_EFFECTS := "effects"
+const KEY_UI := "ui"
 const REQUIRED_KEYS: Array[String] = [
-	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS
+	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS, KEY_UI
 ]
 
 var board_layout: BoardLayout
@@ -69,6 +70,8 @@ var confetti_max_fall_speed := 0.0
 var confetti_sway := 0.0
 var confetti_max_sway_speed := 0.0
 var confetti_max_spin := 0.0
+## Menü düğmelerinin (ana ekran, yeni oyun, oyun sonu, kurallar) ortak en küçük boyutu (piksel).
+var menu_button_size := Vector2.ZERO
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -85,6 +88,7 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_animation(root[KEY_ANIMATION])
 	settings._read_cards(root[KEY_CARDS])
 	settings._read_effects(root[KEY_EFFECTS])
+	settings._read_ui(root[KEY_UI])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
 	return settings
@@ -146,3 +150,7 @@ func _read_effects(effects: Dictionary) -> void:
 	confetti_sway = float(effects["confetti_sway"])
 	confetti_max_sway_speed = float(effects["confetti_max_sway_speed"])
 	confetti_max_spin = float(effects["confetti_max_spin"])
+
+
+func _read_ui(ui: Dictionary) -> void:
+	menu_button_size = Vector2(float(ui["button_width"]), float(ui["button_height"]))
