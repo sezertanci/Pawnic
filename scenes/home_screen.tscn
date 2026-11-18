@@ -127,6 +127,7 @@ alignment = 1
 
 [node name="Panel" type="PanelContainer" parent="RulesOverlay/Margin/Box"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_type_variation = &"RulesPanel"
 
 [node name="Box" type="VBoxContainer" parent="RulesOverlay/Margin/Box/Panel"]
@@ -139,8 +140,14 @@ theme_type_variation = &"RulesHeading"
 text = "HOW_TO_PLAY"
 horizontal_alignment = 1
 
-[node name="RuleList" type="VBoxContainer" parent="RulesOverlay/Margin/Box/Panel/Box"]
+[node name="Scroll" type="ScrollContainer" parent="RulesOverlay/Margin/Box/Panel/Box"]
 layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RuleList" type="VBoxContainer" parent="RulesOverlay/Margin/Box/Panel/Box/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 theme_override_constants/separation = 20
 script = ExtResource("rule_list")

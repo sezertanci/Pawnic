@@ -23,9 +23,8 @@ const MINI_CARD_STYLES: Array[StringName] = [CardFace.BACK_STYLE, CardFace.FACE_
 const MINI_CARD_SCALE := 0.35
 ## Kutunun dört köşesi ve dört kenarı (Corner ve Side sabitleri 0–3).
 const EDGE_COUNT := 4
-## Hız karesi simgesi: yazının boyu ve taban çizgisi (kutuya oranla).
-## Hız kuralı simgesindeki kare değeri; kural metnindeki (RULE_BOOST) sayıyla aynıdır.
-const BOOST_SPEED := 3
+## Hız kuralı simgesinde yan yana çizilen örnek kare değerleri: biri ileri, biri geri.
+const BOOST_SPEEDS: Array[int] = [4, -2]
 ## Atma işaretinin yarıçapı (kutuya oranla).
 const DISCARD_RADIUS := 0.3
 
@@ -51,9 +50,17 @@ func _draw() -> void:
 		Icon.CARDS:
 			_draw_cards()
 		Icon.BOOST:
-			BigNumber.draw_speed(self, Rect2(Vector2.ZERO, size), BOOST_SPEED)
+			_draw_speeds()
 		Icon.DISCARD:
 			DiscardMark.draw_mark(self, size / 2.0, size.x * DISCARD_RADIUS)
+
+
+## Örnek hız değerleri kutuyu eşit genişlikte bölerek yan yana çizilir.
+func _draw_speeds() -> void:
+	var width := size.x / BOOST_SPEEDS.size()
+	for index: int in range(BOOST_SPEEDS.size()):
+		var rect := Rect2(Vector2(width * index, 0.0), Vector2(width, size.y))
+		BigNumber.draw_speed(self, rect, BOOST_SPEEDS[index])
 
 
 ## Biri kapalı biri açık, birbirine yaslanmış iki küçük kart.
