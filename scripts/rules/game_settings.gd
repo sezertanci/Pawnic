@@ -37,9 +37,11 @@ var hop_time := 0.0
 var hop_height := 0.0
 var boost_pause := 0.0
 ## Kısayolda ve yer değiştirmede taşın yol üstünden kayma süresi (ışınlanma sesiyle aynı
-## uzunlukta) ve ışık kuyruğu.
+## uzunlukta), kayma bitince ışık kuyruğunun toplanma süresi ve kuyruğun kare cinsinden en
+## fazla uzunluğu.
 var slide_time := 0.0
 var trail_time := 0.0
+var trail_squares := 0.0
 var capture_time := 0.0
 var capture_height := 0.0
 ## Hamleden sonra aynı karedeki taşların yeniden dizilme süresi.
@@ -125,6 +127,7 @@ func _read_animation(animation: Dictionary) -> void:
 	boost_pause = float(animation["boost_pause_sec"])
 	slide_time = float(animation["slide_sec"])
 	trail_time = float(animation["trail_sec"])
+	trail_squares = float(animation["trail_squares"])
 	capture_time = float(animation["capture_sec"])
 	capture_height = float(animation["capture_height"])
 	settle_time = float(animation["settle_sec"])

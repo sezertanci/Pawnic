@@ -71,18 +71,43 @@ func add_trail(pawn: int, start: float, end: float) -> void:
 	_trails[pawn] = Vector2(start, end)
 
 
-## Kuyruğun noktaları, taşa en yakından başlayarak: time'dan önceki span süresi count parçaya
-## bölünür. Kayma bitince kuyruk taşın içine çekilir.
-func trail_points(pawn: int, time: float, span: float, count: int) -> Array[Vector2]:
+## Kuyruğun köşe noktaları, taştan başlayarak taşın geçtiği yol boyunca geriye doğru. Yol en
+## fazla max_length uzunluğundadır. Kayma bitince kuyruk retract süresinde taşın içine çekilir.
+func trail_points(pawn: int, time: float, max_length: float, retract: float) -> Array[Vector2]:
 	var points: Array[Vector2] = []
 	if not _trails.has(pawn):
 		return points
 	var trail := _trails[pawn]
-	for index: int in range(1, count + 1):
-		var sample := time - span * index / count
-		if sample >= trail.x and sample <= trail.y:
-			points.append(position_at(pawn, sample, Vector2.ZERO))
-	return points
+	var now := minf(time, trail.y)
+	var length := max_length
+	if time > trail.y:
+		length *= 1.0 - (time - trail.y) / retract if retract > 0.0 else 0.0
+	if time < trail.x or length <= 0.0:
+		return points
+	points.append(position_at(pawn, now, Vector2.ZERO))
+	var segments: Array = _segments[pawn]
+	for index: int in range(segments.size() - 1, -1, -1):
+		var segment: Segment = segments[index]
+		if segment.start < now and segment.start >= trail.x:
+			points.append(segment.from)
+	return _clipped(points, length)
+
+
+## Kırık çizgiyi baştan itibaren length uzunluğunda keser; üst üste düşen noktaları atar.
+static func _clipped(points: Array[Vector2], length: float) -> Array[Vector2]:
+	var result: Array[Vector2] = [points[0]]
+	var left := length
+	for index: int in range(1, points.size()):
+		var from := result[result.size() - 1]
+		var step := from.distance_to(points[index])
+		if is_zero_approx(step):
+			continue
+		if step >= left:
+			result.append(from.move_toward(points[index], left))
+			break
+		left -= step
+		result.append(points[index])
+	return result
 
 
 ## time anında cue sesinin çalınmasını ister (ör. taşın her inişinde adım sesi).

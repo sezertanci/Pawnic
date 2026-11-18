@@ -39,6 +39,7 @@
 		"boost_pause_sec": 0.3,
 		"slide_sec": 1.8,
 		"trail_sec": 0.54,
+		"trail_squares": 4,
 		"capture_sec": 0.5,
 		"capture_height": 1.5,
 		"settle_sec": 0.2,

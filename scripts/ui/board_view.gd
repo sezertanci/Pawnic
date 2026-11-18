@@ -37,9 +37,10 @@ const SHIELD_POINTS: Array[Vector2] = [
 const MARK_HALF := Vector2(0.8, 1.0)
 ## Kısayol evinin yarı boyu: gövdesi kalkan kadar geniş görünsün diye kalkandan geniş tutulur.
 const HOUSE_HALF := Vector2(1.05, 0.95)
-## Işık kuyruğundaki daire sayısı, en parlak dairenin saydamlığı ve rengin beyaza yaklaşma oranı.
-const TRAIL_SAMPLES := 12
-const TRAIL_ALPHA := 0.6
+## Işık kuyruğunun taşın altındaki saydamlığı, rengin beyaza yaklaşma oranı ve solmanın üssü
+## (1'den küçük üs, kuyruğun uca kadar daha uzun süre opak kalmasını sağlar).
+const TRAIL_ALPHA := 1.0
+const TRAIL_FADE_POWER := 0.5
 const TRAIL_LIGHTEN := 0.5
 ## Kısayol karesindeki evin çizgi kalınlığı (kare boyuna oranla).
 const HOUSE_LINE_RATIO := 0.03
@@ -334,14 +335,55 @@ func _draw_pawns() -> void:
 		_draw_pawn(pawn, ground + Vector2.UP * height, radius)
 
 
-## Kayan taşın arkasındaki ışık kuyruğu: taştan uzaklaştıkça küçülen ve solan daireler.
+## Kayan taşın arkasındaki ışık kuyruğu: taştan uzaklaştıkça incelen ve solan kesintisiz şerit.
+## Her köşede genişlik ve renk, yol boyunca taştan uzaklığa göre azalır.
 func _draw_trail(pawn: int) -> void:
-	var span := board.settings.trail_time
-	var points := _animation.trail_points(pawn, _time, span, TRAIL_SAMPLES)
+	var settings := board.settings
+	var length := settings.trail_squares * _cell_size()
+	var points := _animation.trail_points(pawn, _time, length, settings.trail_time)
+	if points.size() < 2:
+		return
 	var color := Skins.current.seat_color(board.owners[pawn]).lightened(TRAIL_LIGHTEN)
+	var fades := _trail_fades(points)
+	var colors: Array[Color] = []
+	var edges: Array[Vector2] = []
 	for index: int in range(points.size()):
-		var fade := 1.0 - float(index + 1) / (TRAIL_SAMPLES + 1)
-		draw_circle(points[index], _radii[pawn] * fade, Color(color, TRAIL_ALPHA * fade))
+		colors.append(Color(color, TRAIL_ALPHA * pow(fades[index], TRAIL_FADE_POWER)))
+		edges.append(_trail_normal(points, index) * _radii[pawn] * fades[index])
+	for index: int in range(points.size() - 1):
+		var next := index + 1
+		var quad := PackedVector2Array(
+			[
+				points[index] + edges[index],
+				points[next] + edges[next],
+				points[next] - edges[next],
+				points[index] - edges[index],
+			]
+		)
+		var quad_colors := PackedColorArray(
+			[colors[index], colors[next], colors[next], colors[index]]
+		)
+		draw_primitive(quad, quad_colors, PackedVector2Array())
+
+
+## Her köşenin taştan yol boyunca uzaklığına göre 1'den (taş) 0'a (uç) inen oranı.
+static func _trail_fades(points: Array[Vector2]) -> Array[float]:
+	var distances: Array[float] = [0.0]
+	for index: int in range(1, points.size()):
+		distances.append(distances[index - 1] + points[index - 1].distance_to(points[index]))
+	var total := distances[distances.size() - 1]
+	var fades: Array[float] = []
+	for distance: float in distances:
+		fades.append(1.0 - distance / total)
+	return fades
+
+
+## Köşedeki şeridin dik yönü: komşu parçaların yönlerinin ortalamasına dik birim vektör.
+static func _trail_normal(points: Array[Vector2], index: int) -> Vector2:
+	var before := points[maxi(index - 1, 0)]
+	var after := points[mini(index + 1, points.size() - 1)]
+	var direction := (after - points[index]).normalized() + (points[index] - before).normalized()
+	return direction.normalized().orthogonal()
 
 
 func _draw_shadow(center: Vector2, radius: float) -> void:

@@ -43,3 +43,23 @@ func test_pulse_grows_then_returns() -> void:
 	assert_eq(_animation.scale_at(2, 2.0), 1.0)
 	assert_true(_animation.has(2))
 	assert_false(_animation.has(3))
+
+
+func test_trail_follows_path_corners_up_to_max_length() -> void:
+	_animation.add_segment(0, Vector2.ZERO, Vector2(10, 0), 0.0, 1.0, 0.0)
+	_animation.add_segment(0, Vector2(10, 0), Vector2(10, 10), 1.0, 1.0, 0.0)
+	_animation.add_trail(0, 0.0, 2.0)
+
+	var points := _animation.trail_points(0, 1.5, 8.0, 1.0)
+
+	assert_eq(points, [Vector2(10, 5), Vector2(10, 0), Vector2(7, 0)] as Array[Vector2])
+
+
+func test_trail_shrinks_after_slide_ends() -> void:
+	_animation.add_segment(0, Vector2.ZERO, Vector2(10, 0), 0.0, 1.0, 0.0)
+	_animation.add_trail(0, 0.0, 1.0)
+
+	assert_eq(
+		_animation.trail_points(0, 1.5, 8.0, 1.0), [Vector2(10, 0), Vector2(6, 0)] as Array[Vector2]
+	)
+	assert_true(_animation.trail_points(0, 2.0, 8.0, 1.0).is_empty())
