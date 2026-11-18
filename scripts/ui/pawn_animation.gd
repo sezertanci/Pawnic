@@ -19,11 +19,12 @@ class Segment:
 		return clampf((time - start) / duration, 0.0, 1.0) if duration > 0.0 else 1.0
 
 
-## Taşın büyüyüp küçülmesi (ör. eve varış).
-class Pulse:
+## Taşın boyunun from oranından kendi boyuna inmesi (ör. eve girip küçük cama girerken küçülme).
+## Başlamadan önce taş from oranında durur.
+class Resize:
 	var start: float
 	var duration: float
-	var scale: float
+	var from: float
 
 
 ## Belli bir anda çalınacak ses.
@@ -34,7 +35,7 @@ class Cue:
 
 ## Taş -> o taşın hareketleri (Array[Segment]), zaman sırasıyla.
 var _segments: Dictionary[int, Array] = {}
-var _pulses: Dictionary[int, Pulse] = {}
+var _resizes: Dictionary[int, Resize] = {}
 ## Arkasında ışık kuyruğu bırakan taşlar: taş -> (başlangıç, bitiş).
 var _trails: Dictionary[int, Vector2] = {}
 var _duration := 0.0
@@ -57,12 +58,12 @@ func add_segment(
 	_duration = maxf(_duration, segment.end())
 
 
-func add_pulse(pawn: int, start: float, duration: float, scale: float) -> void:
-	var pulse := Pulse.new()
-	pulse.start = start
-	pulse.duration = duration
-	pulse.scale = scale
-	_pulses[pawn] = pulse
+func add_resize(pawn: int, start: float, duration: float, from: float) -> void:
+	var resize := Resize.new()
+	resize.start = start
+	resize.duration = duration
+	resize.from = from
+	_resizes[pawn] = resize
 	_duration = maxf(_duration, start + duration)
 
 
@@ -132,7 +133,7 @@ func duration() -> float:
 
 
 func has(pawn: int) -> bool:
-	return _segments.has(pawn) or _pulses.has(pawn)
+	return _segments.has(pawn) or _resizes.has(pawn)
 
 
 ## Taşın o andaki yerdeki noktası; zıplama yüksekliği ayrıca height_at ile okunur.
@@ -151,13 +152,13 @@ func height_at(pawn: int, time: float) -> float:
 
 
 func scale_at(pawn: int, time: float) -> float:
-	var pulse: Pulse = _pulses.get(pawn)
-	if pulse == null or pulse.duration <= 0.0:
+	var resize: Resize = _resizes.get(pawn)
+	if resize == null:
 		return 1.0
-	if time < pulse.start or time > pulse.start + pulse.duration:
-		return 1.0
-	var progress := (time - pulse.start) / pulse.duration
-	return lerpf(1.0, pulse.scale, sin(PI * progress))
+	if resize.duration <= 0.0:
+		return 1.0 if time >= resize.start else resize.from
+	var progress := clampf((time - resize.start) / resize.duration, 0.0, 1.0)
+	return lerpf(resize.from, 1.0, progress)
 
 
 ## Zamanı kapsayan hareket; aradaki duraklamada önceki, başlamadan önce ilk hareket döner.

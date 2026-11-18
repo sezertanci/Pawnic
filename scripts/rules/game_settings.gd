@@ -46,8 +46,8 @@ var capture_time := 0.0
 var capture_height := 0.0
 ## Hamleden sonra aynı karedeki taşların yeniden dizilme süresi.
 var settle_time := 0.0
-var home_pulse_time := 0.0
-var home_pulse_scale := 0.0
+## Eve giren taşın bitiş karesindeki küçük cama girerken küçülme süresi.
+var home_shrink_time := 0.0
 ## Kart animasyonu süreleri saniye cinsindendir.
 var card_draw_rise := 0.0
 var card_draw_land := 0.0
@@ -76,6 +76,8 @@ var confetti_max_spin := 0.0
 var menu_button_size := Vector2.ZERO
 ## Menü ekranlarındaki arka plan resminin bulanıklığı (resmin pikseli cinsinden örnek uzaklığı).
 var backdrop_blur := 0.0
+## Evdeki (bitiş karesindeki küçük camdaki) taşların normal boylarına oranı.
+var home_pawn_scale := 0.0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -131,8 +133,7 @@ func _read_animation(animation: Dictionary) -> void:
 	capture_time = float(animation["capture_sec"])
 	capture_height = float(animation["capture_height"])
 	settle_time = float(animation["settle_sec"])
-	home_pulse_time = float(animation["home_pulse_sec"])
-	home_pulse_scale = float(animation["home_pulse_scale"])
+	home_shrink_time = float(animation["home_shrink_sec"])
 
 
 func _read_cards(cards: Dictionary) -> void:
@@ -160,3 +161,4 @@ func _read_effects(effects: Dictionary) -> void:
 func _read_ui(ui: Dictionary) -> void:
 	menu_button_size = Vector2(float(ui["button_width"]), float(ui["button_height"]))
 	backdrop_blur = float(ui["backdrop_blur"])
+	home_pawn_scale = float(ui["home_pawn_scale"])

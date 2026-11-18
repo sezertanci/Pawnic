@@ -119,8 +119,8 @@ func moves_for_card(seat: int, card: Card, card_index: int) -> Array[Move]:
 
 ## Hamlede taşın sırayla bastığı kareler (hız bonusu dahil, başladığı kare hariç).
 ## Çıkışta yalnızca varış karesi döner. Kısayolda taş yol üstünden kayacağı için varışa kadarki
-## bütün kareler döner. Yer değiştirmede oynanan taşın hedef taşa giden kısa yolu (ileri ya da
-## geri) döner; hedef taş aynı yolu ters yönde gider. apply'dan önce çağrılır.
+## bütün kareler döner. Yer değiştirmede oynanan taşın hedef taşa giden yolu (swap_path) döner.
+## apply'dan önce çağrılır.
 func move_path(move: Move) -> Array[int]:
 	var path: Array[int] = []
 	match move.action:
@@ -131,18 +131,22 @@ func move_path(move: Move) -> Array[int]:
 		Move.Action.BACK, Move.Action.SEND_BACK:
 			path = _trace(positions[move.pawn], move.destination, _prev_square)
 		Move.Action.SWAP:
-			var from := positions[move.pawn]
-			var to := positions[move.target]
-			path = _trace(from, to, _next_square)
-			var back := _trace(from, to, _prev_square)
-			if path.is_empty() or (not back.is_empty() and back.size() < path.size()):
-				path = back
+			path = swap_path(move.pawn, positions[move.pawn], positions[move.target])
 		Move.Action.EXIT:
 			path.append(move.destination)
 		Move.Action.SHORTCUT:
 			var step := layout.default_step.bind(owners[move.pawn])
 			path = _trace(positions[move.pawn], move.destination, step)
 	return path
+
+
+## Yer değiştirmede pawn'ın from'dan to'ya gittiği kareler (from hariç). Taş kendi başlangıcına
+## göre yön seçer: to kendi eve uzaklığına göre ilerideyse ileri, gerideyse geri gider; yolun
+## uzun ya da kısa olmasına bakılmaz.
+func swap_path(pawn: int, from: int, to: int) -> Array[int]:
+	var seat := owners[pawn]
+	var ahead := layout.home_distance(seat, to) < layout.home_distance(seat, from)
+	return _trace(from, to, _next_square if ahead else _prev_square)
 
 
 ## square'den goal'e step ile (kareyi alıp gidilecek kareyi veren) gidilen kareler, square

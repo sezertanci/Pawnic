@@ -57,6 +57,8 @@ var preview_paths: Array[PackedInt32Array] = []
 var preview_seat := BoardLayout.NO_SEAT
 
 var _centers: Array[Vector2] = []
+## Evdeki taşlar, eve geliş sırasıyla; yamuktaki dizilim bu sıraya göredir.
+var _home_order: Array[int] = []
 var _radii: Array[float] = []
 ## Oynanmakta olan hamlenin animasyonu; yoksa null.
 var _animation: PawnAnimation
@@ -81,6 +83,7 @@ func _draw() -> void:
 		return
 	var active := _active_seats()
 	_draw_links(active)
+	_draw_home_tray(active)
 	for square: int in range(board.layout.square_count()):
 		if _is_visible(square, active):
 			_draw_square(square, active)
@@ -183,6 +186,10 @@ func _draw_square(square: int, active: Array[int]) -> void:
 	var skin := Skins.current
 	var rect := _cell_rect(layout.cells[square])
 	var owner := layout.owners[square]
+	if owner != BoardLayout.NO_SEAT and layout.homes[owner] == square:
+		if selectable_squares.has(square):
+			_draw_wave_frame(rect)
+		return
 	var shortcut_seat := _shortcut_seat(square, active)
 	if owner == BoardLayout.NO_SEAT:
 		var color := skin.safe_color if layout.safe[square] else skin.track_color
@@ -192,11 +199,9 @@ func _draw_square(square: int, active: Array[int]) -> void:
 			if layout.starts[seat] == square:
 				color = skin.track_color.lerp(skin.seat_color(seat), skin.start_tint)
 		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, color)
-	elif layout.homes[owner] == square:
-		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, skin.seat_color(owner))
 	else:
-		var tint := Color.WHITE.lerp(skin.seat_color(owner), skin.lane_tint)
-		rect = BoardPainter.draw_tile(self, rect, skin.lane_texture, tint)
+		var tint := skin.track_color.lerp(skin.seat_color(owner), skin.lane_tint)
+		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
 	_draw_mark(square, rect)
 	if shortcut_seat != BoardLayout.NO_SEAT:
 		var half := HOUSE_HALF * _cell_size() * MARK_RATIO
@@ -206,6 +211,37 @@ func _draw_square(square: int, active: Array[int]) -> void:
 		CardSymbol.draw_house(self, bounds, fill, skin.outline_color, line)
 	if selectable_squares.has(square):
 		_draw_wave_frame(rect)
+
+
+## Ortadaki bitiş alanı (HomeTray); bitiş kareleri kendi kare olarak çizilmez. Oyunda olmayan
+## koltukların yamukları işaret rengindedir.
+func _draw_home_tray(active: Array[int]) -> void:
+	var skin := Skins.current
+	var sides: Array[Vector2] = []
+	var colors: Array[Color] = []
+	for seat: int in range(board.layout.homes.size()):
+		sides.append(_home_side(seat))
+		colors.append(skin.seat_color(seat) if active.has(seat) else skin.mark_color)
+	HomeTray.draw(self, _home_area(), sides, colors, skin, _cell_size())
+
+
+## Bitiş karelerinin hücrelerini kapsayan alan (piksel).
+func _home_area() -> Rect2:
+	var homes := board.layout.homes
+	var area := Rect2i(board.layout.cells[homes[0]], Vector2i.ONE)
+	for home: int in homes:
+		area = area.merge(Rect2i(board.layout.cells[home], Vector2i.ONE))
+	var origin := _to_pixels(Vector2(area.position))
+	return Rect2(origin, Vector2(area.size) * _cell_size())
+
+
+## Koltuğun bitiş yamuğunun dışa bakan birim yönü: bitiş hücresinin alan merkezine göre yönü.
+func _home_side(seat: int) -> Vector2:
+	var cell := _square_center(board.layout.homes[seat])
+	var away := cell - _home_area().get_center()
+	if absf(away.x) > absf(away.y):
+		return Vector2.RIGHT if away.x > 0.0 else Vector2.LEFT
+	return Vector2.DOWN if away.y > 0.0 else Vector2.UP
 
 
 ## Kare oyundaki bir koltuğun kısayol karesiyse o koltuğu, değilse BoardLayout.NO_SEAT döner.
@@ -314,6 +350,7 @@ func _layout_pawns() -> void:
 	# Hücre -> o hücredeki taşlar (Array[int]).
 	var groups: Dictionary[Vector2i, Array] = {}
 	var base_slots: Dictionary[int, int] = {}
+	_update_home_order()
 	for pawn: int in range(count):
 		_radii[pawn] = _cell_size() * PAWN_RATIO
 		if board.positions[pawn] == BoardState.BASE:
@@ -337,8 +374,12 @@ func _base_offset(slot: int) -> Vector2:
 	return Vector2(column, row) * BASE_SPREAD
 
 
-## Aynı hücredeki taşları hücre merkezinin çevresine dağıtır.
+## Aynı hücredeki taşları hücre merkezinin çevresine dağıtır; evdeki taşlar küçülüp
+## eve geliş sırasıyla bitiş yamuğuna dizilir.
 func _spread(cell: Vector2i, pawns: Array[int]) -> void:
+	if _is_home(pawns[0]):
+		_spread_at_home(pawns)
+		return
 	var center := _to_pixels(Vector2(cell) + CENTER)
 	for index: int in range(pawns.size()):
 		var pawn := pawns[index]
@@ -350,14 +391,46 @@ func _spread(cell: Vector2i, pawns: Array[int]) -> void:
 		_radii[pawn] *= STACK_SHRINK
 
 
-## Hareket eden taşlar diğerlerinin üstünde kalsın diye en son çizilir.
+func _spread_at_home(pawns: Array[int]) -> void:
+	var side := _home_side(board.owners[pawns[0]])
+	var ordered := _home_order.filter(func(pawn: int) -> bool: return pawns.has(pawn))
+	for index: int in range(ordered.size()):
+		var pawn: int = ordered[index]
+		var place := HomeTray.place(_home_area(), side, index, ordered.size(), _cell_size())
+		_centers[pawn] = place
+		_radii[pawn] *= board.settings.home_pawn_scale
+
+
+## Eve geliş sırasını günceller: evden çıkmış (yeni oyun) taşlar silinir, yeni gelenler
+## sona eklenir.
+func _update_home_order() -> void:
+	_home_order = _home_order.filter(func(pawn: int) -> bool: return _is_at_home(pawn))
+	for pawn: int in range(board.positions.size()):
+		if _is_at_home(pawn) and not _home_order.has(pawn):
+			_home_order.append(pawn)
+
+
+func _is_at_home(pawn: int) -> bool:
+	return pawn < board.positions.size() and _is_home(pawn)
+
+
+func _is_home(pawn: int) -> bool:
+	return board.positions[pawn] == board.layout.homes[board.owners[pawn]]
+
+
+## Duran taşlar arkadakiler önce çizilsin diye yukarıdan aşağı sıralanır; hareket eden taşlar
+## diğerlerinin üstünde kalsın diye en son çizilir.
 func _draw_pawns() -> void:
 	var moving: Array[int] = []
+	var still: Array[int] = []
 	for pawn: int in range(_centers.size()):
 		if _animation != null and _animation.has(pawn):
 			moving.append(pawn)
 		else:
-			_draw_pawn(pawn, _centers[pawn], _radii[pawn])
+			still.append(pawn)
+	still.sort_custom(func(a: int, b: int) -> bool: return _centers[a].y < _centers[b].y)
+	for pawn: int in still:
+		_draw_pawn(pawn, _centers[pawn], _radii[pawn])
 	for pawn: int in moving:
 		_draw_trail(pawn)
 	for pawn: int in moving:

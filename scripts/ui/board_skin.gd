@@ -19,17 +19,18 @@ extends Resource
 ## Kare dokusundaki alt kalınlık ve üst kenar (kare boyunun oranı); işaretler aradaki yüze çizilir.
 @export var square_depth := 0.1
 @export var square_top := 0.0
-## Dış yolun (taş) ve ev yolunun (çimen) kare dokuları.
+## Kare dokusu (taş); ev yolu da aynı dokuyu sahibinin rengine boyanmış olarak kullanır.
 @export var track_texture: Texture2D
-@export var lane_texture: Texture2D
 ## Koltuk sırasıyla taş görselleri.
 @export var pawn_textures: Array[Texture2D] = []
+## Ortadaki bitiş alanının ortasındaki harf görseli (uygulama simgesindeki P).
+@export var home_letter_texture: Texture2D
 ## Güvenli karenin rengi ve üstündeki kalkan sembolünün rengi.
 @export var safe_color := Color.LIGHT_BLUE
 @export var shield_color := Color.STEEL_BLUE
 ## Kısayol karesi, sahibinin renginin bu oranda beyaza açılmış tonudur.
 @export var shortcut_lighten := 0.6
-## Ev yolundaki çimenin sahibinin rengine ne kadar boyanacağı.
+## Ev yolu karelerinin sahibinin rengine ne kadar boyanacağı.
 @export var lane_tint := 0.3
 ## Çıkış karesinin oyuncu rengine ne kadar boyanacağı.
 @export var start_tint := 0.5

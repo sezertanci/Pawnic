@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" path="res://scripts/ui/board_skin.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/images/tile_stone.png" id="stone"]
-[ext_resource type="Texture2D" path="res://assets/images/tile_grass.png" id="grass"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_red.png" id="pawn_red"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_blue.png" id="pawn_blue"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_green.png" id="pawn_green"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_yellow.png" id="pawn_yellow"]
+[ext_resource type="Texture2D" path="res://assets/images/home_letter.png" id="home_letter"]
 
 [resource]
 script = ExtResource("1")
@@ -24,8 +24,8 @@ shadow_color = Color(0, 0, 0, 0.35)
 square_depth = 0.12
 square_top = 0.1
 track_texture = ExtResource("stone")
-lane_texture = ExtResource("grass")
 pawn_textures = Array[Texture2D]([ExtResource("pawn_red"), ExtResource("pawn_blue"), ExtResource("pawn_green"), ExtResource("pawn_yellow")])
+home_letter_texture = ExtResource("home_letter")
 shortcut_lighten = 0.6
-lane_tint = 0.3
+lane_tint = 0.75
 start_tint = 0.55

@@ -30,8 +30,8 @@ func build(move: Move, path: Array[int], before: Array[Vector2]) -> PawnAnimatio
 
 
 ## Oynanan taşı kare kare zıplatır; her inişte adım sesi çalar, hız karesinde kısa durur,
-## eve varınca büyür. Kısayolda ve yer değiştirmede taşlar kayar, ışınlanma sesi çalar.
-## Taşın indiği anı döner.
+## eve girerken küçük cama girip küçülür. Kısayolda ve yer değiştirmede taşlar kayar, ışınlanma
+## sesi çalar. Taşın indiği anı döner.
 func _add_mover(
 	animation: PawnAnimation, move: Move, path: Array[int], before: Array[Vector2]
 ) -> float:
@@ -40,9 +40,10 @@ func _add_mover(
 	if move.action in [Move.Action.SHORTCUT, Move.Action.SWAP]:
 		animation.add_cue(0.0, Sound.TELEPORT)
 		if move.action == Move.Action.SWAP:
-			_add_slide(
-				animation, move.target, _reverse_path(path, move.target), before[move.target]
+			var back := _board.swap_path(
+				move.target, _board.positions[move.pawn], _board.positions[move.target]
 			)
+			_add_slide(animation, move.target, back, before[move.target])
 		return _add_slide(animation, pawn, path, before[pawn])
 	var height := settings.hop_height * _cell_size
 	var from := before[pawn]
@@ -57,7 +58,8 @@ func _add_mover(
 			time += settings.boost_pause
 		from = to
 	if _board.positions[pawn] == _board.layout.homes[_board.owners[pawn]]:
-		animation.add_pulse(pawn, time, settings.home_pulse_time, settings.home_pulse_scale)
+		var large := 1.0 / settings.home_pawn_scale
+		animation.add_resize(pawn, time - settings.hop_time, settings.home_shrink_time, large)
 	return time
 
 
@@ -75,17 +77,6 @@ func _add_slide(animation: PawnAnimation, pawn: int, path: Array[int], start: Ve
 		from = to
 	animation.add_trail(pawn, 0.0, slide_time)
 	return slide_time
-
-
-## Yer değiştirmede hedef taşın yolu: oynanan taşın yolunun tersi, hedefin kendi karesi hariç,
-## oynanan taşın eski karesi (artık hedefin karesi) dahil.
-func _reverse_path(path: Array[int], target: int) -> Array[int]:
-	var back: Array[int] = path.duplicate()
-	back.reverse()
-	if not back.is_empty():
-		back.remove_at(0)
-		back.append(_board.positions[target])
-	return back
 
 
 ## Taş indikten sonra çarpılan taşlar başlangıca uçar, aynı karedeki taşlar yeniden dizilir.

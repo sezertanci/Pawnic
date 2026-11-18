@@ -43,8 +43,7 @@
 		"capture_sec": 0.5,
 		"capture_height": 1.5,
 		"settle_sec": 0.2,
-		"home_pulse_sec": 0.45,
-		"home_pulse_scale": 1.4
+		"home_shrink_sec": 0.3
 	},
 	"cards": {
 		"draw_rise_sec": 0.6,
@@ -69,7 +68,8 @@
 	"ui": {
 		"button_width": 520,
 		"button_height": 120,
-		"backdrop_blur": 3.0
+		"backdrop_blur": 3.0,
+		"home_pawn_scale": 0.55
 	},
 	"bot": {
 		"delay_sec": 0.9,

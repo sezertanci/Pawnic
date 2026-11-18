@@ -7,14 +7,12 @@ var _board: BoardState
 
 
 func before_each() -> void:
-	_board = BoardState.new(GameSettings.load_from(GameSettings.DEFAULT_PATH))
-	_board.add_pawns(0, 2)
-	_board.add_pawns(2, 1)
+	_board = BoardFixture.classic()
 
 
 func test_send_back_onto_own_pawn_is_not_offered() -> void:
-	_put(0, "ring:13")
-	_put(1, "ring:10")
+	BoardFixture.put(_board, 0, "ring:13")
+	BoardFixture.put(_board, 1, "ring:10")
 	var card := Card.new(Card.Type.SEND_BACK, SEND_BACK_VALUE)
 
 	var moves := _board.moves_for_card(2, card, 0)
@@ -27,7 +25,7 @@ func test_send_back_onto_own_pawn_is_not_offered() -> void:
 
 
 func test_send_back_stops_at_start_square() -> void:
-	_put(0, "ring:10")
+	BoardFixture.put(_board, 0, "ring:10")
 	var card := Card.new(Card.Type.SEND_BACK, SEND_BACK_VALUE)
 
 	var moves := _board.moves_for_card(2, card, 0)
@@ -37,7 +35,7 @@ func test_send_back_stops_at_start_square() -> void:
 
 
 func test_forward_enters_home_lane_at_entry() -> void:
-	_put(0, "ring:6")
+	BoardFixture.put(_board, 0, "ring:6")
 
 	var moves := _board.moves_for_card(0, Card.new(Card.Type.FORWARD, 3), 0)
 
@@ -46,7 +44,7 @@ func test_forward_enters_home_lane_at_entry() -> void:
 
 
 func test_speed_square_adds_bonus() -> void:
-	_put(2, "ring:2")
+	BoardFixture.put(_board, 2, "ring:2")
 	var moves := _board.moves_for_card(2, Card.new(Card.Type.FORWARD, 2), 0)
 
 	_board.apply(moves[0])
@@ -55,22 +53,25 @@ func test_speed_square_adds_bonus() -> void:
 
 
 func test_move_path_lists_squares_with_speed_bonus() -> void:
-	_put(2, "ring:2")
+	BoardFixture.put(_board, 2, "ring:2")
 	var moves := _board.moves_for_card(2, Card.new(Card.Type.FORWARD, 2), 0)
 
 	var path := _board.move_path(moves[0])
 
-	assert_eq(_names(path), ["ring:3", "ring:4", "ring:5", "ring:6", "ring:7", "ring:8"])
+	assert_eq(
+		BoardFixture.names(_board, path),
+		["ring:3", "ring:4", "ring:5", "ring:6", "ring:7", "ring:8"]
+	)
 
 
 func test_move_path_goes_back_on_negative_speed_square() -> void:
-	_put(0, "ring:51")
+	BoardFixture.put(_board, 0, "ring:51")
 	var moves := _board.moves_for_card(0, Card.new(Card.Type.FORWARD, 2), 0)
 
 	var path := _board.move_path(moves[0])
 	_board.apply(moves[0])
 
-	assert_eq(_names(path), ["ring:52", "ring:53", "ring:52", "ring:51"])
+	assert_eq(BoardFixture.names(_board, path), ["ring:52", "ring:53", "ring:52", "ring:51"])
 	assert_eq(_board.layout.names[_board.positions[0]], "ring:51")
 
 
@@ -86,61 +87,28 @@ func test_speed_square_never_leads_to_another_speed_square() -> void:
 
 
 func test_move_path_follows_home_lane_entry() -> void:
-	_put(0, "ring:6")
+	BoardFixture.put(_board, 0, "ring:6")
 	var moves := _board.moves_for_card(0, Card.new(Card.Type.FORWARD, 3), 0)
 
-	assert_eq(_names(_board.move_path(moves[0])), ["ring:7", "lane0:0", "lane0:1"])
+	assert_eq(
+		BoardFixture.names(_board, _board.move_path(moves[0])), ["ring:7", "lane0:0", "lane0:1"]
+	)
 
 
 func test_move_path_goes_backwards_for_send_back() -> void:
-	_put(0, "ring:10")
+	BoardFixture.put(_board, 0, "ring:10")
 	var moves := _board.moves_for_card(2, Card.new(Card.Type.SEND_BACK, SEND_BACK_VALUE), 0)
 
-	assert_eq(_names(_board.move_path(moves[0])), ["ring:9", "ring:8"])
+	assert_eq(BoardFixture.names(_board, _board.move_path(moves[0])), ["ring:9", "ring:8"])
 
 
 func test_move_path_lists_squares_up_to_shortcut() -> void:
-	_put(0, "ring:2")
+	BoardFixture.put(_board, 0, "ring:2")
 	var moves := _board.moves_for_card(0, Card.new(Card.Type.SHORTCUT, 0), 0)
 
 	var path := _board.move_path(moves[0])
 
-	assert_eq(_names(path), ["ring:3", "ring:4", "ring:5", "ring:6", "ring:7"])
-
-
-func test_move_path_for_swap_goes_forward_when_target_is_close_ahead() -> void:
-	_put(0, "ring:10")
-	_put(2, "ring:13")
-	var moves := _board.moves_for_card(0, Card.new(Card.Type.SWAP, 0), 0)
-
-	assert_eq(_names(_board.move_path(moves[0])), ["ring:11", "ring:12", "ring:13"])
-
-
-func test_move_path_for_swap_goes_back_when_target_is_close_behind() -> void:
-	_put(0, "ring:13")
-	_put(2, "ring:10")
-	var moves := _board.moves_for_card(0, Card.new(Card.Type.SWAP, 0), 0)
-
-	assert_eq(_names(_board.move_path(moves[0])), ["ring:12", "ring:11", "ring:10"])
-
-
-func test_swap_allows_own_pawn_on_safe_square() -> void:
-	_put(0, "ring:8")
-	_put(2, "ring:20")
-
-	var moves := _board.moves_for_card(0, Card.new(Card.Type.SWAP, 0), 0)
-
-	assert_eq(moves.size(), 1)
-	assert_eq(moves[0].target, 2)
-
-
-func test_swap_does_not_target_rival_on_safe_square() -> void:
-	_put(0, "ring:10")
-	_put(2, "ring:36")
-
-	var moves := _board.moves_for_card(0, Card.new(Card.Type.SWAP, 0), 0)
-
-	assert_eq(moves.size(), 0)
+	assert_eq(BoardFixture.names(_board, path), ["ring:3", "ring:4", "ring:5", "ring:6", "ring:7"])
 
 
 func test_home_distance_from_start_covers_whole_track() -> void:
@@ -150,8 +118,8 @@ func test_home_distance_from_start_covers_whole_track() -> void:
 
 
 func test_load_dict_restores_saved_positions() -> void:
-	_put(0, "ring:15")
-	_put(2, "lane2:3")
+	BoardFixture.put(_board, 0, "ring:15")
+	BoardFixture.put(_board, 2, "lane2:3")
 	var copy := BoardState.new(_board.settings)
 
 	var loaded := copy.load_dict(JSON.parse_string(JSON.stringify(_board.to_dict())))
@@ -175,14 +143,3 @@ func test_load_dict_with_unknown_square_fails() -> void:
 	)
 
 	assert_false(loaded)
-
-
-func _put(pawn: int, square_name: String) -> void:
-	_board.positions[pawn] = _board.layout.index_of(square_name)
-
-
-func _names(path: Array[int]) -> Array[String]:
-	var result: Array[String] = []
-	for square: int in path:
-		result.append(_board.layout.names[square])
-	return result

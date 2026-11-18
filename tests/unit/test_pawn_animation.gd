@@ -36,11 +36,12 @@ func test_pawn_stays_on_square_during_pause() -> void:
 	assert_almost_eq(_animation.height_at(0, HOP * 2.0), 0.0, 0.01)
 
 
-func test_pulse_grows_then_returns() -> void:
-	_animation.add_pulse(2, 0.0, 1.0, 1.5)
+func test_resize_shrinks_from_given_scale_to_own_size() -> void:
+	_animation.add_resize(2, 1.0, 1.0, 2.0)
 
-	assert_almost_eq(_animation.scale_at(2, 0.5), 1.5, 0.01)
-	assert_eq(_animation.scale_at(2, 2.0), 1.0)
+	assert_eq(_animation.scale_at(2, 0.5), 2.0)
+	assert_almost_eq(_animation.scale_at(2, 1.5), 1.5, 0.01)
+	assert_eq(_animation.scale_at(2, 3.0), 1.0)
 	assert_true(_animation.has(2))
 	assert_false(_animation.has(3))
 
