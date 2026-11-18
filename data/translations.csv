@@ -1,12 +1,12 @@
 keys,tr,en,de,es,fr,it,pt,id
-RESUME,Devam et,Continue,Fortsetzen,Continuar,Reprendre,Continua,Continuar,Lanjutkan
-MODE_SINGLE,Tek oyunculu,Single player,Einzelspieler,Un jugador,Solo,Giocatore singolo,Um jogador,Pemain tunggal
-MODE_MULTI,Çok oyunculu,Multiplayer,Mehrspieler,Multijugador,Multijoueur,Multigiocatore,Multijogador,Multipemain
-MODE_SINGLE_HINT,Botlara karşı,Against bots,Gegen Bots,Contra bots,Contre des bots,Contro bot,Contra bots,Lawan bot
-MODE_MULTI_HINT,Aynı telefonda,On the same phone,Auf einem Handy,En el mismo teléfono,Sur le même téléphone,Sullo stesso telefono,No mesmo celular,Di satu ponsel
-SET_BOTS,Bot sayısı,Bots,Bots,Bots,Bots,Bot,Bots,Jumlah bot
-SET_PLAYERS,Oyuncu sayısı,Players,Spieler,Jugadores,Joueurs,Giocatori,Jogadores,Jumlah pemain
-SET_PAWNS,Taş sayısı,Pawns,Figuren,Fichas,Pions,Pedine,Peões,Jumlah bidak
+RESUME,Devam Et,Continue,Fortsetzen,Continuar,Reprendre,Continua,Continuar,Lanjutkan
+MODE_SINGLE,Tek Oyunculu,Single Player,Einzelspieler,Un Jugador,Solo,Giocatore Singolo,Um Jogador,Pemain Tunggal
+MODE_MULTI,Çok Oyunculu,Multiplayer,Mehrspieler,Multijugador,Multijoueur,Multigiocatore,Multijogador,Multipemain
+MODE_SINGLE_HINT,Botlara Karşı,Against Bots,Gegen Bots,Contra Bots,Contre Des Bots,Contro Bot,Contra Bots,Lawan Bot
+MODE_MULTI_HINT,Aynı Telefonda,On The Same Phone,Auf Einem Handy,En El Mismo Teléfono,Sur Le Même Téléphone,Sullo Stesso Telefono,No Mesmo Celular,Di Satu Ponsel
+SET_BOTS,Bot Sayısı,Bots,Bots,Bots,Bots,Bot,Bots,Jumlah Bot
+SET_PLAYERS,Oyuncu Sayısı,Players,Spieler,Jugadores,Joueurs,Giocatori,Jogadores,Jumlah Pemain
+SET_PAWNS,Taş Sayısı,Pawns,Figuren,Fichas,Pions,Pedine,Peões,Jumlah Bidak
 START,Başla,Start,Start,Empezar,Commencer,Inizia,Começar,Mulai
 RULE_DRAW,"Sıran gelince 1 kart çekersin, elindeki 4 karttan birini oynarsın.","On your turn, draw 1 card and play one of the 4 cards in your hand.",Ziehe in deinem Zug 1 Karte und spiele eine der 4 Karten auf deiner Hand.,En tu turno robas 1 carta y juegas una de las 4 cartas de tu mano.,"À ton tour, pioche 1 carte et joue l'une des 4 cartes de ta main.",Al tuo turno peschi 1 carta e giochi una delle 4 carte in mano.,"Na sua vez, compre 1 carta e jogue uma das 4 cartas da sua mão.","Saat giliranmu, ambil 1 kartu lalu mainkan salah satu dari 4 kartu di tanganmu."
 RULE_EXIT,Taş başlangıçtan Çıkış kartıyla ya da 6 ile çıkar.,A pawn leaves the start with an Exit card or a 6.,Eine Figur verlässt den Start mit einer Ausstiegskarte oder einer 6.,Una ficha sale de la salida con una carta de Salida o con un 6.,Un pion quitte le départ avec une carte Sortie ou un 6.,Una pedina esce dalla partenza con una carta Uscita o con un 6.,Um peão sai da largada com uma carta Saída ou com um 6.,Bidak keluar dari awal dengan kartu Keluar atau angka 6.
@@ -20,16 +20,16 @@ COLOR_RED,Kırmızı,Red,Rot,Rojo,Rouge,Rosso,Vermelho,Merah
 COLOR_BLUE,Mavi,Blue,Blau,Azul,Bleu,Blu,Azul,Biru
 COLOR_GREEN,Yeşil,Green,Grün,Verde,Vert,Verde,Verde,Hijau
 COLOR_YELLOW,Sarı,Yellow,Gelb,Amarillo,Jaune,Giallo,Amarelo,Kuning
-HANDOFF,Kartları Aç,Show cards,Karten zeigen,Mostrar cartas,Voir les cartes,Mostra le carte,Mostrar cartas,Buka kartu
-WIN,%s kazandı!,%s wins!,%s gewinnt!,¡Gana %s!,%s gagne !,Vince %s!,%s venceu!,%s menang!
-PILE_DECK_COUNT,%d kart,%d cards,%d Karten,%d cartas,%d cartes,%d carte,%d cartas,%d kartu
+HANDOFF,Kartları Aç,Show Cards,Karten Zeigen,Mostrar Cartas,Voir Les Cartes,Mostra Le Carte,Mostrar Cartas,Buka Kartu
+WIN,%s Kazandı!,%s Wins!,%s Gewinnt!,¡Gana %s!,%s Gagne !,Vince %s!,%s Venceu!,%s Menang!
+PILE_DECK_COUNT,%d Kart,%d Cards,%d Karten,%d Cartas,%d Cartes,%d Carte,%d Cartas,%d Kartu
 PILE_DISCARD,Atılanlar,Discards,Ablage,Descartes,Défausse,Scarti,Descartes,Buangan
 CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
 CARD_BACK,−%d,−%d,−%d,−%d,−%d,−%d,−%d,−%d
 CARD_EXIT,Çıkış,Exit,Ausstieg,Salida,Sortie,Uscita,Saída,Keluar
-CARD_SWAP,Yer değiştir,Swap,Tauschen,Intercambio,Échange,Scambio,Troca,Tukar
-CARD_SEND_BACK,Geri yolla %d,Send back %d,Zurückschicken %d,Devolver %d,Renvoi %d,Rimanda %d,Devolve %d,Pukul mundur %d
-CARD_SHORTCUT,Kısayol,Shortcut,Abkürzung,Atajo,Raccourci,Scorciatoia,Atalho,Jalan pintas
+CARD_SWAP,Yer Değiştir,Swap,Tauschen,Intercambio,Échange,Scambio,Troca,Tukar
+CARD_SEND_BACK,Geri Yolla %d,Send Back %d,Zurückschicken %d,Devolver %d,Renvoi %d,Rimanda %d,Devolve %d,Pukul Mundur %d
+CARD_SHORTCUT,Kısayol,Shortcut,Abkürzung,Atajo,Raccourci,Scorciatoia,Atalho,Jalan Pintas
 CARD_JOKER,Joker,Joker,Joker,Comodín,Joker,Jolly,Curinga,Joker
 DESC_FORWARD_EXIT,Taş çıkar ya da ilerlet,Bring out or move a pawn,Figur einsetzen oder vorziehen,Saca o avanza una ficha,Sors ou avance un pion,Fai uscire o avanzare una pedina,Tire ou avance um peão,Keluarkan atau majukan bidak
 DESC_EXIT,Başlangıçtan taş çıkar,Bring a pawn out of the start,Setze eine Figur vom Start ein,Saca una ficha de la salida,Sors un pion du départ,Fai uscire una pedina dalla partenza,Tire um peão da largada,Keluarkan bidak dari awal
@@ -37,7 +37,18 @@ DESC_SWAP,Taşını rakiple değiştir,Swap your pawn with a rival,Tausche deine
 DESC_SEND_BACK,Rakip taşı geri gönder,Send a rival pawn back,Schicke eine gegnerische Figur zurück,Haz retroceder una ficha rival,Fais reculer un pion adverse,Fai indietreggiare una pedina avversaria,Faça um peão rival voltar,Mundurkan bidak lawan
 DESC_SHORTCUT,Taşın ev yolu girişine,Pawn jumps to the home lane entry,Figur springt zum Zielweg,La ficha salta a la entrada del pasillo final,Le pion saute à l'entrée du couloir final,La pedina salta all'ingresso del corridoio finale,O peão pula para a entrada do corredor final,Bidak lompat ke pintu jalur rumah
 DESC_JOKER,1–6 arası istediğin sayı,Any number from 1 to 6,Beliebige Zahl von 1 bis 6,Cualquier número del 1 al 6,N'importe quel nombre de 1 à 6,Qualsiasi numero da 1 a 6,Qualquer número de 1 a 6,Angka bebas dari 1 sampai 6
-NEW_GAME,Yeni oyun,New game,Neues Spiel,Nueva partida,Nouvelle partie,Nuova partita,Novo jogo,Permainan baru
-HOW_TO_PLAY,Nasıl oynanır,How to play,Spielanleitung,Cómo jugar,Comment jouer,Come si gioca,Como jogar,Cara bermain
-PLAY_AGAIN,Tekrar oyna,Play again,Nochmal spielen,Jugar de nuevo,Rejouer,Gioca ancora,Jogar de novo,Main lagi
-MAIN_MENU,Ana ekran,Main menu,Hauptmenü,Menú principal,Menu principal,Menu principale,Menu principal,Menu utama
+NEW_GAME,Yeni Oyun,New Game,Neues Spiel,Nueva Partida,Nouvelle Partie,Nuova Partita,Novo Jogo,Permainan Baru
+HOW_TO_PLAY,Nasıl Oynanır,How To Play,Spielanleitung,Cómo Jugar,Comment Jouer,Come Si Gioca,Como Jogar,Cara Bermain
+PLAY_AGAIN,Tekrar Oyna,Play Again,Nochmal Spielen,Jugar De Nuevo,Rejouer,Gioca Ancora,Jogar De Novo,Main Lagi
+MAIN_MENU,Ana Ekran,Main Menu,Hauptmenü,Menú Principal,Menu Principal,Menu Principale,Menu Principal,Menu Utama
+SETTINGS,Ayarlar,Settings,Einstellungen,Ajustes,Paramètres,Impostazioni,Configurações,Pengaturan
+SOUND,Ses,Sound,Ton,Sonido,Son,Suono,Som,Suara
+LANGUAGE,Dil,Language,Sprache,Idioma,Langue,Lingua,Idioma,Bahasa
+LANG_TR,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe
+LANG_EN,English,English,English,English,English,English,English,English
+LANG_DE,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch
+LANG_ES,Español,Español,Español,Español,Español,Español,Español,Español
+LANG_FR,Français,Français,Français,Français,Français,Français,Français,Français
+LANG_IT,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano
+LANG_PT,Português,Português,Português,Português,Português,Português,Português,Português
+LANG_ID,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia

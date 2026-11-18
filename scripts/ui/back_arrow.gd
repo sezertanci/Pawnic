@@ -7,8 +7,6 @@ extends Control
 const ARROW_HALF := 0.26
 const HEAD_RATIO := 0.2
 const LINE_RATIO := 0.1
-const NORMAL_STYLE := &"normal"
-const PRESSED_STYLE := &"pressed"
 
 var _button: Button
 
@@ -25,7 +23,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	var face := _face_rect()
+	var face := ButtonFace.rect(_button)
 	var side := minf(face.size.x, face.size.y)
 	var center := face.get_center()
 	var tip := center + Vector2.LEFT * side * ARROW_HALF
@@ -36,18 +34,6 @@ func _draw() -> void:
 	_draw_round_line(tail, tip, color, width)
 	_draw_round_line(tip, tip + Vector2(head, -head), color, width)
 	_draw_round_line(tip, tip + Vector2(head, head), color, width)
-
-
-## Düğmenin, alt kenar şeridi çıkarılmış yüzü; basılıyken şerit incelir ve yüz aşağı uzar.
-func _face_rect() -> Rect2:
-	var mode := _button.get_draw_mode()
-	var pressed := mode == BaseButton.DRAW_PRESSED or mode == BaseButton.DRAW_HOVER_PRESSED
-	var style_name := PRESSED_STYLE if pressed else NORMAL_STYLE
-	var style := _button.get_theme_stylebox(style_name) as StyleBoxFlat
-	var rect := Rect2(Vector2.ZERO, size)
-	if style != null:
-		rect.size.y -= style.border_width_bottom
-	return rect
 
 
 func _draw_round_line(from: Vector2, to: Vector2, color: Color, width: float) -> void:

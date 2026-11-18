@@ -1,6 +1,6 @@
 class_name HomeScreen
 extends Control
-## Ana ekran: logo, yarım kalan oyuna devam, yeni oyun ve "Nasıl oynanır" katmanı.
+## Ana ekran: logo, yarım kalan oyuna devam, yeni oyun, "Nasıl oynanır" ve ayarlar katmanları.
 
 signal resume_requested
 signal new_game_requested
@@ -16,6 +16,7 @@ func _ready() -> void:
 	_rules.pressed.connect(_rules.hide)
 	(%OkButton as Button).pressed.connect(_rules.hide)
 	_rules.hide()
+	(%SettingsButton as Button).pressed.connect((%SettingsOverlay as Button).show)
 
 
 func set_resume_available(available: bool) -> void:

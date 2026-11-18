@@ -20,6 +20,8 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
   `godot --headless --path . -s tools/simulate.gd`
 - Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör>`
 - Biçim ve lint: `gdformat scripts tools tests` ve `gdlint scripts tools tests`
+- Simgesiz yeşil menü düğmesi (`assets/images/button_green_plain.png`, Tamam düğmelerinde):
+  `python tools/make_plain_button.py assets/images/button_green.png assets/images/button_green_plain.png` (Pillow gerekir)
 - Ses efektleri (`assets/sounds/`): `python tools/make_sounds.py assets/sounds` (yalnızca Python standart kütüphanesi)
 - İkonlar (`assets/icon/`): `python tools/make_icon.py assets/images assets/icon` (Pillow gerekir).
   Önceki yazılı ikon `assets/icon/text/` altında saklanır:
@@ -42,7 +44,7 @@ Yükleme anahtarı ve şifreleri depoya girmez. Godot bunları `.godot/export_cr
 tutar. Play'de uygulama imzalama (Play App Signing) kullanılır.
 
 ## Klasörler
-- `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu)
+- `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu, ana ekran arka planının bulanıklığı)
 - `data/boards/`: tahta tasarımları (aşağıda)
 - `data/translations.csv`: oyuncuya görünen metinlerin 8 dildeki karşılıkları
 - `scripts/rules/`: kural motoru (`BoardState`, `GameMatch`, `MovePicker`), kartlar ve bot
@@ -81,8 +83,8 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 |---|---|
 | `Tuning` | `data/tuning.json` ayarlarını yükler |
 | `SaveStore` | Tercihleri ve yarım kalan oyunu `user://save.json` dosyasında tutar |
-| `Localization` | Dili seçer ve saklar |
+| `Localization` | Dili seçer ve saklar (ayarlar penceresinden değiştirilir) |
 | `Skins` | Tahta görünümünü seçer ve saklar (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
 | `Ads` | Reklam sağlayıcısını sarar; şimdilik sahte sağlayıcı kullanılır |
 | `Iap` | Satın alma sağlayıcısını sarar; şimdilik sahte sağlayıcı kullanılır |
-| `Sound` | Ses efektlerini çalar; her düğmeye dokunma sesini kendiliğinden bağlar |
+| `Sound` | Ses efektlerini çalar; her düğmeye dokunma sesini kendiliğinden bağlar, sesin açık/kapalı tercihini saklar |

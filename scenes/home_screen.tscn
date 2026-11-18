@@ -5,6 +5,8 @@
 [ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="badge"]
 [ext_resource type="Script" path="res://scripts/ui/rule_list.gd" id="rule_list"]
 [ext_resource type="Script" path="res://scripts/ui/wide_button.gd" id="wide"]
+[ext_resource type="Script" path="res://scripts/ui/gear_icon.gd" id="gear"]
+[ext_resource type="PackedScene" path="res://scenes/components/settings_overlay.tscn" id="settings"]
 
 [node name="HomeScreen" type="Control"]
 layout_mode = 3
@@ -29,6 +31,27 @@ theme_type_variation = &"WideMargin"
 [node name="Box" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
 mouse_filter = 2
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Box"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 2
+
+[node name="SettingsButton" type="Button" parent="Margin/Box/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+theme_type_variation = &"IconButton"
+
+[node name="Gear" type="Control" parent="Margin/Box/TopBar/SettingsButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("gear")
 
 [node name="TopSpace" type="Control" parent="Margin/Box"]
 layout_mode = 2
@@ -126,6 +149,10 @@ script = ExtResource("rule_list")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
-theme_type_variation = &"PrimaryButton"
+theme_type_variation = &"MenuPlainGreenButton"
 text = "OK"
 script = ExtResource("wide")
+
+[node name="SettingsOverlay" parent="." instance=ExtResource("settings")]
+unique_name_in_owner = true
+layout_mode = 1

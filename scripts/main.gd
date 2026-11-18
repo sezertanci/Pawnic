@@ -1,7 +1,10 @@
 extends Control
 ## Ana sahne: ana ekran, yeni oyun ekranı ve oyun ekranı arasında geçişi yapar,
 ## yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede sütunun yanlarını dolduran
-## düz renk yalnızca menü ekranlarında görünür.
+## düz renk yalnızca menü ekranlarında görünür; ana ekranda arka plan, düğmeler öne çıksın diye
+## hafifçe bulanıklaştırılır.
+
+const BLUR_PARAMETER := &"blur_radius"
 
 var _rng := RandomNumberGenerator.new()
 
@@ -35,6 +38,8 @@ func _show_only(screen: Control) -> void:
 		other.visible = other == screen
 	_backdrop.visible = screen != _game_screen
 	_sides.visible = _backdrop.visible
+	var blur := Tuning.settings.home_backdrop_blur if screen == _home else 0.0
+	(_backdrop.material as ShaderMaterial).set_shader_parameter(BLUR_PARAMETER, blur)
 
 
 func _on_start_requested(bot_flags: Array[bool], pawns: int) -> void:

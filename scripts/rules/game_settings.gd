@@ -72,6 +72,8 @@ var confetti_max_sway_speed := 0.0
 var confetti_max_spin := 0.0
 ## Menü düğmelerinin (ana ekran, yeni oyun, oyun sonu, kurallar) ortak en küçük boyutu (piksel).
 var menu_button_size := Vector2.ZERO
+## Ana ekranda arka plan resminin bulanıklığı (resmin pikseli cinsinden örnek uzaklığı).
+var home_backdrop_blur := 0.0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -154,3 +156,4 @@ func _read_effects(effects: Dictionary) -> void:
 
 func _read_ui(ui: Dictionary) -> void:
 	menu_button_size = Vector2(float(ui["button_width"]), float(ui["button_height"]))
+	home_backdrop_blur = float(ui["home_backdrop_blur"])
