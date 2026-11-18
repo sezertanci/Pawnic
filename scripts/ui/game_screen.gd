@@ -27,6 +27,7 @@ var _handoff_drew := false
 var _awaiting_human := false
 
 @onready var _clock: Label = %Clock
+@onready var _level_slash: Label = %LevelSlash
 @onready var _bot_level: Label = %BotLevel
 @onready var _turn_dots: TurnDots = %TurnDots
 @onready var _deck_pile: PileView = %DeckPile
@@ -58,8 +59,7 @@ func start(game: GameMatch) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_bot = Bot.new(game.settings.bot_profiles[game.bot_level], game.settings, rng)
-	_bot_level.visible = game.bots.has(true)
-	_bot_level.text = Difficulty.level_key(game.bot_level)
+	_show_bot_level(game)
 	_board_view.board = game.board
 	_cards.settings = game.settings
 	_cards.speed_scale = GameSpeed.speed_scale()
@@ -83,6 +83,16 @@ func _process(delta: float) -> void:
 	_game.elapsed += delta
 	if int(_game.elapsed) != shown:
 		_clock.text = format_clock(_game.elapsed)
+
+
+## Botlu oyunda saatin yanında "/" ve seviyenin adı, seviyenin renginde görünür.
+func _show_bot_level(game: GameMatch) -> void:
+	var has_bots := game.bots.has(true)
+	_level_slash.visible = has_bots
+	_bot_level.visible = has_bots
+	_bot_level.text = Difficulty.level_key(game.bot_level)
+	var color := Skins.current.level_color(game.bot_level)
+	_bot_level.add_theme_color_override(ThemeKeys.FONT_COLOR, color)
 
 
 ## Geçen süreyi dakika:saniye (bir saati geçince saat:dakika:saniye) olarak yazar.
@@ -136,9 +146,10 @@ func _start_turn() -> void:
 		_begin_human_turn(drew)
 
 
-## Deste sayısını, atılanların üstündeki kartı ve sıra noktalarını günceller.
+## Deste ve atılanların sayısını, atılanların üstündeki kartı ve sıra noktalarını günceller.
 func _refresh_table() -> void:
 	_deck_pile.set_count(_game.draw_count())
+	_discard_pile.set_count(_game.discard_count())
 	_discard_pile.set_top(
 		_game.top_discard(), _game.settings, _discard_badge(), _game.top_discard_value
 	)

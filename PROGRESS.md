@@ -36,7 +36,8 @@
 - Bot zorluğu (2026-11-18): Kolay, Orta, Zor, Çok zor. "Yeni oyun" ekranında, yalnızca tek
   oyunculu modda seçim düğmeleriyle seçilir; son seçim tercih olarak saklanır (`Difficulty`
   autoload'u), varsayılan Orta. Bütün botlar aynı seviyede oynar; seviye adı oyun ekranının üst
-  çubuğunda saatin yanında yazar ve kayıtlı oyunla birlikte saklanır. Seviye ayarları
+  çubuğunda saatin yanında "/" ile ayrılarak, seviyenin renginde yazar (tema: `level_colors`;
+  Kolay yeşil, Orta mavi, Zor kırmızıya yakın turuncu, Çok Zor ateş kızılı) ve kayıtlı oyunla birlikte saklanır. Seviye ayarları
   `tuning.json` → `bot.levels`: Kolay %70, Orta %15 olasılıkla rastgele oynar (bu ikisi
   değişmeyecek). Zor sıradaki rakibin karşılığını hesaplar (`RivalForecast`) ve tehdit okur;
   Çok zor bütün rakiplerinkini hesaplar, tehdit okur ve Monte Carlo arama yapar.
@@ -51,7 +52,9 @@
   10 olası oyunda (`rollouts`) denenir. Her olası oyunda göremediği kartlar yeniden karıştırılıp
   dağıtılır (`GameMatch.determinized`), aday oynanır, herkes bir kez tehdit okuyan hızlı botla
   (`bot.rollout_policy`) oynar ve tahta puanlanır. 30 deneme 10'dan belirgin güçlü değil, süresi
-  iki kat. Kart saklama (`hold_cards`, `hold_values`) aramanın yerine geçtiği için kaldırıldı.
+  iki kat. Ölçüm (iki oyuncu, 100 oyun): Çok Zor, Orta'yı %85, Zor'u %60 yener (aramadan önce
+  %63 ve %44); PC'de hamle başına ortalama 55 ms, tablette de bekletmeden oynuyor.
+  Kart saklama (`hold_cards`, `hold_values`) aramanın yerine geçtiği için kaldırıldı.
 - Bot hamlesi oyunda `WorkerThreadPool` ile `bot_delay` süresince arka planda düşünülür.
 - Hız karesi yalnızca ileri kartıyla (joker dahil) çalışır; geri kartlarında da çalışması
   konuşuldu, şimdilik olduğu gibi kalıyor (2026-11-18).
@@ -100,15 +103,9 @@
 - Kullanıcının tablet denemesinden çıkan değişiklik listesi bekleniyor.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
-- Çok zor'un gücü (2026-11-18, iki oyuncu, 100 oyun): Orta'yı %85, Zor'u %60 yener (aramadan
-  önce %63 ve %44). PC'de hamle başına ortalama 55 ms. Tablette düşünme süresi ölçülmedi; bot
-  bekleme süresini (0,9 sn) aşarsa `rollouts` düşürülür ya da süre sınırı eklenir. Atılacak kart
-  seçimi henüz aramayla yapılmıyor (önce geri kartı, yoksa ilk kart).
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
-- "Nasıl oynanır" ekranındaki kural metinleri (RULE_* anahtarları) daha sonra düzeltilecek;
-  ekranın yeni düzeni (panel, simgeli satırlar, Tamam düğmesi) şimdilik böyle kalıyor.
 
 ## Günlük
 - **2026-11-17:** Proje başlatıldı. Kural motoru, bot, tahta çizimi, kurulum ve oyun ekranı,
@@ -202,3 +199,9 @@
   tehdit okuyor. `GameMatch.unseen_cards` ve `determinized` eklendi. `Bot` artık seviye yerine
   `BotProfile` alıyor. Bot hamlesi arka plan iş parçacığında düşünülüyor. Testler
   `tests/unit/test_bot_reading.gd` (88 test geçiyor). Tablete kuruldu.
+- **2026-11-18 (5):** Arayüz düzeltmeleri. Çıkış kartında başlangıç tepsisinin dalga ışığı tepsi
+  gibi yuvarlak köşeli (`PulseWave.draw_frame` köşe yarıçapı alıyor). Atılanlar yığınının altında
+  "Atılanlar" yerine deste gibi kart sayısı yazıyor (ortak `PILE_COUNT`, `GameMatch.discard_count`).
+  Üst çubukta seviye "/" ile ayrılıp kendi renginde yazıyor. "Çok Zor" ve "Oyun Hızı" büyük harfe
+  düzeltildi (oyuncuya görünen kısa etiketlerde her kelime büyük harfle başlar). Tanıtım ekranının
+  açıklama yazısı daha büyük ve parlak (`DemoLabel`, 34 punto, beyaz, gölgeli).

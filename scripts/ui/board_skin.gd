@@ -12,6 +12,8 @@ extends Resource
 @export var outline_color := Color.BLACK
 @export var mark_color := Color.GRAY
 @export var highlight_color := Color.WHITE
+## Bot zorluk seviyelerinin yazı renkleri, Bot.Level sırasıyla: Kolay, Orta, Zor, Çok Zor.
+@export var level_colors: Array[Color] = []
 ## Seçilmiş taşın (ör. yer değiştirmede kendi taşın) halka rengi.
 @export var selected_color := Color.ORANGE
 ## Zıplayan taşın yere düşen gölgesi.
@@ -38,6 +40,10 @@ extends Resource
 
 func seat_color(seat: int) -> Color:
 	return seat_colors[seat]
+
+
+func level_color(level: Bot.Level) -> Color:
+	return level_colors[level]
 
 
 func seat_name(seat: int) -> String:

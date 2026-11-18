@@ -1,7 +1,7 @@
 class_name PileView
 extends Control
-## Deste ya da atılanlar yığını. Deste kapalı kartları ve kalan sayıyı,
-## atılanlar en üstteki kartı gösterir; yığın boşsa kesik çizgili bir yer belirir.
+## Deste ya da atılanlar yığını. İkisi de altında kart sayısını gösterir; deste kapalı
+## kartları, atılanlar en üstteki kartı gösterir; yığın boşsa kesik çizgili bir yer belirir.
 
 enum Kind { DECK, DISCARD }
 
@@ -25,18 +25,19 @@ func _ready() -> void:
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_caption)
 	if kind == Kind.DISCARD:
-		_caption.text = tr("PILE_DISCARD")
 		_under.hide()
 		_top.hide()
 	resized.connect(_arrange)
 	_arrange()
 
 
-## Destede kalan kart sayısını gösterir.
+## Yığındaki kart sayısını gösterir. Destede kapalı kartlar da sayıya göre belirir;
+## atılanların üstteki kartı set_top ile gösterilir.
 func set_count(count: int) -> void:
-	_caption.text = tr("PILE_DECK_COUNT") % count
-	_top.visible = count > 0
-	_under.visible = count > 1
+	_caption.text = tr("PILE_COUNT") % count
+	if kind == Kind.DECK:
+		_top.visible = count > 0
+		_under.visible = count > 1
 	queue_redraw()
 
 

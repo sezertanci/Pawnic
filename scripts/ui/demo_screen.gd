@@ -94,6 +94,7 @@ func _show_step(index: int) -> void:
 	_prev_button.disabled = index == 0
 	_next_button.text = FINISH_KEY if index == _demo.steps.size() - 1 else NEXT_KEY
 	_deck_pile.set_count(_settings.deck_size())
+	_discard_pile.set_count(0)
 	_discard_pile.set_top(null, _settings, Color.TRANSPARENT, Card.NO_VALUE)
 	_show_hand(step)
 	_play_step(step, _run)
@@ -152,6 +153,7 @@ func _send_card(step: DemoStep, chosen: int, run: int) -> bool:
 	if run != _run:
 		return false
 	_discard_pile.set_top(step.played_card(), _settings, color, chosen)
+	_discard_pile.set_count(1)
 	return true
 
 

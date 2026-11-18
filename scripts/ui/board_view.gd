@@ -329,7 +329,7 @@ func _draw_base(seat: int) -> void:
 	var base := _base_rect(seat)
 	BasePainter.draw_base(self, base, Skins.current.seat_color(seat), _cell_size())
 	if _base_pawn(seat) != Move.NO_PAWN:
-		_draw_wave_frame(base)
+		_draw_wave_frame(base, _cell_size() * BasePainter.CORNER_RATIO)
 
 
 ## Başlangıç alanından çıkış karesine uzanan patika; alandan taş seçilebiliyorsa üstünde ışık akar.
@@ -341,9 +341,11 @@ func _draw_base_link(seat: int) -> void:
 	BaseLink.draw(self, _base_rect(seat), start, color, skin, _cell_size(), flowing)
 
 
-func _draw_wave_frame(rect: Rect2) -> void:
+## radius verilirse çerçevenin köşeleri yuvarlatılır (başlangıç tepsisinin şekli için).
+func _draw_wave_frame(rect: Rect2, radius := 0.0) -> void:
 	var skin := Skins.current
-	PulseWave.draw_frame(self, rect, skin.highlight_color, skin.outline_color, HIGHLIGHT_WIDTH)
+	var color := skin.highlight_color
+	PulseWave.draw_frame(self, rect, color, skin.outline_color, HIGHLIGHT_WIDTH, radius)
 
 
 func _base_rect(seat: int) -> Rect2:

@@ -40,13 +40,15 @@ static func draw_ring(
 	draw_outlined_arc(canvas, center, wave_radius, color, edge_color, width, arc, fade)
 
 
+## radius verilirse çerçevenin köşeleri yuvarlatılır; dışa yayılan dalga aynı merkezli
+## kalsın diye büyüdüğü kadar köşesi de genişler.
 static func draw_frame(
-	canvas: CanvasItem, rect: Rect2, color: Color, edge_color: Color, width: float
+	canvas: CanvasItem, rect: Rect2, color: Color, edge_color: Color, width: float, radius := 0.0
 ) -> void:
 	var fade := 1.0 - phase()
 	var grow := minf(rect.size.x, rect.size.y) * SPREAD / 2.0 * (1.0 - fade)
-	_draw_rect(canvas, rect, color, edge_color, width, 1.0)
-	_draw_rect(canvas, rect.grow(grow), color, edge_color, width, fade)
+	_draw_rect(canvas, rect, radius, color, edge_color, width, 1.0)
+	_draw_rect(canvas, rect.grow(grow), radius + grow, color, edge_color, width, fade)
 
 
 ## Koyu kenar çizgili yay; alpha ile soldurulur. Seçili taşın sabit halkası da bununla çizilir.
@@ -67,11 +69,23 @@ static func draw_outlined_arc(
 
 
 static func _draw_rect(
-	canvas: CanvasItem, rect: Rect2, color: Color, edge_color: Color, width: float, alpha: float
+	canvas: CanvasItem,
+	rect: Rect2,
+	radius: float,
+	color: Color,
+	edge_color: Color,
+	width: float,
+	alpha: float
 ) -> void:
 	var edge := width + BoardPainter.LINE_WIDTH * 2.0
-	canvas.draw_rect(rect, _faded(edge_color, alpha), false, edge)
-	canvas.draw_rect(rect, _faded(color, alpha), false, width)
+	if radius <= 0.0:
+		canvas.draw_rect(rect, _faded(edge_color, alpha), false, edge)
+		canvas.draw_rect(rect, _faded(color, alpha), false, width)
+		return
+	var outline := SmoothDraw.rounded_rect(rect, radius)
+	outline.append(outline[0])
+	canvas.draw_polyline(outline, _faded(edge_color, alpha), edge, true)
+	canvas.draw_polyline(outline, _faded(color, alpha), width, true)
 
 
 static func _faded(color: Color, alpha: float) -> Color:

@@ -164,6 +164,11 @@ func draw_count() -> int:
 	return _draw_pile.size()
 
 
+## Atılanlardaki kart sayısı.
+func discard_count() -> int:
+	return _discard_pile.size()
+
+
 ## Atılanların en üstündeki kart; atılan kart yoksa null.
 func top_discard() -> Card:
 	return null if _discard_pile.is_empty() else _discard_pile.back()

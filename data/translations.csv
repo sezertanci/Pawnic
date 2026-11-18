@@ -11,7 +11,7 @@ DIFFICULTY,Zorluk,Difficulty,Schwierigkeit,Dificultad,Difficulté,Difficoltà,Di
 BOT_EASY,Kolay,Easy,Leicht,Fácil,Facile,Facile,Fácil,Mudah
 BOT_MEDIUM,Orta,Medium,Mittel,Medio,Moyen,Medio,Médio,Sedang
 BOT_HARD,Zor,Hard,Schwer,Difícil,Difficile,Difficile,Difícil,Sulit
-BOT_EXPERT,Çok zor,Very hard,Sehr schwer,Muy difícil,Très difficile,Molto difficile,Muito difícil,Sangat sulit
+BOT_EXPERT,Çok Zor,Very Hard,Sehr Schwer,Muy Difícil,Très Difficile,Molto Difficile,Muito Difícil,Sangat Sulit
 START,Başla,Start,Start,Empezar,Commencer,Inizia,Começar,Mulai
 RULE_DIRECTION,Oyun saat yönünde oynanır.,The game is played clockwise.,Gespielt wird im Uhrzeigersinn.,Se juega en el sentido de las agujas del reloj.,On joue dans le sens des aiguilles d'une montre.,Si gioca in senso orario.,Joga-se no sentido horário.,Permainan dimainkan searah jarum jam.
 RULE_DRAW,"Sıran gelince 1 kart çekersin, elindeki 4 karttan birini oynarsın.","On your turn, draw 1 card and play one of the 4 cards in your hand.",Ziehe in deinem Zug 1 Karte und spiele eine der 4 Karten auf deiner Hand.,En tu turno robas 1 carta y juegas una de las 4 cartas de tu mano.,"À ton tour, pioche 1 carte et joue l'une des 4 cartes de ta main.",Al tuo turno peschi 1 carta e giochi una delle 4 carte in mano.,"Na sua vez, compre 1 carta e jogue uma das 4 cartas da sua mão.","Saat giliranmu, ambil 1 kartu lalu mainkan salah satu dari 4 kartu di tanganmu."
@@ -53,8 +53,7 @@ COLOR_GREEN,Yeşil,Green,Grün,Verde,Vert,Verde,Verde,Hijau
 COLOR_YELLOW,Sarı,Yellow,Gelb,Amarillo,Jaune,Giallo,Amarelo,Kuning
 HANDOFF,Kartları Aç,Show Cards,Karten Zeigen,Mostrar Cartas,Voir Les Cartes,Mostra Le Carte,Mostrar Cartas,Buka Kartu
 WIN,%s Kazandı!,%s Wins!,%s Gewinnt!,¡Gana %s!,%s Gagne !,Vince %s!,%s Venceu!,%s Menang!
-PILE_DECK_COUNT,%d Kart,%d Cards,%d Karten,%d Cartas,%d Cartes,%d Carte,%d Cartas,%d Kartu
-PILE_DISCARD,Atılanlar,Discards,Ablage,Descartes,Défausse,Scarti,Descartes,Buangan
+PILE_COUNT,%d Kart,%d Cards,%d Karten,%d Cartas,%d Cartes,%d Carte,%d Cartas,%d Kartu
 CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
 CARD_BACK,−%d,−%d,−%d,−%d,−%d,−%d,−%d,−%d
 CARD_EXIT,Çıkış,Exit,Ausstieg,Salida,Sortie,Uscita,Saída,Keluar
@@ -75,7 +74,7 @@ MAIN_MENU,Ana Ekran,Main Menu,Hauptmenü,Menú Principal,Menu Principal,Menu Pri
 SETTINGS,Ayarlar,Settings,Einstellungen,Ajustes,Paramètres,Impostazioni,Configurações,Pengaturan
 SOUND,Ses,Sound,Ton,Sonido,Son,Suono,Som,Suara
 LANGUAGE,Dil,Language,Sprache,Idioma,Langue,Lingua,Idioma,Bahasa
-GAME_SPEED,Oyun hızı,Game speed,Spieltempo,Velocidad de juego,Vitesse du jeu,Velocità di gioco,Velocidade do jogo,Kecepatan permainan
+GAME_SPEED,Oyun Hızı,Game Speed,Spieltempo,Velocidad De Juego,Vitesse Du Jeu,Velocità Di Gioco,Velocidade Do Jogo,Kecepatan Permainan
 SPEED_SLOW,Yavaş,Slow,Langsam,Lenta,Lente,Lenta,Lenta,Lambat
 SPEED_NORMAL,Normal,Normal,Normal,Normal,Normale,Normale,Normal,Normal
 SPEED_FAST,Hızlı,Fast,Schnell,Rápida,Rapide,Veloce,Rápida,Cepat
