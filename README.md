@@ -21,6 +21,11 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
 - Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör>`
 - Biçim ve lint: `gdformat scripts tools tests` ve `gdlint scripts tools tests`
 - Ses efektleri (`assets/sounds/`): `python tools/make_sounds.py assets/sounds` (yalnızca Python standart kütüphanesi)
+- İkonlar (`assets/icon/`): `python tools/make_icon.py assets/images assets/icon` (Pillow gerekir).
+  Önceki yazılı ikon `assets/icon/text/` altında saklanır:
+  `python tools/make_icon.py assets/images assets/icon/text --design text`.
+  Açılış ekranının görseli (`assets/icon/frame/icon.png`):
+  `python tools/make_icon.py assets/images assets/icon/frame --design frame --size 1024`
 
 ## Android derlemesi
 Derlemeler Gradle ile alınır. `android/build` klasörü depoda tutulmaz; ilk kez derlemeden önce
@@ -47,7 +52,7 @@ tutar. Play'de uygulama imzalama (Play App Signing) kullanılır.
 - `scenes/`: ana sahne, ekranlar ve ortak bileşenler
 - `themes/`: arayüz teması ve tahta görünümleri (`themes/skins/`)
 - `tests/unit/`: GUT birim testleri, `tests/fixtures/`: testlerde kullanılan deneme tahtası
-- `tools/`: simülasyon, ekran görüntüsü ve ses üretme betikleri
+- `tools/`: simülasyon, ekran görüntüsü, ses ve ikon üretme betikleri
 
 ## Tahta dosyası
 Tahta bir ızgara üzerindeki kareler ve aralarındaki bağlantılardan oluşur; kod tahtanın şeklini

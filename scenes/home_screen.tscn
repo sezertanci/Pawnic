@@ -127,5 +127,7 @@ script = ExtResource("rule_list")
 [node name="OkButton" type="Button" parent="RulesOverlay/Margin/Box/Panel/Box"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(520, 0)
 theme_type_variation = &"PrimaryButton"
 text = "OK"

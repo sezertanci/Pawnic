@@ -121,7 +121,8 @@ mouse_filter = 2
 [node name="StartButton" type="Button" parent="Box"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 120)
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(520, 120)
 theme_type_variation = &"MenuGreenButton"
 text = "START"
 script = ExtResource("4")
