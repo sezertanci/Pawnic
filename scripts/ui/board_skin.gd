@@ -18,6 +18,8 @@ extends Resource
 @export var selected_color := Color.ORANGE
 ## Zıplayan taşın yere düşen gölgesi.
 @export var shadow_color := Color(0, 0, 0, 0.35)
+## Başlangıç tepsisindeki taş altlıklarının rengi.
+@export var socket_color := Color(0, 0, 0, 0.6)
 ## Kare dokusundaki alt kalınlık ve üst kenar (kare boyunun oranı); işaretler aradaki yüze çizilir.
 @export var square_depth := 0.1
 @export var square_top := 0.0

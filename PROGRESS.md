@@ -229,3 +229,8 @@
   (`FrostedGlass` artık kendi malzemesini kuruyor). Botsuz oyunda başlığın sağa toplanması
   düzeltildi: boşluğu artık seviye yazısı değil, ayrı bir `Spacer` dolduruyor. Tablete kuruldu,
   sonuç tablosu tablette görüldü.
+- **2026-11-19 (3):** Başlangıç tepsisinde her taş için, oyun başındaki taş sayısı kadar altlık var:
+  taş tabanıyla aynı eğimde %60 saydam siyah elips (`BoardSkin.socket_color`,
+  `BoardPainter.base_ellipse`). Taş çıkınca yeri boş altlık olarak görünüyor. Ferah dursun diye
+  altlık taş tabanının 0.9 katı (`SOCKET_SCALE`) ve tepsideki yerler 0.2 kare yukarıda
+  (`BASE_LIFT`). Dört renk ve dört aralık denemesinden seçildi, tablette görüldü.

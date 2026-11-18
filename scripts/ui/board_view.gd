@@ -13,6 +13,10 @@ const STACK_SPREAD := 0.22
 const STACK_SHRINK := 0.65
 const BASE_COLUMNS := 3
 const BASE_SPREAD := 0.95
+## Tepsideki yerlerin alt kenardan uzaklaşsın diye yukarı kaydırılması (kare boyuna oranla).
+const BASE_LIFT := 0.2
+## Başlangıç tepsisindeki altlığın taş tabanına oranla genişliği.
+const SOCKET_SCALE := 0.9
 const HIT_RATIO := 0.6
 const MARK_RATIO := 0.4
 ## Hız karesindeki sayının çizildiği alanın kare yüzüne oranla genişliği.
@@ -328,8 +332,18 @@ func _draw_previews() -> void:
 func _draw_base(seat: int) -> void:
 	var base := _base_rect(seat)
 	BasePainter.draw_base(self, base, Skins.current.seat_color(seat), _cell_size())
+	_draw_sockets(seat)
 	if _base_pawn(seat) != Move.NO_PAWN:
 		_draw_wave_frame(base, _cell_size() * BasePainter.CORNER_RATIO)
+
+
+## Oyuncunun her taşı için tepsideki yerinde bir altlık; taş çıkınca yeri boş görünür.
+func _draw_sockets(seat: int) -> void:
+	var radius := _cell_size() * PAWN_RATIO
+	for slot: int in range(board.owners.count(seat)):
+		var center := _to_pixels(board.layout.bases[seat] + _base_offset(slot))
+		var points := BoardPainter.base_ellipse(center, radius, SOCKET_SCALE)
+		SmoothDraw.polygon(self, points, Skins.current.socket_color)
 
 
 ## Başlangıç alanından çıkış karesine uzanan patika; alandan taş seçilebiliyorsa üstünde ışık akar.
@@ -397,7 +411,7 @@ func _layout_pawns() -> void:
 func _base_offset(slot: int) -> Vector2:
 	var column := slot % BASE_COLUMNS - (BASE_COLUMNS - 1) / 2.0
 	var row := floori(float(slot) / BASE_COLUMNS) - 0.5
-	return Vector2(column, row) * BASE_SPREAD
+	return Vector2(column, row) * BASE_SPREAD + Vector2.UP * BASE_LIFT
 
 
 ## Aynı hücredeki taşları hücre merkezinin çevresine dağıtır; evdeki taşlar küçülüp
