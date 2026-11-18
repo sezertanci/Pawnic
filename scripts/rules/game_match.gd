@@ -119,6 +119,11 @@ func human_count() -> int:
 	return bots.count(false)
 
 
+## Oyuncu başına taş sayısı (aynı ayarlarla yeni oyun kurmak için).
+func pawns_per_player() -> int:
+	return board.owners.count(seats[0])
+
+
 ## İlk insan oyuncunun eli (tek kişilik oyunda bot sırasında da gösterilir).
 func first_human_hand() -> Array[Card]:
 	return hands[bots.find(false)]

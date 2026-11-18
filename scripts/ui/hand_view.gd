@@ -6,6 +6,7 @@ signal card_pressed(card_index: int)
 
 const CARD_VARIATION := &"CardButton"
 const DISABLED_FONT := &"font_disabled_color"
+const DISABLED_STYLE := &"disabled"
 const DIM_ALPHA := 0.45
 const CARD_GAP := 8.0
 ## Yelpazede yan yana kartların açı farkı (derece) ve kenara doğru kartların inişi (piksel).
@@ -34,12 +35,27 @@ func show_cards(hand: Array[Card], settings: GameSettings, playable: Array[bool]
 	_arrange()
 
 
+## Elin yerine verilen sayıda kapalı kart koyar; kartlara dokunulamaz.
+func show_backs(count: int) -> void:
+	clear()
+	for _index: int in range(count):
+		var button := Button.new()
+		button.theme_type_variation = CARD_VARIATION
+		button.mouse_filter = MOUSE_FILTER_IGNORE
+		var back := CardFace.new()
+		back.set_anchors_preset(PRESET_FULL_RECT)
+		button.add_child(back)
+		add_child(button)
+	_arrange()
+
+
 ## Kartın yazısını ya da (varsa) sembolünü düğmeye koyar.
 func _add_face(button: Button, card: Card, settings: GameSettings) -> void:
 	var symbol := CardSymbol.new()
 	symbol.show_card(card, settings)
 	if button.disabled:
-		symbol.modulate.a = button.get_theme_color(DISABLED_FONT).a
+		var face := button.get_theme_stylebox(DISABLED_STYLE) as StyleBoxFlat
+		symbol.fade_into(face.bg_color, 1.0 - button.get_theme_color(DISABLED_FONT).a)
 	button.add_child(symbol)
 	if not symbol.visible:
 		button.text = CardFace.text_for(card, settings.exit_value)

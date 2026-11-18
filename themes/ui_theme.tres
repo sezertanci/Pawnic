@@ -56,6 +56,8 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxEmpty" id="card_focus"]
 
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
 [sub_resource type="StyleBoxFlat" id="primary"]
 content_margin_left = 24.0
 content_margin_top = 22.0
@@ -432,6 +434,20 @@ OverlayButton/styles/focus = SubResource("overlay_style")
 OverlayButton/styles/hover = SubResource("overlay_style")
 OverlayButton/styles/normal = SubResource("overlay_style")
 OverlayButton/styles/pressed = SubResource("overlay_style")
+GlassButton/base_type = &"Button"
+GlassButton/font_sizes/font_size = 36
+GlassButton/constants/outline_size = 8
+GlassButton/colors/font_outline_color = Color(0, 0, 0, 0.35)
+GlassButton/colors/font_color = Color(1, 1, 1, 1)
+GlassButton/colors/font_hover_color = Color(1, 1, 1, 1)
+GlassButton/colors/font_pressed_color = Color(1, 1, 1, 0.75)
+GlassButton/colors/font_hover_pressed_color = Color(1, 1, 1, 0.75)
+GlassButton/colors/font_focus_color = Color(1, 1, 1, 1)
+GlassButton/styles/normal = SubResource("empty")
+GlassButton/styles/hover = SubResource("empty")
+GlassButton/styles/pressed = SubResource("empty")
+GlassButton/styles/hover_pressed = SubResource("empty")
+GlassButton/styles/focus = SubResource("empty")
 WideMargin/base_type = &"MarginContainer"
 WideMargin/constants/margin_left = 48
 WideMargin/constants/margin_top = 48
@@ -445,6 +461,9 @@ LogoLabel/constants/outline_size = 24
 LogoLabel/constants/shadow_offset_x = 0
 LogoLabel/constants/shadow_offset_y = 10
 LogoLabel/font_sizes/font_size = 128
+WinLabel/base_type = &"LogoLabel"
+WinLabel/constants/outline_size = 20
+WinLabel/font_sizes/font_size = 84
 HeadingLabel/base_type = &"Label"
 HeadingLabel/font_sizes/font_size = 44
 PrimaryButton/base_type = &"Button"

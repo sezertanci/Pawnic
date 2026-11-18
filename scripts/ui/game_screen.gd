@@ -3,8 +3,10 @@ extends Control
 ## Oyun ekranı: sıra akışı, botların oynaması ve oyuncunun dokunarak hamle seçmesi.
 ## Her sıranın başında oyun kaydedilir; oyun bitince kayıt silinir.
 
-## Oyun bitip oyuncu sonuç ekranını kapattığında gelir.
+## Oyun bitip oyuncu kutlama ekranından ana ekrana dönmek istediğinde gelir.
 signal finished
+## Oyun bitip oyuncu aynı ayarlarla yeniden oynamak istediğinde gelir.
+signal replay_requested(bot_flags: Array[bool], pawns: int)
 ## Oyuncu geri düğmesiyle ana ekrana döndüğünde gelir; oyun kayıtlı kalır.
 signal left
 
@@ -17,7 +19,8 @@ var _game: GameMatch
 ## Oyun sürerken true; geçen süre yalnızca bu sırada sayılır.
 var _clock_running := false
 var _picker := MovePicker.new()
-var _overlay_action := Callable()
+## Sıra devrinde oyuncunun çektiği kart; eli açılınca desteden uçarak gelir.
+var _handoff_drew := false
 ## Oyuncunun dokunmasını bekleyen an; kart ya da taş uçarken false.
 var _awaiting_human := false
 
@@ -29,14 +32,18 @@ var _awaiting_human := false
 @onready var _board_view: BoardView = %BoardView
 @onready var _joker_box: HBoxContainer = %JokerBox
 @onready var _hand_view: HandView = %HandView
-@onready var _overlay: Button = %Overlay
+@onready var _win_overlay: WinOverlay = %WinOverlay
+@onready var _handoff_button: Button = %HandoffButton
+@onready var _handoff_glass: FrostedGlass = %Glass
 
 
 func _ready() -> void:
 	_board_view.pawn_pressed.connect(_on_pawn_pressed)
 	_board_view.square_pressed.connect(_on_square_pressed)
 	_hand_view.card_pressed.connect(_on_card_pressed)
-	_overlay.pressed.connect(_on_overlay_pressed)
+	_win_overlay.replay_pressed.connect(_on_replay_pressed)
+	_win_overlay.home_pressed.connect(_on_home_pressed)
+	_handoff_button.pressed.connect(_on_handoff_pressed)
 	(%BackButton as Button).pressed.connect(_on_back_pressed)
 	_cards.deck_pile = _deck_pile
 	_cards.discard_pile = _discard_pile
@@ -47,7 +54,7 @@ func start(game: GameMatch) -> void:
 	_board_view.board = game.board
 	_cards.settings = game.settings
 	_hand_view.slot_count = game.settings.hand_size + 1
-	_overlay.hide()
+	_hide_overlays()
 	_clock_running = true
 	_clock.text = format_clock(game.elapsed)
 	# Ekran yeni göründüğünde kapların düzeni henüz kurulmamıştır; ilk tur bir kare sonra başlar,
@@ -86,7 +93,7 @@ func _on_back_pressed() -> void:
 	_clock_running = false
 	_awaiting_human = false
 	_game = null
-	_overlay.hide()
+	_hide_overlays()
 	_board_view.stop_animation()
 	left.emit()
 
@@ -112,7 +119,7 @@ func _start_turn() -> void:
 	if _game.is_bot_turn():
 		_play_bot_turn()
 	elif _game.human_count() > 1:
-		_show_overlay(tr("HANDOFF") % _seat_name(seat), _begin_human_turn.bind(drew))
+		_show_handoff(seat, drew)
 	else:
 		_begin_human_turn(drew)
 
@@ -246,7 +253,7 @@ func _finish_turn() -> void:
 	_clock_running = false
 	SaveStore.clear_match()
 	_hand_view.clear()
-	_show_overlay(tr("WIN") % _seat_name(winner), finished.emit)
+	_win_overlay.open(winner, tr("WIN") % _seat_name(winner), _seat_colors())
 
 
 func _seat_name(seat: int) -> String:
@@ -344,15 +351,42 @@ func _clear_values() -> void:
 	_hand_view.show()
 
 
-# --- Ekranı kaplayan bilgi katmanı ---
+# --- Sıra devri ve oyun sonu ---
 
 
-func _show_overlay(text: String, action: Callable) -> void:
-	_overlay.text = text
-	_overlay_action = action
-	_overlay.show()
+## Birden çok insan varken sıradaki oyuncunun eli kapalı durur; oyuncu düğmeye basınca açılır.
+func _show_handoff(seat: int, drew: bool) -> void:
+	var hidden := _game.current_hand().size() - (1 if drew else 0)
+	_hand_view.show_backs(hidden)
+	_handoff_button.text = tr("HANDOFF")
+	_handoff_glass.set_tint(Skins.current.seat_color(seat))
+	_handoff_drew = drew
+	_handoff_button.show()
 
 
-func _on_overlay_pressed() -> void:
-	_overlay.hide()
-	_overlay_action.call()
+func _on_handoff_pressed() -> void:
+	_handoff_button.hide()
+	_begin_human_turn(_handoff_drew)
+
+
+func _hide_overlays() -> void:
+	_handoff_button.hide()
+	_win_overlay.close()
+
+
+## Oyundaki koltukların renkleri (konfeti için).
+func _seat_colors() -> Array[Color]:
+	var colors: Array[Color] = []
+	for seat: int in _game.seats:
+		colors.append(Skins.current.seat_color(seat))
+	return colors
+
+
+func _on_replay_pressed() -> void:
+	_win_overlay.close()
+	replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player())
+
+
+func _on_home_pressed() -> void:
+	_win_overlay.close()
+	finished.emit()

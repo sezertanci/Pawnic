@@ -3,7 +3,7 @@ extends Button
 ## Ana ekran düğmesi: dokusunun solundaki yuvarlağın içine seçilen simgeyi çizer.
 ## Simgenin yeri ve boyu düğme yüksekliğine oranla verilir.
 
-enum Symbol { PLAY, PLUS, QUESTION }
+enum Symbol { PLAY, PLUS, QUESTION, HOME }
 
 ## Yuvarlağın merkezi ve simgenin yarı boyu (düğme yüksekliğine oranla).
 const BADGE_CENTER := Vector2(0.43, 0.41)
@@ -31,6 +31,8 @@ func _draw() -> void:
 			_draw_plus(center, half)
 		Symbol.QUESTION:
 			_draw_question(center, half)
+		Symbol.HOME:
+			_draw_home(center, half)
 
 
 func _draw_play(center: Vector2, half: float) -> void:
@@ -53,6 +55,11 @@ func _draw_plus(center: Vector2, half: float) -> void:
 		draw_rect(bar.grow(OUTLINE_WIDTH / 2.0), Skins.current.outline_color)
 	for bar: Rect2 in bars:
 		draw_rect(bar, SYMBOL_COLOR)
+
+
+func _draw_home(center: Vector2, half: float) -> void:
+	var bounds := Rect2(center - Vector2(half, half), Vector2(half, half) * 2.0)
+	CardSymbol.draw_house(self, bounds, SYMBOL_COLOR, Skins.current.outline_color, OUTLINE_WIDTH)
 
 
 func _draw_question(center: Vector2, half: float) -> void:

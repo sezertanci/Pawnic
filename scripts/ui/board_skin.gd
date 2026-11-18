@@ -18,8 +18,9 @@ extends Resource
 @export var selected_color := Color.ORANGE
 ## Zıplayan taşın yere düşen gölgesi.
 @export var shadow_color := Color(0, 0, 0, 0.35)
-## Kare dokusundaki alt kalınlık (kare boyunun oranı); işaretler bunun üstündeki yüze çizilir.
+## Kare dokusundaki alt kalınlık ve üst kenar (kare boyunun oranı); işaretler aradaki yüze çizilir.
 @export var square_depth := 0.1
+@export var square_top := 0.0
 ## Dış yolun (taş) ve ev yolunun (çimen) kare dokuları.
 @export var track_texture: Texture2D
 @export var lane_texture: Texture2D

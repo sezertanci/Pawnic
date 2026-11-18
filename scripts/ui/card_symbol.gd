@@ -28,7 +28,6 @@ const KIND_BY_TYPE := {
 const LINE_RATIO := 0.03
 const HEAD_RATIO := 0.08
 const HEAD_ANGLE := PI / 6.0
-const ARC_POINTS := 24
 const PAWN_RADIUS := 0.17
 const PAWN_Y := 0.48
 const TEXT_Y := 0.85
@@ -70,6 +69,9 @@ var _value := 0
 var _joker_max := 0
 ## Jokerde oyuncunun seçtiği sayı; seçilmediyse Card.NO_VALUE.
 var _chosen := Card.NO_VALUE
+## Soluk gösterimde renklerin karıştığı zemin rengi ve karışım oranı (0: hiç).
+var _fade_color := Color.WHITE
+var _fade := 0.0
 
 
 func _init() -> void:
@@ -163,7 +165,7 @@ func _draw_exit(center_y: float = EXIT_Y) -> void:
 			Vector2(right, bottom - half + opening),
 		]
 	)
-	draw_polyline(outline, _color(INK_COLOR), _line_width())
+	SmoothDraw.stroke(self, outline, _color(INK_COLOR), _line_width())
 	var pawn := Vector2(left + half * BOX_PAWN_SHIFT, center.y)
 	_draw_pawn(pawn, BOX_PAWN_RADIUS, PAWN_COLOR)
 	var arrow_start := pawn.x + size.x * (BOX_PAWN_RADIUS + ARROW_GAP)
@@ -176,7 +178,8 @@ func _draw_send_back() -> void:
 	_draw_pawn(center, PAWN_RADIUS, RIVAL_COLOR)
 	var radius := size.x * TURN_RADIUS
 	var arc_center := Vector2(center.x, center.y - size.x * (PAWN_RADIUS + ARROW_GAP))
-	draw_arc(arc_center, radius, PI, TAU, ARC_POINTS, _color(INK_COLOR), _line_width())
+	var arc := SmoothDraw.arc_points(arc_center, radius, PI, TAU)
+	SmoothDraw.stroke(self, arc, _color(INK_COLOR), _line_width())
 	_draw_head(arc_center + Vector2.LEFT * radius, Vector2.DOWN)
 	if _value > 0:
 		_draw_caption("-%d" % _value)
@@ -192,9 +195,15 @@ static func draw_house(
 	var half := bounds.size.x * HOUSE_BODY_WIDTH / 2.0
 	var top := bounds.position.y + bounds.size.y * ROOF_HEIGHT
 	var bottom := bounds.end.y
-	var body := Rect2(middle - half, top, half * 2.0, bottom - top)
-	canvas.draw_rect(body, fill)
-	canvas.draw_rect(body, ink, false, line_width)
+	var body := PackedVector2Array(
+		[
+			Vector2(middle - half, top),
+			Vector2(middle + half, top),
+			Vector2(middle + half, bottom),
+			Vector2(middle - half, bottom),
+		]
+	)
+	SmoothDraw.outlined(canvas, body, fill, ink, line_width)
 	var roof := PackedVector2Array(
 		[
 			Vector2(bounds.position.x, top),
@@ -202,13 +211,11 @@ static func draw_house(
 			Vector2(bounds.end.x, top),
 		]
 	)
-	canvas.draw_colored_polygon(roof, fill)
-	roof.append(roof[0])
-	canvas.draw_polyline(roof, ink, line_width)
+	SmoothDraw.outlined(canvas, roof, fill, ink, line_width)
 	var door_half := bounds.size.x * DOOR_WIDTH / 2.0
 	var door_height := bounds.size.y * DOOR_HEIGHT
 	var door := Rect2(middle - door_half, bottom - door_height, door_half * 2.0, door_height)
-	canvas.draw_rect(door, ink)
+	canvas.draw_rect(door, ink, true, -1.0, true)
 
 
 func _draw_star() -> void:
@@ -218,9 +225,15 @@ func _draw_star() -> void:
 		var ratio := STAR_OUTER if index % 2 == 0 else STAR_INNER
 		var angle := -PI / 2.0 + PI * index / STAR_POINTS
 		points.append(center + Vector2.from_angle(angle) * size.x * ratio)
-	draw_colored_polygon(points, _color(STAR_COLOR))
-	points.append(points[0])
-	draw_polyline(points, _color(INK_COLOR), _line_width())
+	SmoothDraw.outlined(self, points, _color(STAR_COLOR), _color(INK_COLOR), _line_width())
+
+
+## Sembolü zemin rengine karıştırarak soluklaştırır. Saydamlık yerine renk karıştırılır;
+## saydam çizimde üst üste binen parçalar (ok ucu ile gövdesi) koyu leke bırakır.
+func fade_into(background: Color, amount: float) -> void:
+	_fade_color = Color(background, 1.0)
+	_fade = amount
+	queue_redraw()
 
 
 func _pawn_center() -> Vector2:
@@ -238,21 +251,21 @@ func _draw_caption(text: String, line_y: float = TEXT_Y) -> void:
 
 func _draw_pawn(center: Vector2, radius_ratio: float, color_name: StringName) -> void:
 	var radius := size.x * radius_ratio
-	draw_circle(center, radius, _color(color_name))
-	draw_arc(center, radius, 0.0, TAU, ARC_POINTS, _color(INK_COLOR), _line_width())
+	SmoothDraw.circle(self, center, radius, _color(color_name), _color(INK_COLOR), _line_width())
 
 
 func _draw_arrow(from: Vector2, to: Vector2) -> void:
-	draw_line(from, to, _color(INK_COLOR), _line_width())
+	SmoothDraw.stroke(self, PackedVector2Array([from, to]), _color(INK_COLOR), _line_width())
 	_draw_head(to, (to - from).normalized())
 
 
-## Ok ucu: tip noktasında, direction yönünü gösteren iki kısa çizgi.
+## Ok ucu: tip noktasında birleşen, direction yönünü gösteren iki kısa çizgi.
 func _draw_head(tip: Vector2, direction: Vector2) -> void:
-	var ink := _color(INK_COLOR)
 	var back := -direction * size.x * HEAD_RATIO
-	draw_line(tip, tip + back.rotated(HEAD_ANGLE), ink, _line_width())
-	draw_line(tip, tip + back.rotated(-HEAD_ANGLE), ink, _line_width())
+	var head := PackedVector2Array(
+		[tip + back.rotated(HEAD_ANGLE), tip, tip + back.rotated(-HEAD_ANGLE)]
+	)
+	SmoothDraw.stroke(self, head, _color(INK_COLOR), _line_width())
 
 
 func _line_width() -> float:
@@ -260,4 +273,4 @@ func _line_width() -> float:
 
 
 func _color(color_name: StringName) -> Color:
-	return get_theme_color(color_name, STYLE)
+	return get_theme_color(color_name, STYLE).lerp(_fade_color, _fade)

@@ -91,7 +91,7 @@ func _draw_pawns() -> void:
 	var steps := _time / HOP_SEC
 	var progress := steps - floorf(steps)
 	var lift := sin(progress * PI) * HOP_HEIGHT * _cell
-	var face_center := Vector2(0.5, 0.5 - Skins.current.square_depth / 2.0) * _cell
+	var face_center := BoardPainter.face_rect(Rect2(Vector2.ZERO, Vector2.ONE * _cell)).get_center()
 	for seat: int in range(seats):
 		var index := (floori(steps) + seat * spacing) % _loop.size()
 		var from := _loop[index]

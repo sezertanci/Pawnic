@@ -235,9 +235,8 @@ func _draw_shield(center: Vector2, radius: float) -> void:
 	var points := PackedVector2Array()
 	for point: Vector2 in SHIELD_POINTS:
 		points.append(center + point * radius)
-	draw_colored_polygon(points, Skins.current.shield_color)
-	points.append(points[0])
-	draw_polyline(points, Skins.current.outline_color, LINE_WIDTH)
+	var skin := Skins.current
+	SmoothDraw.outlined(self, points, skin.shield_color, skin.outline_color, LINE_WIDTH)
 
 
 ## Yan yana olmayan kareleri birleştiren bağlantılar çizgiyle gösterilir.
@@ -366,24 +365,34 @@ func _draw_shadow(center: Vector2, radius: float) -> void:
 
 
 func _draw_pawn(pawn: int, center: Vector2, radius: float) -> void:
-	# Halka taşın altında, yerde görünsün diye taştan önce çizilir.
-	var skin := Skins.current
-	if pawn == selected_pawn:
-		_draw_highlight_ring(center, radius, skin.selected_color)
-	elif selectable.has(pawn):
-		var ring_radius := radius + HIGHLIGHT_WIDTH
-		var color := skin.highlight_color
-		PulseWave.draw_ring(self, center, ring_radius, color, skin.outline_color, HIGHLIGHT_WIDTH)
+	# Halkanın arka yarısı taşın arkasında, ön yarısı önünde kalsın diye iki parça çizilir.
+	_draw_pawn_ring(pawn, center, radius, PulseWave.BACK_ARC)
 	BoardPainter.draw_pawn(self, center, radius, board.owners[pawn])
+	_draw_pawn_ring(pawn, center, radius, PulseWave.FRONT_ARC)
 
 
-## Taşın halkası: dışındaki koyu çizgi halkayı açık renkli karede de görünür kılar.
-func _draw_highlight_ring(center: Vector2, radius: float, color: Color) -> void:
+## Taşın ayağında, tabanını saran yere yatık (elips) halka. Başlangıç alanındaki seçilebilir
+## taşlara dalga çizilmez; orada alanın çerçevesi dalgalanır.
+func _draw_pawn_ring(pawn: int, foot: Vector2, radius: float, arc: Vector2) -> void:
 	var skin := Skins.current
-	var ring_radius := radius + HIGHLIGHT_WIDTH
+	var ring_radius := radius * BoardPainter.PAWN_WIDTH_RATIO / 2.0 + HIGHLIGHT_WIDTH
+	draw_set_transform(foot, 0.0, Vector2(1.0, PulseWave.RING_FLATTEN))
+	if pawn == selected_pawn:
+		_draw_highlight_ring(ring_radius, skin.selected_color, arc)
+	elif selectable.has(pawn) and board.positions[pawn] != BoardState.BASE:
+		PulseWave.draw_ring(
+			self, Vector2.ZERO, ring_radius, skin.highlight_color, skin.outline_color,
+			HIGHLIGHT_WIDTH, arc
+		)
+	draw_set_transform(Vector2.ZERO)
+
+
+## Seçili taşın sabit halkası: dışındaki koyu çizgi halkayı açık renkli karede de görünür kılar.
+func _draw_highlight_ring(ring_radius: float, color: Color, arc: Vector2) -> void:
+	var skin := Skins.current
 	var edge_radius := ring_radius + (HIGHLIGHT_WIDTH + LINE_WIDTH) / 2.0
-	draw_arc(center, ring_radius, 0.0, TAU, ARC_POINTS, color, HIGHLIGHT_WIDTH)
-	draw_arc(center, edge_radius, 0.0, TAU, ARC_POINTS, skin.outline_color, LINE_WIDTH)
+	draw_arc(Vector2.ZERO, ring_radius, arc.x, arc.y, ARC_POINTS, color, HIGHLIGHT_WIDTH)
+	draw_arc(Vector2.ZERO, edge_radius, arc.x, arc.y, ARC_POINTS, skin.outline_color, LINE_WIDTH)
 
 
 func _selectable_at(point: Vector2) -> int:

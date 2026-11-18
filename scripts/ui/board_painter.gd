@@ -11,11 +11,17 @@ const PAWN_WIDTH_RATIO := 2.4
 const PAWN_FOOT := 0.72
 
 
-## Kare dokusunu verilen renge boyayarak çizer. Dokunun alt kalınlığı hariç yüzün yerini döner.
+## Kare dokusunu verilen renge boyayarak çizer ve yüzünün yerini döner.
 static func draw_tile(canvas: CanvasItem, rect: Rect2, texture: Texture2D, tint: Color) -> Rect2:
 	canvas.draw_texture_rect(texture, rect, false, tint)
+	return face_rect(rect)
+
+
+## Karenin üst kenarı ve alt kalınlığı hariç, işaretlerin ve taşların durduğu yüz.
+static func face_rect(rect: Rect2) -> Rect2:
+	var top := rect.size.y * Skins.current.square_top
 	var depth := rect.size.y * Skins.current.square_depth
-	return Rect2(rect.position, rect.size - Vector2(0.0, depth))
+	return Rect2(rect.position + Vector2(0.0, top), rect.size - Vector2(0.0, top + depth))
 
 
 ## Koltuğun taş görselini, ayağı verilen merkeze basacak biçimde çizer.

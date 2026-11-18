@@ -21,24 +21,8 @@ COLOR_RED,Kırmızı,Red,Rot,Rojo,Rouge,Rosso,Vermelho,Merah
 COLOR_BLUE,Mavi,Blue,Blau,Azul,Bleu,Blu,Azul,Biru
 COLOR_GREEN,Yeşil,Green,Grün,Verde,Vert,Verde,Verde,Hijau
 COLOR_YELLOW,Sarı,Yellow,Gelb,Amarillo,Jaune,Giallo,Amarelo,Kuning
-HANDOFF,"Sıra %s oyuncusunda.
-Telefonu ver, hazır olunca dokun.","It's %s's turn.
-Pass the phone and tap when ready.","%s ist am Zug.
-Gib das Handy weiter und tippe, wenn du bereit bist.","Le toca a %s.
-Pasa el teléfono y toca cuando estés listo.","C'est au tour de %s.
-Passe le téléphone et touche l'écran quand tu es prêt.","Tocca a %s.
-Passa il telefono e tocca quando sei pronto.","É a vez de %s.
-Passe o celular e toque quando estiver pronto.","Giliran %s.
-Berikan ponselnya dan ketuk jika sudah siap."
-WIN,"%s kazandı!
-Yeni oyun için dokun.","%s wins!
-Tap for a new game.","%s gewinnt!
-Tippe für ein neues Spiel.","¡Gana %s!
-Toca para una nueva partida.","%s gagne !
-Touche pour une nouvelle partie.","Vince %s!
-Tocca per una nuova partita.","%s venceu!
-Toque para um novo jogo.","%s menang!
-Ketuk untuk permainan baru."
+HANDOFF,Kartları Aç,Show cards,Karten zeigen,Mostrar cartas,Voir les cartes,Mostra le carte,Mostrar cartas,Buka kartu
+WIN,%s kazandı!,%s wins!,%s gewinnt!,¡Gana %s!,%s gagne !,Vince %s!,%s venceu!,%s menang!
 PILE_DECK_COUNT,%d kart,%d cards,%d Karten,%d cartas,%d cartes,%d carte,%d cartas,%d kartu
 PILE_DISCARD,Atılanlar,Discards,Ablage,Descartes,Défausse,Scarti,Descartes,Buangan
 CARD_FORWARD,+%d,+%d,+%d,+%d,+%d,+%d,+%d,+%d
@@ -56,3 +40,5 @@ DESC_SHORTCUT,Taşın ev yolu girişine,Pawn jumps to the home lane entry,Figur 
 DESC_JOKER,1–6 arası istediğin sayı,Any number from 1 to 6,Beliebige Zahl von 1 bis 6,Cualquier número del 1 al 6,N'importe quel nombre de 1 à 6,Qualsiasi numero da 1 a 6,Qualquer número de 1 a 6,Angka bebas dari 1 sampai 6
 NEW_GAME,Yeni oyun,New game,Neues Spiel,Nueva partida,Nouvelle partie,Nuova partita,Novo jogo,Permainan baru
 HOW_TO_PLAY,Nasıl oynanır,How to play,Spielanleitung,Cómo jugar,Comment jouer,Come si gioca,Como jogar,Cara bermain
+PLAY_AGAIN,Tekrar oyna,Play again,Nochmal spielen,Jugar de nuevo,Rejouer,Gioca ancora,Jogar de novo,Main lagi
+MAIN_MENU,Ana ekran,Main menu,Hauptmenü,Menú principal,Menu principal,Menu principale,Menu principal,Menu utama
