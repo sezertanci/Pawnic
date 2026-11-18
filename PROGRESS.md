@@ -149,3 +149,4 @@
   sayı, Titan One yazı tipiyle (OFL, `assets/fonts/`) iri, koyu konturlu ve gölgeli çiziliyor; ileri
   yeşil, geri kırmızı (`CardSymbol` temasında `forward_color`, `back_color`, `number_font`). Geri
   kartlarında eksi işareti gerçek eksi (−). Sembollü kartlar (çıkış, geri yolla vb.) ayrıca ele alınacak.
+  Tahtadaki hız karelerinde de aynı iri sayı çiziliyor; ortak çizim `BigNumber` sınıfında.

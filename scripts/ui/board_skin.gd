@@ -11,8 +11,6 @@ extends Resource
 @export var track_color := Color.WHITE
 @export var outline_color := Color.BLACK
 @export var mark_color := Color.GRAY
-## Karelerdeki hız sayılarının rengi; koyu konturla çizilir.
-@export var speed_text_color := Color.WHITE
 @export var highlight_color := Color.WHITE
 ## Seçilmiş taşın (ör. yer değiştirmede kendi taşın) halka rengi.
 @export var selected_color := Color.ORANGE

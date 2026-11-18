@@ -69,13 +69,6 @@ const STAR_OUTER := 0.26
 const STAR_INNER := 0.11
 const STAR_POINTS := 5
 const RANGE_TEXT := "1–%d"
-## İri sayı: yazı boyu, kontur kalınlığı, gölge kayması ve iki yandaki boşluk (kart genişliğine
-## oranla). Rakamların yüksekliği yazı boyunun DIGIT_HEIGHT katıdır; dikey ortalamada kullanılır.
-const NUMBER_SIZE := 0.6
-const NUMBER_OUTLINE := 0.08
-const NUMBER_SHADOW := Vector2(0.025, 0.035)
-const NUMBER_MARGIN := 0.08
-const DIGIT_HEIGHT := 0.72
 
 var _kind := Kind.NONE
 var _value := 0
@@ -147,28 +140,12 @@ func show_chosen(value: int) -> void:
 	queue_redraw()
 
 
-## Kartın ortasına sığacak iri sayı: önce kaymış koyu gölge, sonra koyu kontur ve renkli dolgu.
+## Kartın ortasına iri sayı.
 func _draw_number(type: Card.Type, color_name: StringName) -> void:
 	var text := tr(Card.LABEL_KEYS[type]) % _value
 	var font := get_theme_font(NUMBER_FONT, STYLE)
-	var outline := roundi(size.x * NUMBER_OUTLINE)
-	var font_size := _number_font_size(font, text, outline)
-	var baseline := Vector2(0.0, (size.y + font_size * DIGIT_HEIGHT) / 2.0)
-	var shadow := baseline + NUMBER_SHADOW * size.x
-	var ink := _color(INK_COLOR)
-	var center := HORIZONTAL_ALIGNMENT_CENTER
-	draw_string_outline(font, shadow, text, center, size.x, font_size, outline, ink)
-	draw_string(font, shadow, text, center, size.x, font_size, ink)
-	draw_string_outline(font, baseline, text, center, size.x, font_size, outline, ink)
-	draw_string(font, baseline, text, center, size.x, font_size, _color(color_name))
-
-
-## Sayı NUMBER_SIZE boyunda yazılır; kontur dahil karta sığmazsa sığacak kadar küçültülür.
-func _number_font_size(font: Font, text: String, outline: int) -> int:
-	var font_size := roundi(size.x * NUMBER_SIZE)
-	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + outline
-	var room := size.x * (1.0 - NUMBER_MARGIN * 2.0)
-	return font_size if width <= room else floori(font_size * room / width)
+	var rect := Rect2(Vector2.ZERO, size)
+	BigNumber.draw(self, font, rect, text, _color(color_name), _color(INK_COLOR))
 
 
 func _draw_swap() -> void:

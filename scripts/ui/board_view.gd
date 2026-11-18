@@ -15,9 +15,6 @@ const BASE_COLUMNS := 3
 const BASE_SPREAD := 0.95
 const HIT_RATIO := 0.6
 const MARK_RATIO := 0.3
-const FONT_RATIO := 0.42
-## Hız sayısının koyu konturunun kalınlığı (yazı boyuna oranla).
-const TEXT_OUTLINE_RATIO := 0.3
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
 ## Daire çizimindeki nokta sayısı.
@@ -214,21 +211,22 @@ func _shortcut_seat(square: int, active: Array[int]) -> int:
 
 
 func _draw_mark(square: int, rect: Rect2) -> void:
-	var skin := Skins.current
-	var font_size := roundi(_cell_size() * FONT_RATIO)
 	var speed := board.layout.speed[square]
 	if board.layout.safe[square]:
 		_draw_shield(rect.get_center(), _cell_size() * MARK_RATIO)
-	elif speed != 0 and font_size > 0:
-		var text := "%+d" % speed
-		var baseline := Vector2(rect.position.x, rect.get_center().y + font_size / 3.0)
-		var font := ThemeDB.fallback_font
-		var outline := roundi(font_size * TEXT_OUTLINE_RATIO)
-		var align := HORIZONTAL_ALIGNMENT_CENTER
-		draw_string_outline(
-			font, baseline, text, align, rect.size.x, font_size, outline, skin.outline_color
-		)
-		draw_string(font, baseline, text, align, rect.size.x, font_size, skin.speed_text_color)
+	elif speed != 0:
+		_draw_speed(speed, rect)
+
+
+## Hız karesinin sayısı, kartlardaki gibi iri: ileri yeşil, geri kırmızı.
+func _draw_speed(speed: int, rect: Rect2) -> void:
+	var type := Card.Type.FORWARD if speed > 0 else Card.Type.BACK
+	var text := tr(Card.LABEL_KEYS[type]) % absi(speed)
+	var color_name := CardSymbol.FORWARD_COLOR if speed > 0 else CardSymbol.BACK_COLOR
+	var font := get_theme_font(CardSymbol.NUMBER_FONT, CardSymbol.STYLE)
+	var fill := get_theme_color(color_name, CardSymbol.STYLE)
+	var ink := get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
+	BigNumber.draw(self, font, rect, text, fill, ink)
 
 
 func _draw_shield(center: Vector2, radius: float) -> void:
