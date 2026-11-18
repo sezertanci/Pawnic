@@ -28,6 +28,10 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
   `python tools/make_icon.py assets/images assets/icon/text --design text`.
   Açılış ekranının görseli (`assets/icon/frame/icon.png`):
   `python tools/make_icon.py assets/images assets/icon/frame --design frame --size 1024`
+- Play Store öne çıkan görseli (`store/pawnic/feature-1024x500.png`, Pillow gerekir). Önce kartlar
+  çizilir (pencereli çalışır, `--headless` olmaz), sonra görsel birleştirilir:
+  `godot --path . -s tools/render_cards.gd -- build/feature_cards` ve
+  `python tools/make_feature_graphic.py build/feature_cards store/pawnic/feature-1024x500.png`
 
 ## Android derlemesi
 Derlemeler Gradle ile alınır. `android/build` klasörü depoda tutulmaz; ilk kez derlemeden önce
@@ -43,6 +47,21 @@ Godot düzenleyicisinde **Proje → Android Derleme Şablonunu Yükle** ile kuru
 Yükleme anahtarı ve şifreleri depoya girmez. Godot bunları `.godot/export_credentials.cfg` içinde
 tutar. Play'de uygulama imzalama (Play App Signing) kullanılır.
 
+Play'e yeni AAB yüklenmeden önce `export_presets.cfg` içindeki üç presette `version/code` 1,
+`version/name` ara sürümü 1 artırılır (ör. `2` / `1.1.0` → `3` / `1.2.0`).
+
+## Play Store
+Mağaza dosyaları `store/pawnic/` altındadır:
+- `listing/`: Türkçe ve İngilizce mağaza metinleri (ad, kısa ve tam açıklama, sürüm notu)
+- `screenshots/`: dil başına telefon, 7 inç ve 10 inç tablet ekran görüntüleri
+- `icon-512.png` ve `feature-1024x500.png`: mağaza simgesi ve öne çıkan görsel
+- `privacy.html`: gizlilik politikası. Yayındaki adresi
+  `https://sezertanci.github.io/pawnic/privacy.html`; kaynak burada tutulur, değişince site
+  deposuna kopyalanır.
+
+`store/` klasöründeki `.gdignore`, Godot'nun bu görselleri içe aktarıp pakete katmasını önler
+(yoksa AAB yaklaşık 18 MB büyür).
+
 ## Klasörler
 - `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu, ana ekran arka planının bulanıklığı)
 - `data/boards/`: tahta tasarımları (aşağıda)
@@ -54,7 +73,8 @@ tutar. Play'de uygulama imzalama (Play App Signing) kullanılır.
 - `scenes/`: ana sahne, ekranlar ve ortak bileşenler
 - `themes/`: arayüz teması ve tahta görünümleri (`themes/skins/`)
 - `tests/unit/`: GUT birim testleri, `tests/fixtures/`: testlerde kullanılan deneme tahtası
-- `tools/`: simülasyon, ekran görüntüsü, ses ve ikon üretme betikleri
+- `tools/`: simülasyon, ekran görüntüsü, ses, ikon ve mağaza görseli üretme betikleri
+- `store/`: Play Store dosyaları (yukarıda)
 
 ## Tahta dosyası
 Tahta bir ızgara üzerindeki kareler ve aralarındaki bağlantılardan oluşur; kod tahtanın şeklini
