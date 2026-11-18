@@ -82,6 +82,27 @@ func test_pawn_with_many_destinations_asks_for_square() -> void:
 	assert_eq(_picker.pick_destination(7), branch)
 
 
+func test_candidates_list_every_move_of_picked_card() -> void:
+	var first := Move.new(0, Move.Action.FORWARD, 1, 3)
+	var second := Move.new(0, Move.Action.FORWARD, 2, 3)
+	_picker.reset(_moves([first, second, Move.new(1, Move.Action.FORWARD, 1, 4)]))
+
+	_picker.pick_card(0)
+
+	assert_eq(_picker.candidates(), _moves([first, second]))
+
+
+func test_candidates_are_empty_until_joker_value_is_picked() -> void:
+	var five := Move.new(0, Move.Action.FORWARD, 1, 5)
+	_picker.reset(_moves([Move.new(0, Move.Action.FORWARD, 1, 2), five]))
+	_picker.pick_card(0)
+	assert_true(_picker.candidates().is_empty())
+
+	_picker.pick_value(5)
+
+	assert_eq(_picker.candidates(), _moves([five]))
+
+
 func _moves(list: Array) -> Array[Move]:
 	var result: Array[Move] = []
 	result.assign(list)

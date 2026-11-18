@@ -33,7 +33,7 @@ const HALO_OUTSET := 0.05
 static func draw_base(canvas: CanvasItem, rect: Rect2, color: Color, cell: float) -> void:
 	var radius := cell * CORNER_RATIO
 	var line := cell * LINE_RATIO
-	var outline := _rounded_rect(rect, radius)
+	var outline := SmoothDraw.rounded_rect(rect, radius)
 	var top := Color(color.darkened(DARKEN), TOP_ALPHA)
 	var bottom := Color(color.lightened(LIGHTEN), BOTTOM_ALPHA)
 	var colors := PackedColorArray()
@@ -99,19 +99,3 @@ static func _draw_glow(
 		clear.append(Color(color, 0.0))
 	SmoothDraw.ribbon(canvas, outer, path, clear, lit)
 	SmoothDraw.ribbon(canvas, path, inner, lit, clear)
-
-
-## Yuvarlak köşeli dikdörtgenin çevre noktaları (saat yönünde, sol üstten).
-static func _rounded_rect(rect: Rect2, radius: float) -> PackedVector2Array:
-	var r := minf(radius, minf(rect.size.x, rect.size.y) / 2.0)
-	var corners: Array[Vector2] = [
-		rect.position + Vector2(r, r),
-		Vector2(rect.end.x - r, rect.position.y + r),
-		rect.end - Vector2(r, r),
-		Vector2(rect.position.x + r, rect.end.y - r),
-	]
-	var points := PackedVector2Array()
-	for index: int in range(corners.size()):
-		var from := PI + index * PI / 2.0
-		points.append_array(SmoothDraw.arc_points(corners[index], r, from, from + PI / 2.0))
-	return points

@@ -18,9 +18,9 @@ const BACK_ARC := Vector2(PI, TAU)
 const FRONT_ARC := Vector2(0.0, PI)
 
 
-## Dalganın 0 (doğuş) ile 1 (kayboluş) arasındaki evresi.
-static func phase() -> float:
-	return fmod(Time.get_ticks_msec() / MSEC_PER_SEC, PERIOD) / PERIOD
+## Dalganın 0 (doğuş) ile 1 (kayboluş) arasındaki evresi; period saniyede bir başa döner.
+static func phase(period := PERIOD) -> float:
+	return fmod(Time.get_ticks_msec() / MSEC_PER_SEC, period) / period
 
 
 ## arc verilirse halkanın yalnızca o açı aralığı (x: başlangıç, y: bitiş, radyan) çizilir;

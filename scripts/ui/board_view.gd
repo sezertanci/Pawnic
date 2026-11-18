@@ -51,6 +51,10 @@ var selectable: Array[int] = []
 var selectable_squares: Array[int] = []
 ## Hamlesi seçilmekte olan taş; farklı renkte halkayla gösterilir.
 var selected_pawn := Move.NO_PAWN
+## Seçili kartla oynanabilecek hamlelerin yolları (kare sırasıyla, son kare varış) ve hamleyi
+## yapacak oyuncu; yollar onun renginde önizlenir.
+var preview_paths: Array[PackedInt32Array] = []
+var preview_seat := BoardLayout.NO_SEAT
 
 var _centers: Array[Vector2] = []
 var _radii: Array[float] = []
@@ -64,9 +68,11 @@ func _ready() -> void:
 	Skins.changed.connect(queue_redraw)
 
 
-## Seçilebilir bir şey varken dalga oynasın diye tahta her karede yeniden çizilir.
+## Seçilebilir bir şey ya da yol önizlemesi varken dalga ve varış ışığı oynasın diye tahta her
+## karede yeniden çizilir.
 func _process(_delta: float) -> void:
-	if not selectable.is_empty() or not selectable_squares.is_empty():
+	var waving := not selectable.is_empty() or not selectable_squares.is_empty()
+	if waving or not preview_paths.is_empty():
 		queue_redraw()
 
 
@@ -79,7 +85,9 @@ func _draw() -> void:
 		if _is_visible(square, active):
 			_draw_square(square, active)
 	for seat: int in active:
+		_draw_base_link(seat)
 		_draw_base(seat)
+	_draw_previews()
 	_layout_pawns()
 	_draw_pawns()
 
@@ -238,12 +246,39 @@ func _draw_links(active: Array[int]) -> void:
 		draw_line(start, end, Skins.current.mark_color, LINE_WIDTH)
 
 
+## Yol önizlemeleri: yol üstündeki karelerde nokta, varış karesinde nabız gibi parlayan ışık.
+func _draw_previews() -> void:
+	if preview_paths.is_empty():
+		return
+	var color := Skins.current.seat_color(preview_seat)
+	var cell := _cell_size()
+	for path: PackedInt32Array in preview_paths:
+		if path.is_empty():
+			continue
+		var target := path[path.size() - 1]
+		PathPreview.draw_target(self, _cell_rect(board.layout.cells[target]), color, cell)
+		var centers: Array[Vector2] = []
+		for index: int in range(path.size() - 1):
+			centers.append(_square_center(path[index]))
+		var ink := Skins.current.outline_color
+		PathPreview.draw_dots(self, centers, color, ink, cell, LINE_WIDTH)
+
+
 ## Başlangıç alanı; içinden taş seçilebiliyorsa seçilebilir kare gibi çerçevelenir.
 func _draw_base(seat: int) -> void:
 	var base := _base_rect(seat)
 	BasePainter.draw_base(self, base, Skins.current.seat_color(seat), _cell_size())
 	if _base_pawn(seat) != Move.NO_PAWN:
 		_draw_wave_frame(base)
+
+
+## Başlangıç alanından çıkış karesine uzanan patika; alandan taş seçilebiliyorsa üstünde ışık akar.
+func _draw_base_link(seat: int) -> void:
+	var start := _cell_rect(board.layout.cells[board.layout.starts[seat]])
+	var skin := Skins.current
+	var flowing := _base_pawn(seat) != Move.NO_PAWN
+	var color := skin.seat_color(seat)
+	BaseLink.draw(self, _base_rect(seat), start, color, skin, _cell_size(), flowing)
 
 
 func _draw_wave_frame(rect: Rect2) -> void:

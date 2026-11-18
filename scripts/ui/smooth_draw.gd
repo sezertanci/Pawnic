@@ -85,3 +85,27 @@ static func path_progress(points: PackedVector2Array) -> PackedFloat32Array:
 	for index: int in range(distances.size()):
 		distances[index] = distances[index] / total if total > 0.0 else 0.0
 	return distances
+
+
+## Yuvarlak köşeli dikdörtgenin çevre noktaları (saat yönünde, sol üstten).
+static func rounded_rect(rect: Rect2, radius: float) -> PackedVector2Array:
+	var r := minf(radius, minf(rect.size.x, rect.size.y) / 2.0)
+	var corners: Array[Vector2] = [
+		rect.position + Vector2(r, r),
+		Vector2(rect.end.x - r, rect.position.y + r),
+		rect.end - Vector2(r, r),
+		Vector2(rect.position.x + r, rect.end.y - r),
+	]
+	var points := PackedVector2Array()
+	for index: int in range(corners.size()):
+		var from := PI + index * PI / 2.0
+		points.append_array(arc_points(corners[index], r, from, from + PI / 2.0))
+	return points
+
+
+## count uzunluğunda, her öğesi color olan renk dizisi.
+static func filled(color: Color, count: int) -> PackedColorArray:
+	var colors := PackedColorArray()
+	colors.resize(count)
+	colors.fill(color)
+	return colors

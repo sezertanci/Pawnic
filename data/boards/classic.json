@@ -18,9 +18,9 @@
 		"ring:32": -1, "ring:39": -4, "ring:46": 5, "ring:53": -2
 	},
 	"seats": [
-		{ "start": "ring:8", "home": "lane0:5", "shortcut": "ring:7", "base": [11.0, 3.5] },
-		{ "start": "ring:22", "home": "lane1:5", "shortcut": "ring:21", "base": [11.5, 11.0] },
-		{ "start": "ring:36", "home": "lane2:5", "shortcut": "ring:35", "base": [4.0, 11.5] },
-		{ "start": "ring:50", "home": "lane3:5", "shortcut": "ring:49", "base": [3.5, 4.0] }
+		{ "start": "ring:8", "home": "lane0:5", "shortcut": "ring:7", "base": [10.0, 3.2] },
+		{ "start": "ring:22", "home": "lane1:5", "shortcut": "ring:21", "base": [11.3, 9.5] },
+		{ "start": "ring:36", "home": "lane2:5", "shortcut": "ring:35", "base": [5.0, 11.8] },
+		{ "start": "ring:50", "home": "lane3:5", "shortcut": "ring:49", "base": [3.7, 5.5] }
 	]
 }

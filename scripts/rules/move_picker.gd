@@ -55,6 +55,15 @@ func pick_value(value: int) -> void:
 	stage = Stage.PAWN
 
 
+## Seçili kartla (joker'de seçili değerle) hâlâ yapılabilecek hamleler; yol önizlemesi içindir.
+## Kart ya da joker değeri seçilmeden boş döner.
+func candidates() -> Array[Move]:
+	var result: Array[Move] = []
+	if stage != Stage.CARD and stage != Stage.VALUE:
+		result.assign(_candidates)
+	return result
+
+
 ## Bu adımda dokunulabilecek taşlar.
 func selectable_pawns() -> Array[int]:
 	var result: Array[int] = []

@@ -334,7 +334,17 @@ func _set_selectable(pawns: Array[int], squares: Array[int] = []) -> void:
 	_board_view.selectable = pawns
 	_board_view.selectable_squares = squares
 	_board_view.selected_pawn = _picker.selected_pawn()
+	_board_view.preview_paths = _preview_paths()
+	_board_view.preview_seat = _game.current_seat()
 	_board_view.queue_redraw()
+
+
+## Seçili kartla hâlâ yapılabilecek hamlelerin yolları; kart seçili değilse boş.
+func _preview_paths() -> Array[PackedInt32Array]:
+	var paths: Array[PackedInt32Array] = []
+	for move: Move in _picker.candidates():
+		paths.append(PackedInt32Array(_game.board.move_path(move)))
+	return paths
 
 
 func _clear_selection() -> void:
