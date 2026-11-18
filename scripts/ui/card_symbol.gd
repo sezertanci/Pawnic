@@ -3,8 +3,9 @@ extends Control
 ## Kartlarda yazının yerine çizilen sembol:
 ## İleri ve geri: iri, konturlu ve gölgeli renkli sayı (+7, −5).
 ## Yer değiştir: iki taş ve aralarında karşılıklı oklar.
-## Çıkış: kutudan dışarı çıkan taş ve ok; çıkış sayısında (+6) altına sayı da yazılır.
-## Kısayol: ev. Joker: yıldız ve seçilebilen sayı aralığı; sayı seçilince üstte o sayı.
+## Çıkış: kutudan dışarı çıkan taş ve ok. Kısayol: ev. Joker: yıldız ve seçilebilen sayı aralığı.
+## Sayılı sembollü kartlarda (çıkış sayısı +6, geri yolla −8, sayısı seçilmiş joker) üst yarıda
+## iri sayı, alt yarıda küçültülmüş sembol çizilir.
 ## Yıldız: yalnızca yıldız (kural ekranındaki kazanma simgesi).
 ## Sembolü olmayan kartlarda gizlidir. Renkler arayüz temasındaki CardSymbol türünden okunur.
 
@@ -37,8 +38,11 @@ const HEAD_ANGLE := PI / 6.0
 const PAWN_RADIUS := 0.17
 const PAWN_Y := 0.48
 const TEXT_Y := 0.85
-## Jokerde seçilen sayının yazı çizgisi (kart boyuna oranla).
-const CHOSEN_Y := 0.2
+## Sayılı sembollü kartlarda iri sayının kapladığı üst bölüm ve küçük sembolün ortası
+## (kart boyuna oranla), sembolün küçültme oranı.
+const NUMBER_AREA := 0.5
+const SMALL_SYMBOL_Y := 0.72
+const SMALL_SYMBOL_SCALE := 0.5
 const SWAP_RADIUS := 0.13
 const SWAP_PAWN_X := 0.2
 const SWAP_ARROW_X := 0.35
@@ -52,11 +56,15 @@ const BOX_PAWN_RADIUS := 0.09
 ## Taşın kutunun sol kenarından uzaklığı (kutu yarı boyuna oranla).
 const BOX_PAWN_SHIFT := 0.5
 const BOX_ARROW_END := 0.88
-## Kutunun dikey yeri (kart boyuna oranla); +6 kartında yazıya yer açmak için daha yukarıdadır.
+## Kutunun dikey yeri (kart boyuna oranla).
 const EXIT_Y := 0.5
-const EXIT_FORWARD_Y := 0.4
-## Geri yolla: taşın üstündeki dönen okun yarıçapı.
-const TURN_RADIUS := 0.15
+## Geri yolla: taşı çevreleyen eliptik okun yatay ve dikey yarıçapı; ok sağ üstten başlar,
+## taşın üstünden ve solundan dolaşıp sağ altta biter (açılar radyan, ekranda y aşağıdır).
+const ORBIT_RADII := Vector2(0.34, 0.25)
+const ORBIT_FROM := -PI / 4.0
+const ORBIT_TO := -PI * 7.0 / 4.0
+## Eliptik okun kalınlığı, normal çizgi kalınlığına oranla.
+const ORBIT_WIDTH := 1.6
 ## Kısayol: kartta evin kapladığı alan (kart boyuna oranla).
 const HOUSE_BOUNDS := Rect2(0.2, 0.2, 0.6, 0.42)
 ## Evin parçaları, kapladığı alana oranla: gövde genişliği, çatı yüksekliği, kapı boyu.
@@ -110,42 +118,58 @@ func show_symbol(kind: Kind, value: int = 0) -> void:
 func _draw() -> void:
 	match _kind:
 		Kind.FORWARD:
-			_draw_number(Card.Type.FORWARD, FORWARD_COLOR)
+			_draw_number(Card.Type.FORWARD, FORWARD_COLOR, _value, Rect2(Vector2.ZERO, size))
 		Kind.BACK:
-			_draw_number(Card.Type.BACK, BACK_COLOR)
+			_draw_number(Card.Type.BACK, BACK_COLOR, _value, Rect2(Vector2.ZERO, size))
 		Kind.SWAP:
 			_draw_swap()
 		Kind.EXIT_FORWARD:
-			_draw_exit_forward()
+			_draw_numbered(Card.Type.FORWARD, FORWARD_COLOR, _value, _draw_exit)
 		Kind.EXIT:
 			_draw_exit()
 		Kind.SEND_BACK:
-			_draw_send_back()
+			if _value > 0:
+				_draw_numbered(Card.Type.BACK, BACK_COLOR, _value, _draw_send_back)
+			else:
+				_draw_send_back()
 		Kind.SHORTCUT:
 			var ink := _color(INK_COLOR)
 			var bounds := Rect2(HOUSE_BOUNDS.position * size, HOUSE_BOUNDS.size * size)
 			draw_house(self, bounds, _color(PAWN_COLOR), ink, _line_width())
 		Kind.JOKER:
-			_draw_star()
-			_draw_caption(RANGE_TEXT % _joker_max)
-			if _chosen != Card.NO_VALUE:
-				_draw_caption(str(_chosen), CHOSEN_Y)
+			if _chosen == Card.NO_VALUE:
+				_draw_star()
+				_draw_caption(RANGE_TEXT % _joker_max)
+			else:
+				_draw_numbered(Card.Type.FORWARD, FORWARD_COLOR, _chosen, _draw_star)
 		Kind.STAR:
 			_draw_star()
 
 
-## Jokerde seçilen sayıyı kartın üst bölümünde gösterir; Card.NO_VALUE verilirse kaldırır.
+## Jokerde seçilen sayıyı kartın üst bölümünde iri gösterir; Card.NO_VALUE verilirse kaldırır.
 func show_chosen(value: int) -> void:
 	_chosen = value
 	queue_redraw()
 
 
-## Kartın ortasına iri sayı.
-func _draw_number(type: Card.Type, color_name: StringName) -> void:
-	var text := tr(Card.LABEL_KEYS[type]) % _value
+## rect alanının ortasına iri sayı; type yalnızca işaretini (+, −) belirler.
+func _draw_number(type: Card.Type, color_name: StringName, value: int, rect: Rect2) -> void:
+	var text := tr(Card.LABEL_KEYS[type]) % value
 	var font := get_theme_font(NUMBER_FONT, STYLE)
-	var rect := Rect2(Vector2.ZERO, size)
 	BigNumber.draw(self, font, rect, text, _color(color_name), _color(INK_COLOR))
+
+
+## Üst yarıda iri sayı, alt yarıda küçültülmüş sembol. draw_symbol sembolü tam kart boyunda
+## çizer; ölçekli dönüşümle kartın ortası alt bölüme taşınır.
+func _draw_numbered(
+	type: Card.Type, color_name: StringName, value: int, draw_symbol: Callable
+) -> void:
+	_draw_number(type, color_name, value, Rect2(0.0, 0.0, size.x, size.y * NUMBER_AREA))
+	var target := Vector2(size.x / 2.0, size.y * SMALL_SYMBOL_Y)
+	var offset := target - size / 2.0 * SMALL_SYMBOL_SCALE
+	draw_set_transform(offset, 0.0, Vector2.ONE * SMALL_SYMBOL_SCALE)
+	draw_symbol.call()
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
 func _draw_swap() -> void:
@@ -159,14 +183,9 @@ func _draw_swap() -> void:
 	_draw_arrow(Vector2(right, middle + gap), Vector2(left, middle + gap))
 
 
-func _draw_exit_forward() -> void:
-	_draw_exit(EXIT_FORWARD_Y)
-	_draw_caption("+%d" % _value)
-
-
 ## Sağ kenarı açık bir kutu; içindeki taştan dışarıya bir ok çıkar.
-func _draw_exit(center_y: float = EXIT_Y) -> void:
-	var center := Vector2(size.x * BOX_X, size.y * center_y)
+func _draw_exit() -> void:
+	var center := Vector2(size.x * BOX_X, size.y * EXIT_Y)
 	var half := size.x * BOX_HALF
 	var opening := size.x * BOX_OPENING
 	var top := center.y - half
@@ -190,17 +209,18 @@ func _draw_exit(center_y: float = EXIT_Y) -> void:
 	_draw_arrow(Vector2(arrow_start, center.y), Vector2(size.x * BOX_ARROW_END, center.y))
 
 
-## Rakip taş ve üstünde soldan aşağı dönen yarım daire ok.
+## Rakip taş ve onu sağ üstten sağ alta, geriye doğru dolaşan eliptik ok.
 func _draw_send_back() -> void:
 	var center := _pawn_center()
 	_draw_pawn(center, PAWN_RADIUS, RIVAL_COLOR)
-	var radius := size.x * TURN_RADIUS
-	var arc_center := Vector2(center.x, center.y - size.x * (PAWN_RADIUS + ARROW_GAP))
-	var arc := SmoothDraw.arc_points(arc_center, radius, PI, TAU)
-	SmoothDraw.stroke(self, arc, _color(INK_COLOR), _line_width())
-	_draw_head(arc_center + Vector2.LEFT * radius, Vector2.DOWN)
-	if _value > 0:
-		_draw_caption("-%d" % _value)
+	var radii := ORBIT_RADII * size.x
+	var orbit := PackedVector2Array()
+	for point: Vector2 in SmoothDraw.arc_points(Vector2.ZERO, 1.0, ORBIT_FROM, ORBIT_TO):
+		orbit.append(center + point * radii)
+	var width := _line_width() * ORBIT_WIDTH
+	SmoothDraw.stroke(self, orbit, _color(INK_COLOR), width)
+	var tip := orbit[orbit.size() - 1]
+	_draw_head(tip, (tip - orbit[orbit.size() - 2]).normalized(), width)
 
 
 ## Ev sembolü: gövde, çatı ve kapı; ölçüler rect'e oranlıdır (tahtadaki kısayol karesi de kullanır).
@@ -278,12 +298,14 @@ func _draw_arrow(from: Vector2, to: Vector2) -> void:
 
 
 ## Ok ucu: tip noktasında birleşen, direction yönünü gösteren iki kısa çizgi.
-func _draw_head(tip: Vector2, direction: Vector2) -> void:
+## line_width verilmezse normal çizgi kalınlığı kullanılır.
+func _draw_head(tip: Vector2, direction: Vector2, line_width: float = 0.0) -> void:
 	var back := -direction * size.x * HEAD_RATIO
 	var head := PackedVector2Array(
 		[tip + back.rotated(HEAD_ANGLE), tip, tip + back.rotated(-HEAD_ANGLE)]
 	)
-	SmoothDraw.stroke(self, head, _color(INK_COLOR), _line_width())
+	var width := line_width if line_width > 0.0 else _line_width()
+	SmoothDraw.stroke(self, head, _color(INK_COLOR), width)
 
 
 func _line_width() -> float:
