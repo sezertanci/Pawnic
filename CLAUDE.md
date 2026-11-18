@@ -59,5 +59,11 @@ Oyun prototip değildir; Play'de yayımlanacak bir ürünün temelidir.
 - Kural değişikliğinden sonra `tools/simulate.gd` çalıştırılır; bitmeyen oyun kalmamalıdır.
 - Arayüz değişikliğinden sonra `tools/screenshot.gd` ile ekran görüntüsü alınıp kontrol edilir.
 
+## Sürüm
+- Play'e yeni AAB yüklenecekse `export_presets.cfg` içindeki üç presette `version/code` ve
+  `version/name` birlikte yükseltilir: kod 1 artar, adın ara sürümü 1 artar
+  (ör. `2` / `1.1.0` → `3` / `1.2.0`). Play'de `<kod> (<ad>)` biçiminde görünür.
+- Sürüm notları Play'e `<tr-TR>…</tr-TR>` ve `<en-US>…</en-US>` etiketleriyle girilir.
+
 ## Depo
 - `.godot/`, `build/`, `android/`, imza anahtarı ve şifreler depoya girmez.

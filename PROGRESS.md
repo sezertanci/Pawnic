@@ -98,7 +98,14 @@
   tema (`classic`) olduğu için gerek yok, ikinci tema gelince eklenecek.
 - AdMob eklentisi seçilmedi; UMP rıza ekranı eklenecek (hedef kitle 13 yaş ve üstü).
 - Play Billing için resmi eklenti eklenecek; ürün listesi belli değil.
-- Yükleme (upload) anahtarı oluşturulmadı; AAB release derlemesi bunu bekliyor.
+- Yükleme anahtarı `C:\Users\Lenovo\keys\pawnic-upload.jks` (takma ad `upload`), yolu ve şifresi
+  `.godot/export_credentials.cfg` içinde. Play App Signing açık. 2 (1.1.0) dahili test kanalına
+  yüklendi; içinde mağaza görselleri vardı (yaklaşık 18 MB). `store/` klasörüne `.gdignore` eklendi,
+  3 (1.2.0) görselsiz derlendi.
+- Play: `android.hardware.screen.portrait` uyarısı (dikey yön bu özelliği dolaylı zorunlu yapıyor)
+  "çözmeyi planlıyorum" ile yoksayıldı. Sonraki sürümde bir `EditorExportPlugin` manifeste
+  `android:required="false"` ile ekleyecek. Reklam kimliği beyanı "Hayır"; AdMob gelince "Evet"
+  yapılacak, reklam ve veri güvenliği formları da güncellenecek.
 - Çeviriler Claude tarafından yazıldı; anadili konuşan biri tarafından kontrol edilmeli.
 - Kullanıcının tablet denemesinden çıkan değişiklik listesi bekleniyor.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
@@ -205,3 +212,8 @@
   Üst çubukta seviye "/" ile ayrılıp kendi renginde yazıyor. "Çok Zor" ve "Oyun Hızı" büyük harfe
   düzeltildi (oyuncuya görünen kısa etiketlerde her kelime büyük harfle başlar). Tanıtım ekranının
   açıklama yazısı daha büyük ve parlak (`DemoLabel`, 34 punto, beyaz, gölgeli).
+- **2026-11-19:** Play mağaza dosyaları `store/pawnic/` altında: gizlilik politikası
+  (sezertanci.github.io/pawnic/privacy.html'de yayında), tr/en mağaza metinleri, 512 simge, öne
+  çıkan görsel (simge, tahta ve oyunun kendi çizdiği beş kart) ve ekran görüntüleri. Joker sayı
+  seçenekleri ileri kartları gibi çiziliyor (`CardSymbol` ile yeşil, + işaretli). Arayüz
+  düzeltmeleri tablete kuruldu; joker değişikliği yalnızca PC'de denendi.
