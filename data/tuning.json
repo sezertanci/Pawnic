@@ -69,7 +69,7 @@
 	"ui": {
 		"button_width": 520,
 		"button_height": 120,
-		"home_backdrop_blur": 3.0
+		"backdrop_blur": 3.0
 	},
 	"bot": {
 		"delay_sec": 0.9,
