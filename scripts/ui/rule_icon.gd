@@ -8,7 +8,7 @@ enum Icon { CARDS, EXIT, CAPTURE, BOOST, HOME, DISCARD, WIN }
 
 const STYLE := &"RuleIcon"
 const PANEL := &"panel"
-const SYMBOL_BY_ICON := {
+const SYMBOL_BY_ICON: Dictionary[Icon, CardSymbol.Kind] = {
 	Icon.EXIT: CardSymbol.Kind.EXIT,
 	Icon.CAPTURE: CardSymbol.Kind.SEND_BACK,
 	Icon.HOME: CardSymbol.Kind.SHORTCUT,
@@ -24,9 +24,8 @@ const MINI_CARD_SCALE := 0.35
 ## Kutunun dört köşesi ve dört kenarı (Corner ve Side sabitleri 0–3).
 const EDGE_COUNT := 4
 ## Hız karesi simgesi: yazının boyu ve taban çizgisi (kutuya oranla).
-const BOOST_TEXT := "+3"
-const BOOST_FONT_RATIO := 0.42
-const BOOST_BASELINE := 0.64
+## Hız kuralı simgesindeki kare değeri; kural metnindeki (RULE_BOOST) sayıyla aynıdır.
+const BOOST_SPEED := 3
 ## Atma işaretinin yarıçapı (kutuya oranla).
 const DISCARD_RADIUS := 0.3
 
@@ -52,7 +51,7 @@ func _draw() -> void:
 		Icon.CARDS:
 			_draw_cards()
 		Icon.BOOST:
-			_draw_boost()
+			BigNumber.draw_speed(self, Rect2(Vector2.ZERO, size), BOOST_SPEED)
 		Icon.DISCARD:
 			DiscardMark.draw_mark(self, size / 2.0, size.x * DISCARD_RADIUS)
 
@@ -72,21 +71,18 @@ func _draw_cards() -> void:
 func _shrink_card_styles() -> Array[StyleBox]:
 	var styles: Array[StyleBox] = []
 	for style_type: StringName in MINI_CARD_STYLES:
-		var style := get_theme_stylebox(CardFace.STYLE_NAME, style_type).duplicate() as StyleBoxFlat
-		style.shadow_size = 0
-		for corner: int in range(EDGE_COUNT):
-			var radius := style.get_corner_radius(corner)
-			style.set_corner_radius(corner, roundi(radius * MINI_CARD_SCALE))
-		for side: int in range(EDGE_COUNT):
-			var width := style.get_border_width(side)
-			style.set_border_width(side, roundi(width * MINI_CARD_SCALE))
+		var style := get_theme_stylebox(CardFace.STYLE_NAME, style_type).duplicate() as StyleBox
+		if style is StyleBoxFlat:
+			_shrink(style as StyleBoxFlat)
 		styles.append(style)
 	return styles
 
 
-func _draw_boost() -> void:
-	var font := get_theme_font(CardSymbol.FONT_NAME, CardSymbol.LABEL_STYLE)
-	var ink := get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
-	var font_size := roundi(size.x * BOOST_FONT_RATIO)
-	var baseline := Vector2(0.0, size.y * BOOST_BASELINE)
-	draw_string(font, baseline, BOOST_TEXT, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, ink)
+func _shrink(style: StyleBoxFlat) -> void:
+	style.shadow_size = 0
+	for corner: int in range(EDGE_COUNT):
+		var radius := style.get_corner_radius(corner)
+		style.set_corner_radius(corner, roundi(radius * MINI_CARD_SCALE))
+	for side: int in range(EDGE_COUNT):
+		var width := style.get_border_width(side)
+		style.set_border_width(side, roundi(width * MINI_CARD_SCALE))

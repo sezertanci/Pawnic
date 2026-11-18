@@ -9,9 +9,6 @@ const LOGO := preload("res://assets/images/logo.png")
 const COLUMNS := 9
 const TILE_GAP := 2.0
 const PAWN_RATIO := 0.3
-## Taşın bir kareden ötekine zıplama süresi (saniye) ve yüksekliği (kare boyuna oranla).
-const HOP_SEC := 0.7
-const HOP_HEIGHT := 0.35
 
 var _time := 0.0
 ## Yol karelerinin sol üst köşeleri, saat yönünde sıralı.
@@ -42,7 +39,7 @@ func _build_loop() -> void:
 	_cell = size.x / COLUMNS
 	if _cell <= 0.0:
 		return
-	var logo_height := (COLUMNS - 2) * _cell * LOGO.get_height() / LOGO.get_width()
+	var logo_height := (COLUMNS - 2) * _cell * BoardPainter.aspect(LOGO)
 	_rows = ceili(logo_height / _cell) + 2
 	custom_minimum_size.y = _rows * _cell
 	for column: int in range(COLUMNS):
@@ -60,7 +57,7 @@ func _draw() -> void:
 		return
 	_draw_tiles()
 	var inner := Rect2(Vector2.ONE * _cell, Vector2(COLUMNS - 2, _rows - 2) * _cell)
-	var logo_size := Vector2(inner.size.x, inner.size.x * LOGO.get_height() / LOGO.get_width())
+	var logo_size := Vector2(inner.size.x, inner.size.x * BoardPainter.aspect(LOGO))
 	draw_texture_rect(LOGO, Rect2(inner.get_center() - logo_size / 2.0, logo_size), false)
 	_draw_pawns()
 
@@ -84,13 +81,16 @@ func _corner_indices() -> Array[int]:
 	return [0, columns, columns + rows, columns * 2 + rows]
 
 
-## Taşlar yola eşit aralıkla dağılır ve her HOP_SEC'te bir kare ilerler.
+## Taşlar yola eşit aralıkla dağılır ve her zıplama süresinde bir kare ilerler.
 func _draw_pawns() -> void:
 	var seats := Skins.current.seat_colors.size()
+	if seats == 0:
+		return
 	var spacing := floori(float(_loop.size()) / seats)
-	var steps := _time / HOP_SEC
+	var settings := Tuning.settings
+	var steps := _time / settings.logo_hop_time
 	var progress := steps - floorf(steps)
-	var lift := sin(progress * PI) * HOP_HEIGHT * _cell
+	var lift := sin(progress * PI) * settings.logo_hop_height * _cell
 	var face_center := BoardPainter.face_rect(Rect2(Vector2.ZERO, Vector2.ONE * _cell)).get_center()
 	for seat: int in range(seats):
 		var index := (floori(steps) + seat * spacing) % _loop.size()

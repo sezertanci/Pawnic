@@ -88,7 +88,7 @@ static func format_clock(seconds: float) -> String:
 func _on_back_pressed() -> void:
 	if SaveStore.has_match():
 		var saved := SaveStore.load_match()
-		saved["elapsed"] = _game.elapsed
+		saved[GameMatch.KEY_ELAPSED] = _game.elapsed
 		SaveStore.store_match(saved)
 	_clock_running = false
 	_awaiting_human = false
@@ -135,7 +135,7 @@ func _refresh_table() -> void:
 
 ## Atılanlardaki son kartı atanın rengi; henüz kart atılmadıysa rozet görünmez.
 func _discard_badge() -> Color:
-	if _game.last_discard_seat == GameMatch.NO_SEAT:
+	if _game.last_discard_seat == BoardLayout.NO_SEAT:
 		return Color.TRANSPARENT
 	return Skins.current.seat_color(_game.last_discard_seat)
 
@@ -224,7 +224,8 @@ func _send_human_card(card_index: int, action: Callable, chosen: int) -> void:
 
 
 func _play(move: Move) -> void:
-	# Animasyon sürerken başka karta ya da taşa dokunulamasın.
+	# Oynanan hamlenin seçimi ve vurguları kalkar. Animasyon sürerken dokunmayı hold ve
+	# _awaiting_human engeller.
 	_clear_selection()
 	var path := _game.board.move_path(move)
 	var before := _board_view.pawn_centers()
@@ -344,9 +345,7 @@ func _clear_selection() -> void:
 
 
 func _clear_values() -> void:
-	for child: Node in _joker_box.get_children():
-		_joker_box.remove_child(child)
-		child.queue_free()
+	Nodes.free_children(_joker_box)
 	_joker_box.hide()
 	_hand_view.show()
 

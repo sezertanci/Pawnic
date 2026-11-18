@@ -27,14 +27,14 @@ static func choose_discard(hand: Array[Card]) -> int:
 ## Kendi taşlarının değerinden en iyi rakibin değerini (ağırlıklı) çıkarır.
 static func evaluate(board: BoardState, seat: int) -> float:
 	var own := 0.0
-	var rivals := {}
+	var rivals: Dictionary[int, float] = {}
 	for pawn: int in range(board.positions.size()):
 		var value := pawn_value(board, pawn)
 		var owner := board.owners[pawn]
 		if owner == seat:
 			own += value
 		else:
-			rivals[owner] = float(rivals.get(owner, 0.0)) + value
+			rivals[owner] = rivals.get(owner, 0.0) + value
 	var best_rival := 0.0
 	for total: float in rivals.values():
 		best_rival = maxf(best_rival, total)

@@ -1,7 +1,8 @@
 class_name BoardView
 extends Control
 ## Tahtayı ve taşları çizer, seçilebilir bir taşa ya da kareye dokunulduğunu bildirir.
-## Karelerin yeri tahta dosyasındaki (BoardLayout) hücrelerden gelir.
+## Karelerin yeri tahta dosyasındaki (BoardLayout) hücrelerden gelir. Hamle animasyonunu
+## MoveAnimationBuilder kurar, burada yalnızca oynatılır.
 ## Renkler seçili temadan (Skins) okunur.
 
 signal pawn_pressed(pawn: int)
@@ -17,8 +18,7 @@ const HIT_RATIO := 0.6
 const MARK_RATIO := 0.3
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
-## Daire çizimindeki nokta sayısı.
-const ARC_POINTS := BoardPainter.ARC_POINTS
+## Hücrenin merkezi (hücre boyuna oranla).
 const CENTER := Vector2(0.5, 0.5)
 ## Gölge elipsinin dikey basıklığı.
 const SHADOW_FLATTEN := 0.45
@@ -83,10 +83,6 @@ func _draw() -> void:
 	_draw_pawns()
 
 
-func is_animating() -> bool:
-	return _animation != null
-
-
 ## Hamleden önceki taş merkezleri; hamle uygulanmadan alınıp animate_move'a verilir.
 func pawn_centers() -> Array[Vector2]:
 	return _centers.duplicate()
@@ -99,7 +95,8 @@ func animate_move(move: Move, path: Array[int], before: Array[Vector2]) -> void:
 		queue_redraw()
 		return
 	_layout_pawns()
-	var animation := _build_animation(move, path, before)
+	var builder := MoveAnimationBuilder.new(board, _centers, _cell_size(), _square_center)
+	var animation := builder.build(move, path, before)
 	if animation.duration() <= 0.0:
 		queue_redraw()
 		return
@@ -215,18 +212,7 @@ func _draw_mark(square: int, rect: Rect2) -> void:
 	if board.layout.safe[square]:
 		_draw_shield(rect.get_center(), _cell_size() * MARK_RATIO)
 	elif speed != 0:
-		_draw_speed(speed, rect)
-
-
-## Hız karesinin sayısı, kartlardaki gibi iri: ileri yeşil, geri kırmızı.
-func _draw_speed(speed: int, rect: Rect2) -> void:
-	var type := Card.Type.FORWARD if speed > 0 else Card.Type.BACK
-	var text := tr(Card.LABEL_KEYS[type]) % absi(speed)
-	var color_name := CardSymbol.FORWARD_COLOR if speed > 0 else CardSymbol.BACK_COLOR
-	var font := get_theme_font(CardSymbol.NUMBER_FONT, CardSymbol.STYLE)
-	var fill := get_theme_color(color_name, CardSymbol.STYLE)
-	var ink := get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
-	BigNumber.draw(self, font, rect, text, fill, ink)
+		BigNumber.draw_speed(self, rect, speed)
 
 
 func _draw_shield(center: Vector2, radius: float) -> void:
@@ -290,8 +276,9 @@ func _layout_pawns() -> void:
 	var count := board.positions.size()
 	_centers.resize(count)
 	_radii.resize(count)
-	var groups := {}
-	var base_slots := {}
+	# Hücre -> o hücredeki taşlar (Array[int]).
+	var groups: Dictionary[Vector2i, Array] = {}
+	var base_slots: Dictionary[int, int] = {}
 	for pawn: int in range(count):
 		_radii[pawn] = _cell_size() * PAWN_RATIO
 		if board.positions[pawn] == BoardState.BASE:
@@ -302,8 +289,9 @@ func _layout_pawns() -> void:
 		else:
 			var cell := board.layout.cells[board.positions[pawn]]
 			if not groups.has(cell):
-				groups[cell] = []
-			(groups[cell] as Array).append(pawn)
+				var pawns: Array[int] = []
+				groups[cell] = pawns
+			groups[cell].append(pawn)
 	for cell: Vector2i in groups:
 		_spread(cell, groups[cell])
 
@@ -315,10 +303,10 @@ func _base_offset(slot: int) -> Vector2:
 
 
 ## Aynı hücredeki taşları hücre merkezinin çevresine dağıtır.
-func _spread(cell: Vector2i, pawns: Array) -> void:
+func _spread(cell: Vector2i, pawns: Array[int]) -> void:
 	var center := _to_pixels(Vector2(cell) + CENTER)
 	for index: int in range(pawns.size()):
-		var pawn: int = pawns[index]
+		var pawn := pawns[index]
 		if pawns.size() == 1:
 			_centers[pawn] = center
 			continue
@@ -359,38 +347,41 @@ func _draw_trail(pawn: int) -> void:
 func _draw_shadow(center: Vector2, radius: float) -> void:
 	draw_set_transform(center, 0.0, Vector2(1.0, SHADOW_FLATTEN))
 	draw_circle(Vector2.ZERO, radius, Skins.current.shadow_color)
-	draw_set_transform(Vector2.ZERO)
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
 func _draw_pawn(pawn: int, center: Vector2, radius: float) -> void:
-	# Halkanın arka yarısı taşın arkasında, ön yarısı önünde kalsın diye iki parça çizilir.
-	_draw_pawn_ring(pawn, center, radius, PulseWave.BACK_ARC)
-	BoardPainter.draw_pawn(self, center, radius, board.owners[pawn])
-	_draw_pawn_ring(pawn, center, radius, PulseWave.FRONT_ARC)
+	var ring := _draw_pawn_ring.bind(pawn, center, radius)
+	BoardPainter.draw_pawn_in_ring(self, center, radius, board.owners[pawn], ring)
 
 
 ## Taşın ayağında, tabanını saran yere yatık (elips) halka. Başlangıç alanındaki seçilebilir
 ## taşlara dalga çizilmez; orada alanın çerçevesi dalgalanır.
-func _draw_pawn_ring(pawn: int, foot: Vector2, radius: float, arc: Vector2) -> void:
+func _draw_pawn_ring(arc: Vector2, pawn: int, foot: Vector2, radius: float) -> void:
 	var skin := Skins.current
 	var ring_radius := radius * BoardPainter.PAWN_WIDTH_RATIO / 2.0 + HIGHLIGHT_WIDTH
 	draw_set_transform(foot, 0.0, Vector2(1.0, PulseWave.RING_FLATTEN))
 	if pawn == selected_pawn:
-		_draw_highlight_ring(ring_radius, skin.selected_color, arc)
+		PulseWave.draw_outlined_arc(
+			self,
+			Vector2.ZERO,
+			ring_radius,
+			skin.selected_color,
+			skin.outline_color,
+			HIGHLIGHT_WIDTH,
+			arc
+		)
 	elif selectable.has(pawn) and board.positions[pawn] != BoardState.BASE:
 		PulseWave.draw_ring(
-			self, Vector2.ZERO, ring_radius, skin.highlight_color, skin.outline_color,
-			HIGHLIGHT_WIDTH, arc
+			self,
+			Vector2.ZERO,
+			ring_radius,
+			skin.highlight_color,
+			skin.outline_color,
+			HIGHLIGHT_WIDTH,
+			arc
 		)
-	draw_set_transform(Vector2.ZERO)
-
-
-## Seçili taşın sabit halkası: dışındaki koyu çizgi halkayı açık renkli karede de görünür kılar.
-func _draw_highlight_ring(ring_radius: float, color: Color, arc: Vector2) -> void:
-	var skin := Skins.current
-	var edge_radius := ring_radius + (HIGHLIGHT_WIDTH + LINE_WIDTH) / 2.0
-	draw_arc(Vector2.ZERO, ring_radius, arc.x, arc.y, ARC_POINTS, color, HIGHLIGHT_WIDTH)
-	draw_arc(Vector2.ZERO, edge_radius, arc.x, arc.y, ARC_POINTS, skin.outline_color, LINE_WIDTH)
+	draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
 func _selectable_at(point: Vector2) -> int:
@@ -415,86 +406,3 @@ func _set_time(time: float) -> void:
 
 func _square_center(square: int) -> Vector2:
 	return _to_pixels(Vector2(board.layout.cells[square]) + CENTER)
-
-
-func _build_animation(move: Move, path: Array[int], before: Array[Vector2]) -> PawnAnimation:
-	var animation := PawnAnimation.new()
-	var landed := _add_mover(animation, move, path, before)
-	_add_followers(animation, before, landed)
-	return animation
-
-
-## Oynanan taşı kare kare zıplatır; her inişte adım sesi çalar, hız karesinde kısa durur,
-## eve varınca büyür. Kısayolda ve yer değiştirmede taşlar kayar, ışınlanma sesi çalar.
-## Taşın indiği anı döner.
-func _add_mover(
-	animation: PawnAnimation, move: Move, path: Array[int], before: Array[Vector2]
-) -> float:
-	var settings := board.settings
-	var pawn := move.pawn
-	if move.action in [Move.Action.SHORTCUT, Move.Action.SWAP]:
-		animation.add_cue(0.0, Sound.TELEPORT)
-		if move.action == Move.Action.SWAP:
-			_add_slide(
-				animation, move.target, _reverse_path(path, move.target), before[move.target]
-			)
-		return _add_slide(animation, pawn, path, before[pawn])
-	var height := settings.hop_height * _cell_size()
-	var from := before[pawn]
-	var time := 0.0
-	for index: int in range(path.size()):
-		var last := index == path.size() - 1
-		var to := _centers[pawn] if last else _square_center(path[index])
-		animation.add_segment(pawn, from, to, time, settings.hop_time, height)
-		time += settings.hop_time
-		animation.add_cue(time, Sound.STEP)
-		if path[index] == move.destination and not last:
-			time += settings.boost_pause
-		from = to
-	if board.positions[pawn] == board.layout.homes[board.owners[pawn]]:
-		animation.add_pulse(pawn, time, settings.home_pulse_time, settings.home_pulse_scale)
-	return time
-
-
-## Taş zıplamadan, yol üstündeki karelerden geçerek kayar ve arkasında ışık kuyruğu bırakır.
-## Yol boşsa varışa düz kayar. Taşın indiği anı döner.
-func _add_slide(animation: PawnAnimation, pawn: int, path: Array[int], start: Vector2) -> float:
-	var slide_time := board.settings.slide_time
-	var count := maxi(path.size(), 1)
-	var square_time := slide_time / count
-	var from := start
-	for index: int in range(count):
-		var last := index == count - 1
-		var to := _centers[pawn] if last else _square_center(path[index])
-		animation.add_segment(pawn, from, to, square_time * index, square_time, 0.0)
-		from = to
-	animation.add_trail(pawn, 0.0, slide_time)
-	return slide_time
-
-
-## Yer değiştirmede hedef taşın yolu: oynanan taşın yolunun tersi, hedefin kendi karesi hariç,
-## oynanan taşın eski karesi (artık hedefin karesi) dahil.
-func _reverse_path(path: Array[int], target: int) -> Array[int]:
-	var back: Array[int] = path.duplicate()
-	back.reverse()
-	if not back.is_empty():
-		back.remove_at(0)
-		back.append(board.positions[target])
-	return back
-
-
-## Taş indikten sonra çarpılan taşlar başlangıca uçar, aynı karedeki taşlar yeniden dizilir.
-func _add_followers(animation: PawnAnimation, before: Array[Vector2], start: float) -> void:
-	var settings := board.settings
-	for pawn: int in range(_centers.size()):
-		if animation.has(pawn) or before[pawn].is_equal_approx(_centers[pawn]):
-			continue
-		if board.positions[pawn] == BoardState.BASE:
-			var height := settings.capture_height * _cell_size()
-			animation.add_segment(
-				pawn, before[pawn], _centers[pawn], start, settings.capture_time, height
-			)
-		else:
-			animation.add_segment(
-				pawn, before[pawn], _centers[pawn], start, settings.settle_time, 0.0
-			)

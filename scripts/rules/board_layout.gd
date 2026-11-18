@@ -17,6 +17,8 @@ const MODE_BY_NAME := {
 	"choice": LinkMode.CHOICE,
 	"exact": LinkMode.EXACT,
 }
+const KEY_PATHS := "paths"
+const KEY_SEATS := "seats"
 
 
 ## İki kare arasındaki ek yol.
@@ -49,22 +51,30 @@ var shortcuts: Array[int] = []
 var bases: Array[Vector2] = []
 var grid_size := Vector2i.ZERO
 
-var _index_by_name := {}
+var _index_by_name: Dictionary[String, int] = {}
 ## Koltuk başına, kareden eve en kısa adım sayısı.
 var _home_distances: Array[Dictionary] = []
+## Dosyada tanımsız bir kareye başvurulduysa true olur; tahta yüklenmez.
+var _failed := false
 
 
+## Tahtayı dosyadan okur; dosya bozuksa null döner.
 static func load_from(path: String) -> BoardLayout:
-	var root: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var required: Array[String] = [KEY_PATHS, KEY_SEATS]
+	var root := JsonData.read(path, required)
+	if root.is_empty():
+		return null
 	var layout := BoardLayout.new()
-	for path_data: Dictionary in root["paths"]:
+	for path_data: Dictionary in root[KEY_PATHS]:
 		layout._add_path(path_data)
 	for link_data: Dictionary in root.get("links", []):
 		layout._add_link(link_data)
 	layout._mark(root.get("safe", []), layout.safe)
 	layout._set_speeds(root.get("speed", {}))
-	for seat_data: Dictionary in root["seats"]:
+	for seat_data: Dictionary in root[KEY_SEATS]:
 		layout._add_seat(seat_data)
+	if layout._failed:
+		return null
 	layout._finish()
 	return layout
 
@@ -152,6 +162,8 @@ func _add_link(data: Dictionary) -> void:
 	var link := Link.new()
 	link.from = _require(data["from"])
 	link.to = _require(data["to"])
+	if link.from == NO_SQUARE or link.to == NO_SQUARE:
+		return
 	link.mode = MODE_BY_NAME[data.get("mode", "choice")]
 	for seat: Variant in data.get("seats", []):
 		link.seats.append(int(seat))
@@ -163,12 +175,16 @@ func _add_link(data: Dictionary) -> void:
 
 func _mark(square_names: Array, flags: Array[bool]) -> void:
 	for square_name: Variant in square_names:
-		flags[_require(square_name)] = true
+		var square := _require(square_name)
+		if square != NO_SQUARE:
+			flags[square] = true
 
 
 func _set_speeds(values: Dictionary) -> void:
 	for square_name: Variant in values:
-		speed[_require(square_name)] = int(values[square_name])
+		var square := _require(square_name)
+		if square != NO_SQUARE:
+			speed[square] = int(values[square_name])
 
 
 func _add_seat(data: Dictionary) -> void:
@@ -183,6 +199,7 @@ func _require(square_name: Variant) -> int:
 	var square := index_of(str(square_name))
 	if square == NO_SQUARE:
 		push_error("Tahta dosyasında tanımsız kare: %s" % square_name)
+		_failed = true
 	return square
 
 
@@ -194,20 +211,22 @@ func _finish() -> void:
 
 
 ## Eve doğru geriye genişleyerek her karenin eve uzaklığını bulur.
-func _distances_to(seat: int, home: int) -> Dictionary:
-	var incoming := {}
+func _distances_to(seat: int, home: int) -> Dictionary[int, int]:
+	# Kare -> o kareye bir adımda gelinebilen kareler (Array[int]).
+	var incoming: Dictionary[int, Array] = {}
 	for square: int in range(square_count()):
 		for target: int in steps_from(square, seat, true):
 			if not incoming.has(target):
-				incoming[target] = []
-			(incoming[target] as Array).append(square)
-	var distances := {home: 0}
+				var sources: Array[int] = []
+				incoming[target] = sources
+			incoming[target].append(square)
+	var distances: Dictionary[int, int] = {home: 0}
 	var queue: Array[int] = [home]
 	while not queue.is_empty():
 		var square: int = queue.pop_front()
 		for source: int in incoming.get(square, []):
 			if not distances.has(source):
-				distances[source] = int(distances[square]) + 1
+				distances[source] = distances[square] + 1
 				queue.append(source)
 	return distances
 

@@ -20,9 +20,8 @@ const FORWARD_COLOR := &"forward_color"
 const BACK_COLOR := &"back_color"
 const NUMBER_FONT := &"number_font"
 const LABEL_STYLE := &"CardLabel"
-const FONT_NAME := &"font"
 const FONT_SIZE := &"font_size"
-const KIND_BY_TYPE := {
+const KIND_BY_TYPE: Dictionary[Card.Type, Kind] = {
 	Card.Type.FORWARD: Kind.FORWARD,
 	Card.Type.BACK: Kind.BACK,
 	Card.Type.SWAP: Kind.SWAP,
@@ -278,10 +277,10 @@ func _pawn_center() -> Vector2:
 	return Vector2(size.x / 2.0, size.y * PAWN_Y)
 
 
-func _draw_caption(text: String, line_y: float = TEXT_Y) -> void:
-	var font := get_theme_font(FONT_NAME, LABEL_STYLE)
+func _draw_caption(text: String) -> void:
+	var font := get_theme_font(ThemeKeys.FONT, LABEL_STYLE)
 	var font_size := get_theme_font_size(FONT_SIZE, LABEL_STYLE)
-	var baseline := Vector2(0.0, size.y * line_y)
+	var baseline := Vector2(0.0, size.y * TEXT_Y)
 	draw_string(
 		font, baseline, text, HORIZONTAL_ALIGNMENT_CENTER, size.x, font_size, _color(INK_COLOR)
 	)

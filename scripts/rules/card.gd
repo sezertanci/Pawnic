@@ -6,6 +6,9 @@ enum Type { FORWARD, BACK, EXIT, SWAP, SEND_BACK, SHORTCUT, JOKER }
 
 ## Jokerde henüz sayı seçilmediğini gösterir.
 const NO_VALUE := 0
+## Kayıt sözlüğünün anahtarları.
+const KEY_TYPE := "type"
+const KEY_VALUE := "value"
 
 const TYPE_BY_NAME := {
 	"forward": Type.FORWARD,
@@ -48,15 +51,16 @@ func _init(card_type: Type, card_value: int) -> void:
 
 ## Kayıt için sözlüğe çevirir.
 func to_dict() -> Dictionary:
-	return {"type": TYPE_BY_NAME.find_key(type), "value": value}
+	return {KEY_TYPE: TYPE_BY_NAME.find_key(type), KEY_VALUE: value}
 
 
-## Kayıttan okur; tanınmayan bir tür varsa null döner.
+## Kayıttan okur; tür tanınmıyorsa ya da değer sayı değilse null döner.
 static func from_dict(data: Dictionary) -> Card:
-	var name: String = data.get("type", "")
-	if not TYPE_BY_NAME.has(name):
+	var name: Variant = data.get(KEY_TYPE)
+	var saved_value: Variant = data.get(KEY_VALUE, NO_VALUE)
+	if not TYPE_BY_NAME.has(name) or not (saved_value is int or saved_value is float):
 		return null
-	return Card.new(TYPE_BY_NAME[name], int(data.get("value", 0)))
+	return Card.new(TYPE_BY_NAME[name], int(saved_value))
 
 
 func label() -> String:

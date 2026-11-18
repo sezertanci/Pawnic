@@ -7,7 +7,6 @@ extends Control
 const ARROW_HALF := 0.26
 const HEAD_RATIO := 0.2
 const LINE_RATIO := 0.1
-const FONT_COLOR := &"font_color"
 const NORMAL_STYLE := &"normal"
 const PRESSED_STYLE := &"pressed"
 
@@ -32,7 +31,7 @@ func _draw() -> void:
 	var tip := center + Vector2.LEFT * side * ARROW_HALF
 	var tail := center + Vector2.RIGHT * side * ARROW_HALF
 	var head := side * HEAD_RATIO
-	var color := _button.get_theme_color(FONT_COLOR)
+	var color := _button.get_theme_color(ThemeKeys.FONT_COLOR)
 	var width := side * LINE_RATIO
 	_draw_round_line(tail, tip, color, width)
 	_draw_round_line(tip, tip + Vector2(head, -head), color, width)

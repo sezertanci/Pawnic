@@ -28,6 +28,22 @@ static func face_rect(rect: Rect2) -> Rect2:
 static func draw_pawn(canvas: CanvasItem, center: Vector2, radius: float, seat: int) -> void:
 	var texture := Skins.current.pawn_textures[seat]
 	var width := radius * PAWN_WIDTH_RATIO
-	var size := Vector2(width, width * texture.get_height() / texture.get_width())
+	var size := Vector2(width, width * aspect(texture))
 	var origin := center - Vector2(size.x / 2.0, size.y * PAWN_FOOT)
 	canvas.draw_texture_rect(texture, Rect2(origin, size), false)
+
+
+## Taşı, ayağındaki yere yatık halkanın arka yarısı taşın arkasında, ön yarısı önünde
+## kalacak biçimde çizer. draw_ring halkanın açı aralığını (PulseWave.BACK_ARC ya da
+## FRONT_ARC) alıp o parçayı çizer.
+static func draw_pawn_in_ring(
+	canvas: CanvasItem, center: Vector2, radius: float, seat: int, draw_ring: Callable
+) -> void:
+	draw_ring.call(PulseWave.BACK_ARC)
+	draw_pawn(canvas, center, radius, seat)
+	draw_ring.call(PulseWave.FRONT_ARC)
+
+
+## Görselin yüksekliğinin genişliğine oranı.
+static func aspect(texture: Texture2D) -> float:
+	return float(texture.get_height()) / texture.get_width()

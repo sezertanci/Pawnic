@@ -162,13 +162,17 @@ func test_load_dict_restores_saved_positions() -> void:
 
 
 func test_load_dict_with_mismatched_arrays_fails() -> void:
-	var loaded := _board.load_dict({"owners": [0, 0], "positions": ["base"]})
+	var loaded := _board.load_dict(
+		{BoardState.KEY_OWNERS: [0, 0], BoardState.KEY_POSITIONS: ["base"]}
+	)
 
 	assert_false(loaded)
 
 
 func test_load_dict_with_unknown_square_fails() -> void:
-	var loaded := _board.load_dict({"owners": [0], "positions": ["nowhere:3"]})
+	var loaded := _board.load_dict(
+		{BoardState.KEY_OWNERS: [0], BoardState.KEY_POSITIONS: ["nowhere:3"]}
+	)
 
 	assert_false(loaded)
 

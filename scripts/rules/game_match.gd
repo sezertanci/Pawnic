@@ -6,9 +6,22 @@ extends RefCounted
 ## Oyuncu sayısına göre koltuklar, sıra sırasıyla. İlk oyuncu alttaki koltukta oturur.
 const SEAT_ORDER := {2: [2, 0], 3: [2, 3, 0], 4: [2, 3, 0, 1]}
 const NO_WINNER := -1
-const NO_SEAT := -1
+## Array.find bulamadığında döner.
+const NO_INDEX := -1
 ## Kayıt biçimi değişirse artırılır; eski biçimdeki kayıtlar yüklenmez.
 const SAVE_VERSION := 2
+## Kayıt sözlüğünün anahtarları.
+const KEY_VERSION := "version"
+const KEY_BOARD := "board"
+const KEY_SEATS := "seats"
+const KEY_BOTS := "bots"
+const KEY_HANDS := "hands"
+const KEY_DRAW := "draw"
+const KEY_DISCARD := "discard"
+const KEY_CURRENT := "current"
+const KEY_LAST_DISCARD_SEAT := "last_discard_seat"
+const KEY_ELAPSED := "elapsed"
+const KEY_TOP_DISCARD_VALUE := "top_discard_value"
 
 var settings: GameSettings
 var board: BoardState
@@ -17,8 +30,8 @@ var bots: Array[bool] = []
 ## Her oyuncunun eli (Array[Card]).
 var hands: Array[Array] = []
 var current := 0
-## Atılanların en üstündeki kartı atan koltuk; henüz kart atılmadıysa NO_SEAT.
-var last_discard_seat := NO_SEAT
+## Atılanların en üstündeki kartı atan koltuk; henüz kart atılmadıysa BoardLayout.NO_SEAT.
+var last_discard_seat := BoardLayout.NO_SEAT
 ## Atılanların en üstündeki joker oynandıysa seçilen sayı; değilse Card.NO_VALUE.
 var top_discard_value := Card.NO_VALUE
 ## Oyunun başından beri geçen süre (saniye); kayıtla birlikte saklanır.
@@ -59,28 +72,29 @@ static func create(
 static func from_dict(
 	game_settings: GameSettings, data: Dictionary, rng: RandomNumberGenerator
 ) -> GameMatch:
-	if int(data.get("version", 0)) != SAVE_VERSION:
+	if int(data.get(KEY_VERSION, 0)) != SAVE_VERSION:
 		return null
 	var game := GameMatch.new(game_settings, rng)
-	if not game.board.load_dict(data.get("board", {})):
+	var board_data: Variant = data.get(KEY_BOARD)
+	if not board_data is Dictionary or not game.board.load_dict(board_data):
 		return null
-	for seat: Variant in data.get("seats", []):
+	for seat: Variant in data.get(KEY_SEATS, []):
 		game.seats.append(int(seat))
-	for flag: Variant in data.get("bots", []):
+	for flag: Variant in data.get(KEY_BOTS, []):
 		game.bots.append(bool(flag))
-	for saved_hand: Variant in data.get("hands", []):
+	for saved_hand: Variant in data.get(KEY_HANDS, []):
 		var hand := game._new_hand()
 		if not _read_cards(saved_hand, hand):
 			return null
 		game.hands.append(hand)
-	if not _read_cards(data.get("draw", []), game._draw_pile):
+	if not _read_cards(data.get(KEY_DRAW, []), game._draw_pile):
 		return null
-	if not _read_cards(data.get("discard", []), game._discard_pile):
+	if not _read_cards(data.get(KEY_DISCARD, []), game._discard_pile):
 		return null
-	game.current = int(data.get("current", 0))
-	game.last_discard_seat = int(data.get("last_discard_seat", NO_SEAT))
-	game.elapsed = float(data.get("elapsed", 0.0))
-	game.top_discard_value = int(data.get("top_discard_value", Card.NO_VALUE))
+	game.current = int(data.get(KEY_CURRENT, 0))
+	game.last_discard_seat = int(data.get(KEY_LAST_DISCARD_SEAT, BoardLayout.NO_SEAT))
+	game.elapsed = float(data.get(KEY_ELAPSED, 0.0))
+	game.top_discard_value = int(data.get(KEY_TOP_DISCARD_VALUE, Card.NO_VALUE))
 	return game if game._is_consistent() else null
 
 
@@ -89,17 +103,17 @@ func to_dict() -> Dictionary:
 	for hand: Array[Card] in hands:
 		saved_hands.append(_write_cards(hand))
 	return {
-		"version": SAVE_VERSION,
-		"board": board.to_dict(),
-		"seats": seats,
-		"bots": bots,
-		"hands": saved_hands,
-		"draw": _write_cards(_draw_pile),
-		"discard": _write_cards(_discard_pile),
-		"current": current,
-		"last_discard_seat": last_discard_seat,
-		"elapsed": elapsed,
-		"top_discard_value": top_discard_value,
+		KEY_VERSION: SAVE_VERSION,
+		KEY_BOARD: board.to_dict(),
+		KEY_SEATS: seats,
+		KEY_BOTS: bots,
+		KEY_HANDS: saved_hands,
+		KEY_DRAW: _write_cards(_draw_pile),
+		KEY_DISCARD: _write_cards(_discard_pile),
+		KEY_CURRENT: current,
+		KEY_LAST_DISCARD_SEAT: last_discard_seat,
+		KEY_ELAPSED: elapsed,
+		KEY_TOP_DISCARD_VALUE: top_discard_value,
 	}
 
 
@@ -124,9 +138,13 @@ func pawns_per_player() -> int:
 	return board.owners.count(seats[0])
 
 
-## İlk insan oyuncunun eli (tek kişilik oyunda bot sırasında da gösterilir).
+## İlk insan oyuncunun eli (tek kişilik oyunda bot sırasında da gösterilir);
+## insan oyuncu yoksa boş el.
 func first_human_hand() -> Array[Card]:
-	return hands[bots.find(false)]
+	var index := bots.find(false)
+	if index == NO_INDEX:
+		return _new_hand()
+	return hands[index]
 
 
 func begin_turn() -> void:
@@ -213,7 +231,13 @@ func _is_consistent() -> bool:
 	var count := seats.size()
 	if not SEAT_ORDER.has(count) or bots.size() != count or hands.size() != count:
 		return false
-	return current >= 0 and current < count
+	var expected_seats: Array[int] = []
+	expected_seats.assign(SEAT_ORDER[count])
+	if seats != expected_seats or current < 0 or current >= count:
+		return false
+	if last_discard_seat != BoardLayout.NO_SEAT and not seats.has(last_discard_seat):
+		return false
+	return board.owners.all(func(owner: int) -> bool: return seats.has(owner))
 
 
 static func _write_cards(cards: Array[Card]) -> Array:

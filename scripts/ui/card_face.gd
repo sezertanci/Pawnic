@@ -59,6 +59,19 @@ func show_chosen(value: int) -> void:
 	_symbol.show_chosen(value)
 
 
+## Verilen alana sığan en büyük kart boyu.
+static func fit_size(max_width: float, max_height: float) -> Vector2:
+	var width := minf(max_width, max_height / ASPECT)
+	return Vector2(width, width * ASPECT)
+
+
+## Kart köşesindeki rozet dairesi: fill renginde, mürekkep renginde kenar çizgili.
+static func draw_badge(canvas: Control, center: Vector2, radius: float, fill: Color) -> void:
+	var ink := canvas.get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
+	canvas.draw_circle(center, radius, fill)
+	canvas.draw_arc(center, radius, 0.0, TAU, BADGE_POINTS, ink, BADGE_LINE)
+
+
 ## Kartın sağ üst köşesine kartı oynayanın renginde bir taş rozeti koyar.
 func set_badge(color: Color) -> void:
 	_badge = color
@@ -72,6 +85,4 @@ func _draw() -> void:
 	if _badge.a > 0.0:
 		var radius := size.x * BADGE_RATIO
 		var center := Vector2(size.x - radius * BADGE_INSET, radius * BADGE_INSET)
-		var ink := get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
-		draw_circle(center, radius, _badge)
-		draw_arc(center, radius, 0.0, TAU, BADGE_POINTS, ink, BADGE_LINE)
+		draw_badge(self, center, radius, _badge)

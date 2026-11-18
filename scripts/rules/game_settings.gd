@@ -1,8 +1,19 @@
 class_name GameSettings
 extends RefCounted
-## Kural, bot, taş ve kart animasyonu ayarları. Değerler data/tuning.json dosyasından okunur.
+## Kural, bot, taş, kart animasyonu ve ekran efekti ayarları. Değerler data/tuning.json
+## dosyasından okunur.
 
 const DEFAULT_PATH := "res://data/tuning.json"
+const KEY_BOARD := "board"
+const KEY_RULES := "rules"
+const KEY_BOT := "bot"
+const KEY_ANIMATION := "animation"
+const KEY_CARDS := "cards"
+const KEY_DECK := "deck"
+const KEY_EFFECTS := "effects"
+const REQUIRED_KEYS: Array[String] = [
+	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS
+]
 
 var board_layout: BoardLayout
 var hand_size := 0
@@ -43,17 +54,38 @@ var card_draw_lift_scale := 0.0
 ## Botun oynadığı kartın atılanlar üstünde rozetiyle görünme süresi.
 var card_bot_hold := 0.0
 var card_discard_time := 0.0
+## Ana ekran logosundaki taşların bir kareden ötekine zıplama süresi (saniye) ve yüksekliği
+## (kare boyuna oranla).
+var logo_hop_time := 0.0
+var logo_hop_height := 0.0
+## Kazanma ekranının küçükten büyüyerek açılma süresi (saniye) ve başladığı ölçek.
+var win_pop_time := 0.0
+var win_pop_start_scale := 0.0
+## Konfeti parça sayısı, düşüş hızı aralığı (piksel/saniye), salınma genişliği (piksel),
+## salınma ve dönme hızı sınırları (radyan/saniye).
+var confetti_count := 0
+var confetti_min_fall_speed := 0.0
+var confetti_max_fall_speed := 0.0
+var confetti_sway := 0.0
+var confetti_max_sway_speed := 0.0
+var confetti_max_spin := 0.0
 
 
+## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
 static func load_from(path: String) -> GameSettings:
-	var root: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var root := JsonData.read(path, REQUIRED_KEYS)
+	if root.is_empty():
+		return null
 	var settings := GameSettings.new()
-	settings._read_board(root["board"])
-	settings._read_rules(root["rules"])
-	settings._read_bot(root["bot"])
-	settings._read_animation(root["animation"])
-	settings._read_cards(root["cards"])
-	for entry: Dictionary in root["deck"]:
+	settings._read_board(root[KEY_BOARD])
+	if settings.board_layout == null:
+		return null
+	settings._read_rules(root[KEY_RULES])
+	settings._read_bot(root[KEY_BOT])
+	settings._read_animation(root[KEY_ANIMATION])
+	settings._read_cards(root[KEY_CARDS])
+	settings._read_effects(root[KEY_EFFECTS])
+	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
 	return settings
 
@@ -101,3 +133,16 @@ func _read_cards(cards: Dictionary) -> void:
 	card_draw_lift_scale = float(cards["draw_lift_scale"])
 	card_bot_hold = float(cards["bot_hold_sec"])
 	card_discard_time = float(cards["discard_sec"])
+
+
+func _read_effects(effects: Dictionary) -> void:
+	logo_hop_time = float(effects["logo_hop_sec"])
+	logo_hop_height = float(effects["logo_hop_height"])
+	win_pop_time = float(effects["win_pop_sec"])
+	win_pop_start_scale = float(effects["win_pop_start_scale"])
+	confetti_count = int(effects["confetti_count"])
+	confetti_min_fall_speed = float(effects["confetti_min_fall_speed"])
+	confetti_max_fall_speed = float(effects["confetti_max_fall_speed"])
+	confetti_sway = float(effects["confetti_sway"])
+	confetti_max_sway_speed = float(effects["confetti_max_sway_speed"])
+	confetti_max_spin = float(effects["confetti_max_spin"])

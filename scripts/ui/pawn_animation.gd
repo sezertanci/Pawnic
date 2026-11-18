@@ -26,13 +26,19 @@ class Pulse:
 	var scale: float
 
 
-var _segments := {}
-var _pulses := {}
-## Arkasında ışık kuyruğu bırakan taşlar: taş -> [başlangıç, bitiş].
-var _trails := {}
+## Belli bir anda çalınacak ses.
+class Cue:
+	var time: float
+	var sound: StringName
+
+
+## Taş -> o taşın hareketleri (Array[Segment]), zaman sırasıyla.
+var _segments: Dictionary[int, Array] = {}
+var _pulses: Dictionary[int, Pulse] = {}
+## Arkasında ışık kuyruğu bırakan taşlar: taş -> (başlangıç, bitiş).
+var _trails: Dictionary[int, Vector2] = {}
 var _duration := 0.0
-## Belli anlarda çalınacak sesler: [an, ses adı] çiftleri.
-var _cues: Array[Array] = []
+var _cues: Array[Cue] = []
 
 
 func add_segment(
@@ -45,8 +51,9 @@ func add_segment(
 	segment.duration = duration
 	segment.height = height
 	if not _segments.has(pawn):
-		_segments[pawn] = []
-	(_segments[pawn] as Array).append(segment)
+		var segments: Array[Segment] = []
+		_segments[pawn] = segments
+	_segments[pawn].append(segment)
 	_duration = maxf(_duration, segment.end())
 
 
@@ -61,35 +68,37 @@ func add_pulse(pawn: int, start: float, duration: float, scale: float) -> void:
 
 ## Taş start ile end arasında arkasında ışık kuyruğu bırakır.
 func add_trail(pawn: int, start: float, end: float) -> void:
-	_trails[pawn] = [start, end]
+	_trails[pawn] = Vector2(start, end)
 
 
 ## Kuyruğun noktaları, taşa en yakından başlayarak: time'dan önceki span süresi count parçaya
 ## bölünür. Kayma bitince kuyruk taşın içine çekilir.
 func trail_points(pawn: int, time: float, span: float, count: int) -> Array[Vector2]:
 	var points: Array[Vector2] = []
-	var trail: Array = _trails.get(pawn, [])
-	if trail.is_empty():
+	if not _trails.has(pawn):
 		return points
+	var trail := _trails[pawn]
 	for index: int in range(1, count + 1):
 		var sample := time - span * index / count
-		if sample >= trail[0] and sample <= trail[1]:
+		if sample >= trail.x and sample <= trail.y:
 			points.append(position_at(pawn, sample, Vector2.ZERO))
 	return points
 
 
 ## time anında cue sesinin çalınmasını ister (ör. taşın her inişinde adım sesi).
 func add_cue(time: float, cue: StringName) -> void:
-	_cues.append([time, cue])
+	var entry := Cue.new()
+	entry.time = time
+	entry.sound = cue
+	_cues.append(entry)
 
 
 ## from'dan sonra, to'ya kadar (to dahil) çalınacak sesler.
 func cues_between(from: float, to: float) -> Array[StringName]:
 	var result: Array[StringName] = []
-	for cue: Array in _cues:
-		var time: float = cue[0]
-		if time > from and time <= to:
-			result.append(cue[1])
+	for cue: Cue in _cues:
+		if cue.time > from and cue.time <= to:
+			result.append(cue.sound)
 	return result
 
 
@@ -118,7 +127,9 @@ func height_at(pawn: int, time: float) -> float:
 
 func scale_at(pawn: int, time: float) -> float:
 	var pulse: Pulse = _pulses.get(pawn)
-	if pulse == null or time < pulse.start or time > pulse.start + pulse.duration:
+	if pulse == null or pulse.duration <= 0.0:
+		return 1.0
+	if time < pulse.start or time > pulse.start + pulse.duration:
 		return 1.0
 	var progress := (time - pulse.start) / pulse.duration
 	return lerpf(1.0, pulse.scale, sin(PI * progress))
@@ -126,9 +137,9 @@ func scale_at(pawn: int, time: float) -> float:
 
 ## Zamanı kapsayan hareket; aradaki duraklamada önceki, başlamadan önce ilk hareket döner.
 func _segment_at(pawn: int, time: float) -> Segment:
-	var segments: Array = _segments.get(pawn, [])
-	if segments.is_empty():
+	if not _segments.has(pawn):
 		return null
+	var segments: Array = _segments[pawn]
 	var current: Segment = segments[0]
 	for segment: Segment in segments:
 		if segment.start <= time:

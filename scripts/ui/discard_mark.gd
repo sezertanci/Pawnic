@@ -21,10 +21,8 @@ func _draw() -> void:
 
 ## İşareti center merkezli, radius yarıçaplı çizer (kural ekranı da kullanır).
 static func draw_mark(canvas: Control, center: Vector2, radius: float) -> void:
-	var ink := canvas.get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
 	var fill := canvas.get_theme_color(MARK_COLOR, CardSymbol.STYLE)
-	canvas.draw_circle(center, radius, fill)
-	canvas.draw_arc(center, radius, 0.0, TAU, CardFace.BADGE_POINTS, ink, CardFace.BADGE_LINE)
+	CardFace.draw_badge(canvas, center, radius, fill)
 	var arm := radius * CROSS_RATIO
 	var cross := canvas.get_theme_color(CROSS_COLOR, CardSymbol.STYLE)
 	var line := CardFace.BADGE_LINE

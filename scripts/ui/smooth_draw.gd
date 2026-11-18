@@ -15,9 +15,7 @@ static func outlined(
 	canvas: CanvasItem, points: PackedVector2Array, fill: Color, ink: Color, line_width: float
 ) -> void:
 	var half := line_width / 2.0
-	for outer: PackedVector2Array in Geometry2D.offset_polygon(
-		points, half, Geometry2D.JOIN_ROUND
-	):
+	for outer: PackedVector2Array in Geometry2D.offset_polygon(points, half, Geometry2D.JOIN_ROUND):
 		polygon(canvas, outer, ink)
 	for inner: PackedVector2Array in Geometry2D.offset_polygon(points, -half):
 		polygon(canvas, inner, fill)

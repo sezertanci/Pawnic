@@ -63,7 +63,7 @@ func _draw_home(center: Vector2, half: float) -> void:
 
 
 func _draw_question(center: Vector2, half: float) -> void:
-	var font := get_theme_font("font")
+	var font := get_theme_font(ThemeKeys.FONT)
 	var font_size := roundi(half * QUESTION_SIZE)
 	var text_size := font.get_string_size(QUESTION_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var baseline := (

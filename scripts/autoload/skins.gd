@@ -12,7 +12,7 @@ var current: BoardSkin
 
 
 func _ready() -> void:
-	_load(SaveStore.get_preference(PREFERENCE_KEY, DEFAULT_ID))
+	_load(SaveStore.get_text_preference(PREFERENCE_KEY, DEFAULT_ID))
 
 
 func select(id: String) -> void:
@@ -26,7 +26,11 @@ func _load(id: String) -> bool:
 	var found := ResourceLoader.exists(path)
 	if not found:
 		path = SKINS_DIR + DEFAULT_ID + SKIN_EXTENSION
-	current = load(path) as BoardSkin
+	var skin := load(path) as BoardSkin
+	if skin == null:
+		push_error("Tema yüklenemedi: %s" % path)
+		return false
+	current = skin
 	RenderingServer.set_default_clear_color(current.background_color)
 	changed.emit()
 	return found

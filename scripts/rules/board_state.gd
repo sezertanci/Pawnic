@@ -5,6 +5,9 @@ extends RefCounted
 
 const BASE := -1
 const BASE_NAME := "base"
+## Kayıt sözlüğünün anahtarları.
+const KEY_OWNERS := "owners"
+const KEY_POSITIONS := "positions"
 
 var settings: GameSettings
 var layout: BoardLayout
@@ -36,14 +39,19 @@ func to_dict() -> Dictionary:
 	var names: Array[String] = []
 	for position: int in positions:
 		names.append(BASE_NAME if position == BASE else layout.names[position])
-	return {"owners": owners, "positions": names}
+	return {KEY_OWNERS: owners, KEY_POSITIONS: names}
 
 
-## Kayıttaki taş konumlarını yükler; sayılar uyuşmazsa ya da kare bilinmiyorsa false döner.
+## Kayıttaki taş konumlarını yükler; sayılar uyuşmazsa, kare bilinmiyorsa ya da sahip
+## tahtadaki bir koltuk değilse false döner.
 func load_dict(data: Dictionary) -> bool:
-	var saved_owners: Array = data.get("owners", [])
-	var saved_positions: Array = data.get("positions", [])
-	if saved_owners.size() != saved_positions.size():
+	var saved_owners: Variant = data.get(KEY_OWNERS)
+	var saved_positions: Variant = data.get(KEY_POSITIONS)
+	if not saved_owners is Array or not saved_positions is Array:
+		return false
+	if (saved_owners as Array).size() != (saved_positions as Array).size():
+		return false
+	if not (saved_owners as Array).all(_is_seat):
 		return false
 	var loaded: Array[int] = []
 	for square_name: Variant in saved_positions:
@@ -56,6 +64,12 @@ func load_dict(data: Dictionary) -> bool:
 		owners.append(int(owner))
 	positions = loaded
 	return true
+
+
+func _is_seat(value: Variant) -> bool:
+	if not (value is int or value is float):
+		return false
+	return int(value) >= 0 and int(value) < layout.seat_count()
 
 
 ## Taş herkesin kullandığı bir karede mi (başlangıç alanında ya da ev yolunda değil).
@@ -115,40 +129,43 @@ func move_path(move: Move) -> Array[int]:
 			_find_path(seat, positions[move.pawn], move.value, true, move.destination, path)
 			path.append_array(_boost_path(move.pawn, move.destination))
 		Move.Action.BACK, Move.Action.SEND_BACK:
-			path = _trace(positions[move.pawn], move.destination, layout.prev_squares)
+			path = _trace(positions[move.pawn], move.destination, _prev_square)
 		Move.Action.SWAP:
 			var from := positions[move.pawn]
 			var to := positions[move.target]
-			path = _trace(from, to, layout.next_squares)
-			var back := _trace(from, to, layout.prev_squares)
+			path = _trace(from, to, _next_square)
+			var back := _trace(from, to, _prev_square)
 			if path.is_empty() or (not back.is_empty() and back.size() < path.size()):
 				path = back
 		Move.Action.EXIT:
 			path.append(move.destination)
 		Move.Action.SHORTCUT:
-			var square := positions[move.pawn]
-			# Döngü sınırı: tahtadaki kare sayısından uzun yol olamaz.
-			for _step: int in range(layout.square_count()):
-				if square == move.destination:
-					break
-				square = layout.default_step(square, owners[move.pawn])
-				path.append(square)
+			var step := layout.default_step.bind(owners[move.pawn])
+			path = _trace(positions[move.pawn], move.destination, step)
 	return path
 
 
-## square'den goal'e steps (sonraki ya da önceki kareler) boyunca gidilen kareler, square hariç.
-## goal'e ulaşılamıyorsa boş döner.
-func _trace(square: int, goal: int, steps: Array[int]) -> Array[int]:
+## square'den goal'e step ile (kareyi alıp gidilecek kareyi veren) gidilen kareler, square
+## hariç. goal'e ulaşılamıyorsa boş döner.
+func _trace(square: int, goal: int, step: Callable) -> Array[int]:
 	var path: Array[int] = []
 	# Döngü sınırı: tahtadaki kare sayısından uzun yol olamaz.
 	for _step: int in range(layout.square_count()):
 		if square == goal or square == BoardLayout.NO_SQUARE:
 			break
-		square = steps[square]
+		square = step.call(square)
 		path.append(square)
 	if square != goal:
 		path.clear()
 	return path
+
+
+func _next_square(square: int) -> int:
+	return layout.next_squares[square]
+
+
+func _prev_square(square: int) -> int:
+	return layout.prev_squares[square]
 
 
 ## Hamleyi uygular ve başlangıca dönen taş sayısını verir.

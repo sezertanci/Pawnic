@@ -148,7 +148,12 @@
 - **2026-11-18:** Deste iki zar oranında İleri 2–12 oldu (İleri 1 kalktı). İleri ve geri kartlarında
   sayı, Titan One yazı tipiyle (OFL, `assets/fonts/`) iri, koyu konturlu ve gölgeli çiziliyor; ileri
   yeşil, geri kırmızı (`CardSymbol` temasında `forward_color`, `back_color`, `number_font`). Geri
-  kartlarında eksi işareti gerçek eksi (−). Sembollü kartlar (çıkış, geri yolla vb.) ayrıca ele alınacak.
+  kartlarında eksi işareti gerçek eksi (−).
   Tahtadaki hız karelerinde de aynı iri sayı çiziliyor; ortak çizim `BigNumber` sınıfında.
   Sayılı sembollü kartlarda (çıkış +6, geri yolla −8, sayısı seçilmiş joker) üstte iri sayı, altta
   yarı boyda sembol var. Geri yolla sembolü: kırmızı taşı sağ üstten sağ alta dolaşan kalın eliptik ok.
+- **2026-11-18 (2):** Kod incelemesi düzeltmeleri. Logo, kazanma ekranı ve konfeti değerleri
+  `tuning.json` içindeki yeni `effects` bölümüne taşındı. Hamle animasyonunu kurma işi `BoardView`
+  içinden `MoveAnimationBuilder` sınıfına ayrıldı. Tipsiz sözlükler tipli `Dictionary` oldu.
+  Kullanılmayan kod (`is_animating`, `TITLE` çevirisi) silindi. Kurallardaki hız simgesi tahtadaki
+  hız karesiyle aynı iri sayıyla çiziliyor (`BigNumber.draw_speed`, ortak).

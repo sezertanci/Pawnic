@@ -52,6 +52,18 @@
 		"bot_hold_sec": 1.1,
 		"discard_sec": 0.48
 	},
+	"effects": {
+		"logo_hop_sec": 0.7,
+		"logo_hop_height": 0.35,
+		"win_pop_sec": 0.6,
+		"win_pop_start_scale": 0.3,
+		"confetti_count": 90,
+		"confetti_min_fall_speed": 220.0,
+		"confetti_max_fall_speed": 420.0,
+		"confetti_sway": 30.0,
+		"confetti_max_sway_speed": 4.0,
+		"confetti_max_spin": 8.0
+	},
 	"bot": {
 		"delay_sec": 0.9,
 		"track_base": 5.0,

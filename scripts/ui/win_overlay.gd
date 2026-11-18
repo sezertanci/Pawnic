@@ -6,9 +6,6 @@ extends Control
 signal replay_pressed
 signal home_pressed
 
-## Açılışta içeriğin başladığı ölçek ve büyüme süresi (saniye).
-const START_SCALE := 0.3
-const POP_DURATION := 0.6
 var _winner := 0
 var _tween: Tween
 
@@ -32,13 +29,13 @@ func open(winner: int, title: String, colors: Array[Color]) -> void:
 	show()
 	_confetti.burst(colors)
 	# Kapların düzeni bir kare sonra kurulur; ölçek merkezden büyüsün diye boy beklenir.
-	_content.scale = Vector2.ONE * START_SCALE
+	_content.scale = Vector2.ONE * Tuning.settings.win_pop_start_scale
 	await get_tree().process_frame
 	_content.pivot_offset = _content.size / 2.0
 	if _tween != null:
 		_tween.kill()
 	_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_tween.tween_property(_content, ^"scale", Vector2.ONE, POP_DURATION)
+	_tween.tween_property(_content, ^"scale", Vector2.ONE, Tuning.settings.win_pop_time)
 
 
 func close() -> void:
@@ -49,7 +46,7 @@ func close() -> void:
 ## Taş görseli, alanın yüksekliğini tam dolduracak boyda çizilir.
 func _draw_pawn() -> void:
 	var texture := Skins.current.pawn_textures[_winner]
-	var width := _pawn.size.y * texture.get_width() / texture.get_height()
+	var width := _pawn.size.y / BoardPainter.aspect(texture)
 	var radius := width / BoardPainter.PAWN_WIDTH_RATIO
 	var foot := Vector2(_pawn.size.x / 2.0, _pawn.size.y * BoardPainter.PAWN_FOOT)
 	BoardPainter.draw_pawn(_pawn, foot, radius, _winner)

@@ -53,8 +53,8 @@ func show_backs(count: int) -> void:
 func _add_face(button: Button, card: Card, settings: GameSettings) -> void:
 	var symbol := CardSymbol.new()
 	symbol.show_card(card, settings)
-	if button.disabled:
-		var face := button.get_theme_stylebox(DISABLED_STYLE) as StyleBoxFlat
+	var face := button.get_theme_stylebox(DISABLED_STYLE) as StyleBoxFlat
+	if button.disabled and face != null:
 		symbol.fade_into(face.bg_color, 1.0 - button.get_theme_color(DISABLED_FONT).a)
 	button.add_child(symbol)
 	if not symbol.visible:
@@ -94,16 +94,13 @@ func hold(card_index: int) -> void:
 
 
 func clear() -> void:
-	for child: Node in get_children():
-		remove_child(child)
-		child.queue_free()
+	Nodes.free_children(self)
 
 
 func card_size() -> Vector2:
 	var slots := maxi(slot_count, 1)
 	var width := (size.x - CARD_GAP * (slots - 1)) / slots
-	width = minf(width, (size.y - FAN_DROP * slots) / CardFace.ASPECT)
-	return Vector2(width, width * CardFace.ASPECT)
+	return CardFace.fit_size(width, size.y - FAN_DROP * slots)
 
 
 ## Kartın döndürülmemiş haliyle ekrandaki yeri.

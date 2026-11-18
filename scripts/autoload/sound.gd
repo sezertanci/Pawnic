@@ -11,7 +11,7 @@ const SOUND_EXTENSION := ".wav"
 ## Aynı sesin üst üste binebilecek en çok kopyası (art arda zıplamalar için).
 const POLYPHONY := 4
 
-var _players := {}
+var _players: Dictionary[StringName, AudioStreamPlayer] = {}
 
 
 func _ready() -> void:
@@ -25,7 +25,7 @@ func _ready() -> void:
 
 
 func play(sound: StringName) -> void:
-	(_players[sound] as AudioStreamPlayer).play()
+	_players[sound].play()
 
 
 func _on_node_added(node: Node) -> void:

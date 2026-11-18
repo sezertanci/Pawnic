@@ -1,26 +1,26 @@
 class_name RuleList
 extends VBoxContainer
 ## "Nasıl oynanır" ekranındaki kural satırları: solda kurala özel simge, sağda kuralın metni.
-## Satırlar açılışta RULES listesinden kurulur; metinler çeviri anahtarıdır.
+## Satırlar açılışta RULES listesinden sırayla kurulur; metinler çeviri anahtarıdır.
 
 const ICON_SIZE := Vector2(76, 76)
 const ROW_SEPARATION := 18
 const SEPARATION := &"separation"
 const LABEL_VARIATION := &"RuleLabel"
-const RULES: Array[Array] = [
-	[RuleIcon.Icon.CARDS, "RULE_DRAW"],
-	[RuleIcon.Icon.EXIT, "RULE_EXIT"],
-	[RuleIcon.Icon.CAPTURE, "RULE_CAPTURE"],
-	[RuleIcon.Icon.BOOST, "RULE_BOOST"],
-	[RuleIcon.Icon.HOME, "RULE_HOME_LANE"],
-	[RuleIcon.Icon.DISCARD, "RULE_DISCARD"],
-	[RuleIcon.Icon.WIN, "RULE_WIN"],
-]
+const RULES: Dictionary[RuleIcon.Icon, String] = {
+	RuleIcon.Icon.CARDS: "RULE_DRAW",
+	RuleIcon.Icon.EXIT: "RULE_EXIT",
+	RuleIcon.Icon.CAPTURE: "RULE_CAPTURE",
+	RuleIcon.Icon.BOOST: "RULE_BOOST",
+	RuleIcon.Icon.HOME: "RULE_HOME_LANE",
+	RuleIcon.Icon.DISCARD: "RULE_DISCARD",
+	RuleIcon.Icon.WIN: "RULE_WIN",
+}
 
 
 func _ready() -> void:
-	for rule: Array in RULES:
-		add_child(_make_row(rule[0], rule[1]))
+	for icon_kind: RuleIcon.Icon in RULES:
+		add_child(_make_row(icon_kind, RULES[icon_kind]))
 
 
 func _make_row(icon_kind: RuleIcon.Icon, text_key: String) -> HBoxContainer:

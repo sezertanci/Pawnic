@@ -59,8 +59,7 @@ func card_rect() -> Rect2:
 
 func _card_area() -> Rect2:
 	var caption_height := _caption.get_combined_minimum_size().y
-	var width := minf(size.x, (size.y - caption_height) / CardFace.ASPECT)
-	var card := Vector2(width, width * CardFace.ASPECT)
+	var card := CardFace.fit_size(size.x, size.y - caption_height)
 	var top := (size.y - caption_height - card.y) / 2.0
 	return Rect2(Vector2((size.x - card.x) / 2.0, top), card)
 
@@ -80,7 +79,7 @@ func _draw() -> void:
 	if _top.visible:
 		return
 	var area := _card_area()
-	var color := _caption.get_theme_color(&"font_color")
+	var color := _caption.get_theme_color(ThemeKeys.FONT_COLOR)
 	var corners: Array[Vector2] = [
 		area.position,
 		Vector2(area.end.x, area.position.y),

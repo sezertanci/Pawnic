@@ -41,7 +41,7 @@ func test_top_discard_is_last_discarded_card() -> void:
 
 func test_discard_records_discarding_seat() -> void:
 	var game := _new_game([false, true])
-	assert_eq(game.last_discard_seat, GameMatch.NO_SEAT)
+	assert_eq(game.last_discard_seat, BoardLayout.NO_SEAT)
 	game.begin_turn()
 
 	game.discard(0)
@@ -90,21 +90,21 @@ func test_from_dict_after_to_dict_restores_match() -> void:
 
 func test_from_dict_with_other_version_returns_null() -> void:
 	var saved := _new_game([false, true]).to_dict()
-	saved["version"] = GameMatch.SAVE_VERSION + 1
+	saved[GameMatch.KEY_VERSION] = GameMatch.SAVE_VERSION + 1
 
 	assert_null(GameMatch.from_dict(_settings, saved, _rng()))
 
 
 func test_from_dict_with_unknown_card_returns_null() -> void:
 	var saved := _new_game([false, true]).to_dict()
-	(saved["draw"] as Array).append({"type": "teleport", "value": 0})
+	(saved[GameMatch.KEY_DRAW] as Array).append({"type": "teleport", "value": 0})
 
 	assert_null(GameMatch.from_dict(_settings, saved, _rng()))
 
 
 func test_from_dict_with_missing_hand_returns_null() -> void:
 	var saved := _new_game([false, true]).to_dict()
-	(saved["hands"] as Array).pop_back()
+	(saved[GameMatch.KEY_HANDS] as Array).pop_back()
 
 	assert_null(GameMatch.from_dict(_settings, saved, _rng()))
 

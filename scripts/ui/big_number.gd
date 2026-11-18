@@ -12,6 +12,18 @@ const NUMBER_MARGIN := 0.08
 const DIGIT_HEIGHT := 0.72
 
 
+## Hız karesinin sayısı (+3, −5): ileri yeşil, geri kırmızı. Tahtada ve kural simgesinde
+## aynı görünsün diye ortak.
+static func draw_speed(canvas: Control, rect: Rect2, speed: int) -> void:
+	var type := Card.Type.FORWARD if speed > 0 else Card.Type.BACK
+	var text := canvas.tr(Card.LABEL_KEYS[type]) % absi(speed)
+	var color_name := CardSymbol.FORWARD_COLOR if speed > 0 else CardSymbol.BACK_COLOR
+	var font := canvas.get_theme_font(CardSymbol.NUMBER_FONT, CardSymbol.STYLE)
+	var fill := canvas.get_theme_color(color_name, CardSymbol.STYLE)
+	var ink := canvas.get_theme_color(CardSymbol.INK_COLOR, CardSymbol.STYLE)
+	draw(canvas, font, rect, text, fill, ink)
+
+
 ## Sayıyı rect'in ortasına çizer: önce kaymış koyu gölge, sonra koyu kontur ve renkli dolgu.
 static func draw(
 	canvas: CanvasItem, font: Font, rect: Rect2, text: String, fill: Color, ink: Color

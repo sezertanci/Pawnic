@@ -52,13 +52,15 @@ func _play_like_bot(screen: Node, out_dir: String) -> void:
 	screen.call("_on_card_pressed", move.card_index)
 	var picker: MovePicker = screen.get("_picker")
 	if picker.stage == MovePicker.Stage.VALUE:
-		screen.call("_on_value_pressed", move.value)
+		screen.call("_on_value_pressed", move.card_index, move.value)
 	await _frames()
 	if not out_dir.is_empty():
 		_save(out_dir.path_join("2_pick.png"))
 	screen.call("_on_pawn_pressed", move.pawn)
 	if move.target != Move.NO_PAWN:
 		screen.call("_on_pawn_pressed", move.target)
+	if picker.stage == MovePicker.Stage.DESTINATION:
+		screen.call("_on_square_pressed", move.destination)
 
 
 func _wait_for_human(screen: Node) -> void:

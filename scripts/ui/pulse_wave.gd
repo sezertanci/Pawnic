@@ -36,8 +36,8 @@ static func draw_ring(
 ) -> void:
 	var fade := 1.0 - phase()
 	var wave_radius := radius * (1.0 + SPREAD * (1.0 - fade))
-	_draw_arc(canvas, center, radius, color, edge_color, width, 1.0, arc)
-	_draw_arc(canvas, center, wave_radius, color, edge_color, width, fade, arc)
+	draw_outlined_arc(canvas, center, radius, color, edge_color, width, arc)
+	draw_outlined_arc(canvas, center, wave_radius, color, edge_color, width, arc, fade)
 
 
 static func draw_frame(
@@ -49,15 +49,16 @@ static func draw_frame(
 	_draw_rect(canvas, rect.grow(grow), color, edge_color, width, fade)
 
 
-static func _draw_arc(
+## Koyu kenar çizgili yay; alpha ile soldurulur. Seçili taşın sabit halkası da bununla çizilir.
+static func draw_outlined_arc(
 	canvas: CanvasItem,
 	center: Vector2,
 	radius: float,
 	color: Color,
 	edge_color: Color,
 	width: float,
-	alpha: float,
-	arc: Vector2
+	arc: Vector2,
+	alpha := 1.0
 ) -> void:
 	var points := BoardPainter.ARC_POINTS
 	var edge := width + BoardPainter.LINE_WIDTH * 2.0
