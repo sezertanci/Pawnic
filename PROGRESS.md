@@ -150,8 +150,13 @@
   4 (1.3.0) yüklenirken "çözmeyi planlıyorum" ile yoksayıldı. `addons/portrait_feature` dışa
   aktarma eklentisi (2026-11-19) özelliği manifeste `android:required="false"` ile yazar; sonraki
   AAB'de uyarı çıkmamalı.
-- Reklam kimliği beyanı "Evet" (Analiz, Reklam veya pazarlama, Sahtekarlığı önleme). Açık: Play
-  Console'da "Reklamlar" beyanı ve veri güvenliği formu AdMob'a göre güncellenecek.
+- Play beyanları AdMob'a göre güncellendi (2026-11-19): Reklam kimliği "Evet" (Analiz, Reklam veya
+  pazarlama, Sahtekarlığı önleme), Reklamlar "Evet", Veri güvenliği formunda yaklaşık konum,
+  kilitlenme günlükleri, teşhisler, diğer performans verileri, uygulama işlemleri ve cihaz
+  kimlikleri toplanıyor ve paylaşılıyor (zorunlu, aynı üç amaç; aktarımda şifreli; hesap yok).
+  Hedef kitle 13 ve üstü. `store/pawnic/privacy.html` bunlara göre yeniden yazıldı (AdMob, Play
+  satın alması, Gizlilik Seçenekleri). Açık: yeni sayfa sezertanci.github.io/pawnic/privacy.html'e
+  yayımlanacak.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
