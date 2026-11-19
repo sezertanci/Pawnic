@@ -97,7 +97,6 @@
 | 4 × 5 | 68 |
 
 ## Açık konular
-- Oyun süresi uzun olabilir (4 taşta oyuncu başına ~55 tur). Deneme sonrası kısaltma gerekebilir.
 - Hangi ek temaların olacağı kararlaştırılmadı. Ayarlar ekranında tema seçimi yok; şimdilik tek
   tema (`classic`) olduğu için gerek yok, ikinci tema gelince eklenecek.
 - AdMob (2026-11-19): eklenti Poing Studios `godot-admob-plugin` v5.1.0 `addons/admob` altında,
@@ -128,15 +127,18 @@
 - Reklamları kaldırma satın alması (`remove_ads`, tek seferlik ürün): resmî GodotGooglePlayBilling
   3.3.0 eklentisi (`addons/GodotGooglePlayBilling/`, `PlayBillingBackend`, yanıtları
   `BillingResponse` okur). Satın alınınca banner ve geçiş reklamları (oyun içi 5 dakika ve oyun
-  sonu) kalkar, ödüllü reklam kalır. Düğme ana ekranda menünün altında (sade `GhostButton`) ve
+  sonu) kalkar, ödüllü reklam kalır. Düğme ana ekranda menünün altında (`GhostButton`, kurulum ekranındaki adım satırıyla aynı lacivert dolgu) ve
   ayarlar penceresinde (`MenuBlueButton`); fiyat Play'den gelince düğmede yazar, ürün alınınca
   düğmeler gizlenir. Ayrı geri yükleme düğmesi yok; satın almalar her açılışta Play'den okunur.
   Sahip olunan ürünler `SaveStore`'da da tutulur (internet yokken reklam gizli kalsın diye); iade
   edilen ürün bir sonraki okumada düşer. Tamamlanan satın alma onaylanır (onaylanmayan 3 günde
   iade edilir); bekleyen (PENDING) ödeme ürün vermez.
-  - Açık: Play Console'da `remove_ads` ürünü açılıp fiyatı belirlenecek. Ürün açılabilmesi için
-    BILLING izinli bir AAB'nin bir kanala yüklenmiş olması gerekir. Gerçek satın alma yalnızca
-    Gradle'lı ön ayarla ve Play'den (dahili test, lisans test hesabı) yüklenen sürümde denenebilir.
+  - Play Console'da `remove_ads` ürünü açıldı (2026-11-19): satın alma seçeneği `buy`, "Eski
+    sürümlerle uyumlu", 174 ülke. Fiyat: müşteri Türkiye'de 49,99 TL görür (Play'e girilen fiyat
+    vergisizdir, KDV üstüne eklenir), diğer ülkeler 3,29 USD tabanlı. Ürün simgesi
+    `store/pawnic/remove-ads-512.png`. Ürün açılabilmesi için BILLING izinli bir AAB'nin bir kanala
+    yüklenmiş olması gerekir. Gerçek satın alma yalnızca Gradle'lı ön ayarla ve Play'den (dahili
+    test, lisans test hesabı) yüklenen sürümde denenebilir; telefonda denendi, doğru çalışıyor.
 - Yükleme anahtarı `C:\Users\Lenovo\keys\pawnic-upload.jks` (takma ad `upload`), yolu ve şifresi
   `.godot/export_credentials.cfg` içinde. Play App Signing açık. 2 (1.1.0) dahili test kanalına
   yüklendi; içinde mağaza görselleri vardı (yaklaşık 18 MB). `store/` klasörüne `.gdignore` eklendi,
@@ -145,10 +147,11 @@
   `remove_ads` ürünü bu sürümden sonra açılabilir. Yerel `build/` klasörüne `.gdignore` kondu (deneme
   görüntüleri pakete giriyordu); klasör depoda olmadığı için yeni makinede yeniden konmalı.
 - Play: `android.hardware.screen.portrait` uyarısı (dikey yön bu özelliği dolaylı zorunlu yapıyor)
-  "çözmeyi planlıyorum" ile yoksayıldı. Sonraki sürümde bir `EditorExportPlugin` manifeste
-  `android:required="false"` ile ekleyecek. Reklam kimliği beyanı "Hayır"; AdMob gelince "Evet"
-  yapılacak, reklam ve veri güvenliği formları da güncellenecek.
-- Çeviriler Claude tarafından yazıldı; anadili konuşan biri tarafından kontrol edilmeli.
+  4 (1.3.0) yüklenirken "çözmeyi planlıyorum" ile yoksayıldı. `addons/portrait_feature` dışa
+  aktarma eklentisi (2026-11-19) özelliği manifeste `android:required="false"` ile yazar; sonraki
+  AAB'de uyarı çıkmamalı.
+- Reklam kimliği beyanı "Evet" (Analiz, Reklam veya pazarlama, Sahtekarlığı önleme). Açık: Play
+  Console'da "Reklamlar" beyanı ve veri güvenliği formu AdMob'a göre güncellenecek.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
