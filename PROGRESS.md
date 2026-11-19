@@ -141,6 +141,9 @@
   `.godot/export_credentials.cfg` içinde. Play App Signing açık. 2 (1.1.0) dahili test kanalına
   yüklendi; içinde mağaza görselleri vardı (yaklaşık 18 MB). `store/` klasörüne `.gdignore` eklendi,
   3 (1.2.0) görselsiz derlendi.
+  4 (1.3.0) satın alma (BILLING) izniyle derlendi ve dahili test kanalı için Play'e verildi;
+  `remove_ads` ürünü bu sürümden sonra açılabilir. Yerel `build/` klasörüne `.gdignore` kondu (deneme
+  görüntüleri pakete giriyordu); klasör depoda olmadığı için yeni makinede yeniden konmalı.
 - Play: `android.hardware.screen.portrait` uyarısı (dikey yön bu özelliği dolaylı zorunlu yapıyor)
   "çözmeyi planlıyorum" ile yoksayıldı. Sonraki sürümde bir `EditorExportPlugin` manifeste
   `android:required="false"` ile ekleyecek. Reklam kimliği beyanı "Hayır"; AdMob gelince "Evet"
