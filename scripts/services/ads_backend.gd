@@ -15,6 +15,11 @@ func start() -> void:
 	pass
 
 
+## Alt banner'ı açar ya da kaldırır; kalkınca yüksekliği 0 olarak bildirilir.
+func set_banner_enabled(_enabled: bool) -> void:
+	pass
+
+
 func is_rewarded_ready() -> bool:
 	return false
 

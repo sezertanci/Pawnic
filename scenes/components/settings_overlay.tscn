@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/settings_overlay.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/toggle_switch.gd" id="switch"]
 [ext_resource type="Script" path="res://scripts/ui/wide_button.gd" id="wide"]
+[ext_resource type="Script" path="res://scripts/ui/remove_ads_action.gd" id="remove_ads"]
 
 [node name="SettingsOverlay" type="Button"]
 anchors_preset = 15
@@ -80,6 +81,17 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 columns = 2
+
+[node name="RemoveAdsButton" type="Button" parent="Margin/Box/Panel/Box"]
+auto_translate_mode = 2
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"MenuBlueButton"
+text = "REMOVE_ADS"
+script = ExtResource("wide")
+
+[node name="RemoveAdsAction" type="Node" parent="Margin/Box/Panel/Box/RemoveAdsButton"]
+script = ExtResource("remove_ads")
 
 [node name="PrivacyButton" type="Button" parent="Margin/Box/Panel/Box"]
 unique_name_in_owner = true

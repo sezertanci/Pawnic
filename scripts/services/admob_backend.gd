@@ -11,6 +11,7 @@ const SINGLETON := "PoingGodotAdMob"
 var _config: AdsConfig
 var _started := false
 var _banner: AdView
+var _banner_enabled := true
 var _interstitial: InterstitialAd
 var _interstitial_loading := false
 var _rewarded: RewardedAd
@@ -32,6 +33,16 @@ func start() -> void:
 	UserMessagingPlatform.consent_information.update(
 		parameters, _on_consent_info_updated, _on_consent_failed
 	)
+
+
+func set_banner_enabled(enabled: bool) -> void:
+	_banner_enabled = enabled
+	if enabled:
+		_load_banner()
+	elif _banner != null:
+		_banner.destroy()
+		_banner = null
+		banner_height_changed.emit(0)
 
 
 func is_rewarded_ready() -> bool:
@@ -130,7 +141,10 @@ func _on_initialized(_status: InitializationStatus) -> void:
 # --- Banner ---
 
 
+## SDK başlamadan, banner kapalıyken ya da zaten varken bir şey yapmaz.
 func _load_banner() -> void:
+	if not _started or not _banner_enabled or _banner != null:
+		return
 	var size := AdSize.get_current_orientation_anchored_adaptive_banner_ad_size(AdSize.FULL_WIDTH)
 	_banner = AdView.new(_config.banner_unit_id, size, AdPosition.BOTTOM)
 	_banner.ad_listener.on_ad_loaded = _on_banner_loaded
@@ -138,8 +152,10 @@ func _load_banner() -> void:
 	_banner.load_ad(AdRequest.new())
 
 
+## Banner yüklenirken kaldırılmış olabilir.
 func _on_banner_loaded() -> void:
-	banner_height_changed.emit(_banner.get_height_in_pixels())
+	if _banner != null:
+		banner_height_changed.emit(_banner.get_height_in_pixels())
 
 
 # --- Geçiş reklamı ---

@@ -8,7 +8,8 @@
 - Oyun prototip değil, yayımlanacak ürün olarak geliştirilir. Paket adı `com.sezertanci.pawnic`.
 - Diller: tr, en, de, es, fr, it, pt, id; hepsi tek `data/translations.csv` dosyasında.
 - Gelir: ödüllü/geçiş reklamı ve uygulama içi satın alma. İkisi de arayüzle sarıldı; gerçek
-  eklentiler seçilene kadar sahte sağlayıcılar çalışır. Geçiş reklamı oyunun ortasında yalnızca
+  eklentiler AdMob ve GodotGooglePlayBilling'tir; bunlar yalnızca Gradle'lı derlemede bulunur,
+  başka yerde (editör, testler, hızlı ön ayar) sahte sağlayıcılar çalışır. Geçiş reklamı oyunun ortasında yalnızca
   aşağıdaki 5 dakika kuralıyla gösterilir.
 - Yarım kalan oyun her tur başında kaydedilir; açılışta "Devam et" çıkar.
 - Tema altyapısı kuruldu (`BoardSkin`, `Skins` autoload'u); şimdilik tek tema: `classic`.
@@ -123,8 +124,19 @@
     gerekir.
   - Açık: AdMob hesabında uygulama açılınca gerçek uygulama kimliği (`admob/general/android/app_id`)
     ve birim kimlikleri yazılacak; ödüllü reklamın ödülü ve düğmesi belli değil; banner yüklenemezse
-    yeniden denenmiyor; reklamları kaldırma satın alması (`remove_ads`) henüz reklamlara bağlı değil.
-- Play Billing için resmi eklenti eklenecek; ürün listesi belli değil.
+    yeniden denenmiyor.
+- Reklamları kaldırma satın alması (`remove_ads`, tek seferlik ürün): resmî GodotGooglePlayBilling
+  3.3.0 eklentisi (`addons/GodotGooglePlayBilling/`, `PlayBillingBackend`, yanıtları
+  `BillingResponse` okur). Satın alınınca banner ve geçiş reklamları (oyun içi 5 dakika ve oyun
+  sonu) kalkar, ödüllü reklam kalır. Düğme ana ekranda menünün altında (sade `GhostButton`) ve
+  ayarlar penceresinde (`MenuBlueButton`); fiyat Play'den gelince düğmede yazar, ürün alınınca
+  düğmeler gizlenir. Ayrı geri yükleme düğmesi yok; satın almalar her açılışta Play'den okunur.
+  Sahip olunan ürünler `SaveStore`'da da tutulur (internet yokken reklam gizli kalsın diye); iade
+  edilen ürün bir sonraki okumada düşer. Tamamlanan satın alma onaylanır (onaylanmayan 3 günde
+  iade edilir); bekleyen (PENDING) ödeme ürün vermez.
+  - Açık: Play Console'da `remove_ads` ürünü açılıp fiyatı belirlenecek. Ürün açılabilmesi için
+    BILLING izinli bir AAB'nin bir kanala yüklenmiş olması gerekir. Gerçek satın alma yalnızca
+    Gradle'lı ön ayarla ve Play'den (dahili test, lisans test hesabı) yüklenen sürümde denenebilir.
 - Yükleme anahtarı `C:\Users\Lenovo\keys\pawnic-upload.jks` (takma ad `upload`), yolu ve şifresi
   `.godot/export_credentials.cfg` içinde. Play App Signing açık. 2 (1.1.0) dahili test kanalına
   yüklendi; içinde mağaza görselleri vardı (yaklaşık 18 MB). `store/` klasörüne `.gdignore` eklendi,

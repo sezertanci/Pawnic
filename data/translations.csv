@@ -93,3 +93,5 @@ LANG_IT,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano,Italiano
 LANG_PT,Português,Português,Português,Português,Português,Português,Português,Português
 LANG_ID,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia
 PRIVACY_OPTIONS,Gizlilik Seçenekleri,Privacy Options,Datenschutzoptionen,Opciones De Privacidad,Options De Confidentialité,Opzioni Sulla Privacy,Opções De Privacidade,Opsi Privasi
+REMOVE_ADS,Reklamları Kaldır,Remove Ads,Werbung Entfernen,Quitar Anuncios,Supprimer Les Pubs,Rimuovi Pubblicità,Remover Anúncios,Hapus Iklan
+REMOVE_ADS_PRICE,Reklamları Kaldır (%s),Remove Ads (%s),Werbung Entfernen (%s),Quitar Anuncios (%s),Supprimer Les Pubs (%s),Rimuovi Pubblicità (%s),Remover Anúncios (%s),Hapus Iklan (%s)

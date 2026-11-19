@@ -163,7 +163,7 @@ func _before_turn() -> void:
 		await _show_reshuffle()
 		if game != _game:
 			return
-	if AdSchedule.is_due(_game):
+	if not Ads.are_ads_removed() and AdSchedule.is_due(_game):
 		await _show_mid_game_ad()
 		if game == _game:
 			_clock_running = true

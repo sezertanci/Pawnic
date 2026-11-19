@@ -2,8 +2,9 @@ class_name SettingsOverlay
 extends Button
 ## Ayarlar katmanı: ses açma/kapama anahtarı, oyun hızı ve dil seçimi. Dışına ya da Tamam'a
 ## dokununca kapanır. Hız düğmeleri GameSpeed.Level, dil düğmeleri Localization.SUPPORTED
-## sırasıyla kurulur; her dil kendi adıyla yazılır. Gizlilik Seçenekleri düğmesi yalnızca reklam
-## rızasının gerektiği bölgelerde (ör. AB) görünür.
+## sırasıyla kurulur; her dil kendi adıyla yazılır. Reklamları Kaldır düğmesi ürün alınınca
+## gizlenir. Gizlilik Seçenekleri düğmesi yalnızca reklam rızasının gerektiği bölgelerde (ör. AB)
+## görünür.
 
 const LANGUAGE_KEY_PREFIX := "LANG_"
 

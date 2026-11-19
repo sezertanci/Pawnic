@@ -105,6 +105,6 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `SaveStore` | Tercihleri ve yarım kalan oyunu `user://save.json` dosyasında tutar |
 | `Localization` | Dili seçer ve saklar (ayarlar penceresinden değiştirilir) |
 | `Skins` | Tahta görünümünü seçer ve saklar (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
-| `Ads` | Reklam sağlayıcısını sarar; şimdilik sahte sağlayıcı kullanılır |
-| `Iap` | Satın alma sağlayıcısını sarar; şimdilik sahte sağlayıcı kullanılır |
+| `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
+| `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
 | `Sound` | Ses efektlerini çalar; her düğmeye dokunma sesini kendiliğinden bağlar, sesin açık/kapalı tercihini saklar |

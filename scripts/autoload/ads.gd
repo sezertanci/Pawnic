@@ -3,6 +3,8 @@ extends Node
 ## Geçiş reklamı oyun sonunda ve uzun oyunlarda belli aralıklarla, insan oyuncunun sırası
 ## başlamadan önce gösterilir (zamanlama AdSchedule'da); kart seçerken ya da taş yürürken
 ## gösterilmez.
+## Reklamları kaldırma satın alındıysa banner ve geçiş reklamı gösterilmez; ödüllü reklam
+## oyuncunun isteğiyle açıldığı için kalır.
 ## AdMob eklentisi yalnızca Gradle ile derlenen Android sürümünde vardır; yoksa sahte sağlayıcı
 ## kullanılır.
 
@@ -21,6 +23,8 @@ var _backend: AdsBackend
 
 func _ready() -> void:
 	use_backend(_create_backend())
+	Iap.products_changed.connect(_apply_ad_removal)
+	_apply_ad_removal()
 	_backend.start()
 
 
@@ -40,8 +44,16 @@ func show_rewarded(placement: String) -> void:
 	_backend.show_rewarded(placement)
 
 
+## Reklamlar kaldırıldıysa geçiş reklamı yerine hemen kapandı bildirilir.
 func show_interstitial() -> void:
+	if are_ads_removed():
+		interstitial_closed.emit.call_deferred()
+		return
 	_backend.show_interstitial()
+
+
+func are_ads_removed() -> bool:
+	return Iap.is_owned(Iap.REMOVE_ADS)
 
 
 func is_privacy_options_required() -> bool:
@@ -50,6 +62,10 @@ func is_privacy_options_required() -> bool:
 
 func show_privacy_options() -> void:
 	_backend.show_privacy_options()
+
+
+func _apply_ad_removal() -> void:
+	_backend.set_banner_enabled(not are_ads_removed())
 
 
 func _create_backend() -> AdsBackend:

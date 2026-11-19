@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/ui/wide_button.gd" id="wide"]
 [ext_resource type="Script" path="res://scripts/ui/gear_icon.gd" id="gear"]
 [ext_resource type="PackedScene" path="res://scenes/components/settings_overlay.tscn" id="settings"]
+[ext_resource type="Script" path="res://scripts/ui/remove_ads_action.gd" id="remove_ads"]
 
 [node name="HomeScreen" type="Control"]
 layout_mode = 3
@@ -94,6 +95,16 @@ theme_type_variation = &"MenuOrangeButton"
 text = "HOW_TO_PLAY"
 script = ExtResource("badge")
 symbol = 2
+
+[node name="RemoveAdsButton" type="Button" parent="Margin/Box"]
+auto_translate_mode = 2
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"GhostButton"
+text = "REMOVE_ADS"
+
+[node name="RemoveAdsAction" type="Node" parent="Margin/Box/RemoveAdsButton"]
+script = ExtResource("remove_ads")
 
 [node name="BottomSpace" type="Control" parent="Margin/Box"]
 layout_mode = 2

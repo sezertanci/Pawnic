@@ -27,8 +27,8 @@ Tuning="*res://scripts/autoload/tuning.gd"
 SaveStore="*res://scripts/autoload/save_store.gd"
 Localization="*res://scripts/autoload/localization.gd"
 Skins="*res://scripts/autoload/skins.gd"
-Ads="*res://scripts/autoload/ads.gd"
 Iap="*res://scripts/autoload/iap.gd"
+Ads="*res://scripts/autoload/ads.gd"
 Sound="*res://scripts/autoload/sound.gd"
 GameSpeed="*res://scripts/autoload/game_speed.gd"
 Difficulty="*res://scripts/autoload/difficulty.gd"
@@ -49,7 +49,7 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/admob/plugin.cfg")
+enabled=PackedStringArray("res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/admob/plugin.cfg")
 
 [gui]
 
