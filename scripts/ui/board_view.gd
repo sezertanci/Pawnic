@@ -23,8 +23,7 @@ const MARK_RATIO := 0.4
 const NUMBER_SCALE := 1.25
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
-## Hücrenin merkezi (hücre boyuna oranla).
-const CENTER := Vector2(0.5, 0.5)
+const CENTER := BoardTurn.CELL_CENTER
 ## Gölge elipsinin dikey basıklığı.
 const SHADOW_FLATTEN := 0.45
 ## Kalkan sembolünün köşeleri (yarıçapa oranla, merkez sıfırda).
@@ -50,7 +49,16 @@ const TRAIL_LIGHTEN := 0.5
 ## Kısayol karesindeki evin çizgi kalınlığı (kare boyuna oranla).
 const HOUSE_LINE_RATIO := 0.03
 
-var board: BoardState
+var board: BoardState:
+	set(value):
+		board = value
+		_update_turns()
+## Ekranın altında görünecek koltuk; tahta bu koltuğun başlangıç alanı alta gelecek biçimde
+## döndürülerek çizilir (BoardTurn). NO_SEAT iken tahta dosyadaki gibi çizilir.
+var bottom_seat := BoardLayout.NO_SEAT:
+	set(value):
+		bottom_seat = value
+		_update_turns()
 ## Koltukların renkleri, koltuk sırasıyla (SeatColors); boşsa her koltuk kendi sırasındaki rengi
 ## alır.
 var seat_colors: Array[int] = []
@@ -79,6 +87,10 @@ var _radii: Array[float] = []
 var _animation: PawnAnimation
 ## Ortadaki dönen sıra oku; turn_seat NO_SEAT iken gizlidir.
 var _spinner := TurnSpinner.new()
+## Tahtanın ekrandaki saat yönündeki çeyrek tur sayısı (bottom_seat'ten hesaplanır).
+var _turns := 0
+## Koltukların başlangıç tepsisi merkezleri, döndürülmüş tahtada hücre cinsinden (BoardTurn).
+var _base_centers: Array[Vector2] = []
 var _tween: Tween
 var _time := 0.0
 
@@ -184,18 +196,41 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 
+func _update_turns() -> void:
+	var facing := board != null and bottom_seat != BoardLayout.NO_SEAT
+	_turns = BoardTurn.turns_to_bottom(board.layout, bottom_seat) if facing else 0
+	_base_centers.clear()
+	if board != null:
+		for seat: int in range(board.layout.bases.size()):
+			_base_centers.append(BoardTurn.base_center(board.layout, seat, _turns))
+	queue_redraw()
+
+
 func _cell_size() -> float:
-	var grid := Vector2(board.layout.grid_size)
+	var grid := BoardTurn.grid(Vector2(board.layout.grid_size), _turns)
 	return minf(size.x / grid.x, size.y / grid.y)
 
 
+## Döndürülmüş tahtanın sol üst köşesi (piksel); tahta alanın ortasına yerleşir.
+func _grid_origin() -> Vector2:
+	var grid := BoardTurn.grid(Vector2(board.layout.grid_size), _turns) * _cell_size()
+	return (size - grid) / 2.0
+
+
+## Hücre cinsinden bir noktanın ekrandaki yeri (döndürme dahil).
 func _to_pixels(cell: Vector2) -> Vector2:
-	var grid := Vector2(board.layout.grid_size) * _cell_size()
-	return (size - grid) / 2.0 + cell * _cell_size()
+	var turned := BoardTurn.point(cell, Vector2(board.layout.grid_size), _turns)
+	return _grid_origin() + turned * _cell_size()
+
+
+## Hücre cinsinden bir alanın ekrandaki karşılığı (döndürme dahil).
+func _area_to_pixels(area: Rect2) -> Rect2:
+	var turned := BoardTurn.rect(area, Vector2(board.layout.grid_size), _turns)
+	return Rect2(_grid_origin() + turned.position * _cell_size(), turned.size * _cell_size())
 
 
 func _cell_rect(cell: Vector2i) -> Rect2:
-	return Rect2(_to_pixels(Vector2(cell)), Vector2.ONE * _cell_size())
+	return _area_to_pixels(Rect2(Vector2(cell), Vector2.ONE))
 
 
 func _active_seats() -> Array[int]:
@@ -270,8 +305,7 @@ func _home_area() -> Rect2:
 	var area := Rect2i(board.layout.cells[homes[0]], Vector2i.ONE)
 	for home: int in homes:
 		area = area.merge(Rect2i(board.layout.cells[home], Vector2i.ONE))
-	var origin := _to_pixels(Vector2(area.position))
-	return Rect2(origin, Vector2(area.size) * _cell_size())
+	return _area_to_pixels(Rect2(area))
 
 
 ## Koltuğun bitiş yamuğunun dışa bakan birim yönü: bitiş hücresinin alan merkezine göre yönü.
@@ -353,7 +387,7 @@ func _draw_base(seat: int) -> void:
 func _draw_sockets(seat: int) -> void:
 	var radius := _cell_size() * PAWN_RATIO
 	for slot: int in range(board.owners.count(seat)):
-		var center := _to_pixels(board.layout.bases[seat] + _base_offset(slot))
+		var center := _base_slot_center(seat, slot)
 		var points := BoardPainter.base_ellipse(center, radius, SOCKET_SCALE)
 		SmoothDraw.polygon(self, points, Skins.current.socket_color)
 
@@ -375,8 +409,8 @@ func _draw_wave_frame(rect: Rect2, radius := 0.0) -> void:
 
 
 func _base_rect(seat: int) -> Rect2:
-	var half := Vector2(BASE_COLUMNS / 2.0, 1.0) * BASE_SPREAD
-	return Rect2(_to_pixels(board.layout.bases[seat] - half), half * 2.0 * _cell_size())
+	var extent := Vector2(BASE_COLUMNS, 2.0) * BASE_SPREAD * _cell_size()
+	return Rect2(_base_pixels(seat) - extent / 2.0, extent)
 
 
 ## Başlangıç alanındaki seçilebilir ilk taş; yoksa NO_PAWN.
@@ -409,7 +443,7 @@ func _layout_pawns() -> void:
 			var seat := board.owners[pawn]
 			var slot: int = base_slots.get(seat, 0)
 			base_slots[seat] = slot + 1
-			_centers[pawn] = _to_pixels(board.layout.bases[seat] + _base_offset(slot))
+			_centers[pawn] = _base_slot_center(seat, slot)
 		else:
 			var cell := board.layout.cells[board.positions[pawn]]
 			if not groups.has(cell):
@@ -418,6 +452,15 @@ func _layout_pawns() -> void:
 			groups[cell].append(pawn)
 	for cell: Vector2i in groups:
 		_spread(cell, groups[cell])
+
+
+## Başlangıç tepsisindeki yerin merkezi (piksel). Tepsi tahtayla dönmez, hep yatay dizilir.
+func _base_slot_center(seat: int, slot: int) -> Vector2:
+	return _base_pixels(seat) + _base_offset(slot) * _cell_size()
+
+
+func _base_pixels(seat: int) -> Vector2:
+	return _grid_origin() + _base_centers[seat] * _cell_size()
 
 
 func _base_offset(slot: int) -> Vector2:

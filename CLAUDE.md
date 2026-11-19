@@ -19,7 +19,9 @@ Oyun prototip değildir; Play'de yayımlanacak bir ürünün temelidir.
 
 ## Teknoloji
 - Godot 4 (kararlı son sürüm), GDScript, Compatibility (OpenGL ES 3) işleyicisi.
-- Sunucu ve ağ yoktur; oyun tek cihazda oynanır.
+- Sunucu yoktur. Oyun tek cihazda ya da aynı yerel ağdaki cihazlar arasında oynanır: bir cihaz
+  oyunu kurar (host), diğerleri ona katılır. Ağ oyunu `feature/lan-multiplayer` dalında
+  geliştirilir; ayrıntılar `PROGRESS.md`'deki yol haritasındadır.
 - Android derlemeleri Gradle ile alınır: tablet için "Android APK", Play için "Android AAB".
   Tablette hızlı deneme için Gradle'sız "Android APK (hızlı)" kullanılır.
 - Fizik motoru kullanılmaz.

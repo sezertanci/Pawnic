@@ -2,7 +2,8 @@
 
 ## Kararlar
 - Ad: **Pawnic**. Kart tabanlı yarış tahtası; zar yok, strateji var. Hedefe ilk varan kazanır, süre yok.
-- Aynı telefonda 2–4 kişi. Bot yalnızca tek oyunculu modda. Sunucu ve ağ yok.
+- Aynı telefonda 2–4 kişi. Bot yalnızca tek oyunculu modda. Sunucu yok; aynı yerel ağda çok
+  oyunculu oyun geliştiriliyor (yol haritası aşağıda).
 - Ekran dikey. Birden çok insan oyuncu varsa her sırada "telefonu ver" ekranı çıkar.
 - Belirli bir mevcut oyunun kopyası yapılmaz.
 - Oyun prototip değil, yayımlanacak ürün olarak geliştirilir. Paket adı `com.sezertanci.pawnic`.
@@ -187,8 +188,19 @@
   (devam edilen oyunda değil) oynar; sürerken el boştur ve saat durur. Tablette denenmedi.
 
 ## Yol haritası: aynı ağda çok oyunculu (taslak, 2026-11-20)
-Davranış kararları verildi, uygulamaya başlanmadı. Başlanınca "Sunucu ve ağ yok" kararı "sunucu yok,
-yerel ağ var" olarak güncellenir. Sunucu gerekmez; bir cihaz oyunu kurar (host), diğerleri katılır.
+Uygulamaya 2026-11-20'de `feature/lan-multiplayer` dalında başlandı; "Sunucu ve ağ yok" kararı
+"sunucu yok, yerel ağ var" olarak güncellendi. Sunucu gerekmez; bir cihaz oyunu kurar (host),
+diğerleri katılır. İş sırası kolaydan zora: tahtanın döndürülerek çizilmesi, sıra akışının ayrı
+sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aşama 2–4.
+
+**Yapılanlar**
+- Tahtanın döndürülerek çizilmesi (2026-11-20): `BoardTurn` (scripts/ui) koltuğun başlangıç
+  alanını alta getiren çeyrek tur sayısını tahtanın geometrisinden hesaplar; `BoardView.bottom_seat`
+  verilince tahta döner (yalnızca konumlar; taşlar, sayılar, tepsiler dik kalır). Tepsiler yatay
+  kaldığı için dosyadaki yerleri köşeye göre ayarlıdır; döndürmede tepsi, ekranda o köşeye düşen
+  koltuğun dosyadaki tepsi yerine konur (`BoardTurn.base_center`), görünüm döndürmesizle aynı kalır. Varsayılan
+  `NO_SEAT`, yani yerel oyunda döndürme yok; ağ oyununda her cihaz kendi koltuğunu verecek.
+  Birim testleri `test_board_turn.gd`'de; dört koltuk için ekran görüntüsüyle denetlendi.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
