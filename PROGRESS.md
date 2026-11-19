@@ -155,8 +155,8 @@
   kilitlenme günlükleri, teşhisler, diğer performans verileri, uygulama işlemleri ve cihaz
   kimlikleri toplanıyor ve paylaşılıyor (zorunlu, aynı üç amaç; aktarımda şifreli; hesap yok).
   Hedef kitle 13 ve üstü. `store/pawnic/privacy.html` bunlara göre yeniden yazıldı (AdMob, Play
-  satın alması, Gizlilik Seçenekleri). Açık: yeni sayfa sezertanci.github.io/pawnic/privacy.html'e
-  yayımlanacak.
+  satın alması, Gizlilik Seçenekleri). Yeni sayfa sezertanci.github.io reposundan
+  yayında (`pawnic/privacy.html`).
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
