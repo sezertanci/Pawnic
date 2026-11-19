@@ -1,6 +1,7 @@
 class_name SetupScreen
 extends MarginContainer
-## Yeni oyun ekranı: oyun modu, oyuncu ve taş sayısı seçimi; tek oyunculu modda bot zorluğu.
+## Yeni oyun ekranı: oyun modu, oyuncu ve taş sayısı seçimi; tek oyunculu modda oyuncunun rengi
+## ve bot zorluğu.
 
 signal start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
 signal back_requested
@@ -11,6 +12,9 @@ const HINT_KEYS := {Mode.SINGLE: "MODE_SINGLE_HINT", Mode.MULTI: "MODE_MULTI_HIN
 const COUNT_KEYS := {Mode.SINGLE: "SET_BOTS", Mode.MULTI: "SET_PLAYERS"}
 ## Tek oyunculu modda sayı seçici bot sayısını gösterir; insan oyuncu bir kişidir.
 const HUMAN_SEATS := 1
+## Renk düğmelerindeki taş görselinin genişliği (piksel).
+const COLOR_ICON_WIDTH := 28
+const ICON_MAX_WIDTH := &"icon_max_width"
 
 var _mode := Mode.SINGLE
 var _player_count := 0
@@ -19,6 +23,8 @@ var _player_count := 0
 @onready var _count: Stepper = %CountStepper
 @onready var _pawns: Stepper = %PawnStepper
 @onready var _difficulty: Control = %DifficultyBox
+@onready var _color_box: Control = %ColorBox
+@onready var _colors: HBoxContainer = %Colors
 @onready var _levels: HBoxContainer = %Levels
 
 
@@ -31,6 +37,7 @@ func _ready() -> void:
 	(%MultiTab as Button).pressed.connect(_set_mode.bind(Mode.MULTI))
 	_count.value_changed.connect(_on_count_changed)
 	(%StartButton as Button).pressed.connect(_on_start_pressed)
+	_build_color_buttons()
 	_build_level_buttons()
 	_refresh_mode()
 
@@ -40,6 +47,7 @@ func _refresh_mode() -> void:
 	var offset := _count_offset()
 	_mode_hint.text = HINT_KEYS[_mode]
 	_difficulty.visible = _mode == Mode.SINGLE
+	_color_box.visible = _mode == Mode.SINGLE
 	_count.configure(
 		COUNT_KEYS[_mode],
 		settings.min_players - offset,
@@ -52,6 +60,19 @@ func _refresh_mode() -> void:
 ## Sayı seçicide gösterilen değer ile oyuncu sayısı arasındaki fark.
 func _count_offset() -> int:
 	return HUMAN_SEATS if _mode == Mode.SINGLE else 0
+
+
+## Her renk için adı ve taşı olan bir düğme. Seçim oyuncu tercihi olarak hemen saklanır.
+func _build_color_buttons() -> void:
+	var group := ButtonGroup.new()
+	var current := PlayerColor.current()
+	var skin := Skins.current
+	for color: int in PlayerColor.colors():
+		var key := skin.seat_name_keys[color]
+		var button := ChoiceButtons.add(_colors, key, group, color == current)
+		button.icon = skin.pawn_textures[color]
+		button.add_theme_constant_override(ICON_MAX_WIDTH, COLOR_ICON_WIDTH)
+		button.pressed.connect(PlayerColor.select.bind(color))
 
 
 ## Seçim oyuncu tercihi olarak hemen saklanır; sonraki yeni oyunda da seçili gelir.

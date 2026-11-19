@@ -32,7 +32,7 @@ func _run_setup(settings: GameSettings, players: int) -> void:
 	for game_index: int in range(GAMES_PER_SETUP):
 		var game := BotRunner.new_game(settings, players, PAWNS, game_index)
 		var starter := game_index % players
-		game.current = starter
+		game.starter = starter
 		var bots := BotRunner.same_bots(settings, players, Bot.Level.MEDIUM, game_index)
 		if BotRunner.play(game, bots, TURN_LIMIT) == BotRunner.UNFINISHED:
 			continue

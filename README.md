@@ -107,4 +107,5 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `Skins` | Tahta görünümünü seçer ve saklar (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
 | `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
 | `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
+| `PlayerColor` | Tek oyunculu oyunda oyuncunun seçtiği rengi saklar (varsayılan yeşil); botlar kalan renkleri alır |
 | `Sound` | Ses efektlerini çalar; her düğmeye dokunma sesini kendiliğinden bağlar, sesin açık/kapalı tercihini saklar |

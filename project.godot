@@ -32,6 +32,7 @@ Ads="*res://scripts/autoload/ads.gd"
 Sound="*res://scripts/autoload/sound.gd"
 GameSpeed="*res://scripts/autoload/game_speed.gd"
 Difficulty="*res://scripts/autoload/difficulty.gd"
+PlayerColor="*res://scripts/autoload/player_color.gd"
 
 [debug]
 

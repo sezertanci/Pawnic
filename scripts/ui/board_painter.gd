@@ -29,9 +29,10 @@ static func face_rect(rect: Rect2) -> Rect2:
 	return Rect2(rect.position + Vector2(0.0, top), rect.size - Vector2(0.0, top + depth))
 
 
-## Koltuğun taş görselini, ayağı verilen merkeze basacak biçimde çizer.
-static func draw_pawn(canvas: CanvasItem, center: Vector2, radius: float, seat: int) -> void:
-	var texture := Skins.current.pawn_textures[seat]
+## Verilen renkteki (kaplamadaki renk sırası) taş görselini, ayağı verilen merkeze basacak
+## biçimde çizer.
+static func draw_pawn(canvas: CanvasItem, center: Vector2, radius: float, color: int) -> void:
+	var texture := Skins.current.pawn_textures[color]
 	var width := radius * PAWN_WIDTH_RATIO
 	var size := Vector2(width, width * aspect(texture))
 	var origin := center - Vector2(size.x / 2.0, size.y * PAWN_FOOT)
@@ -42,10 +43,10 @@ static func draw_pawn(canvas: CanvasItem, center: Vector2, radius: float, seat: 
 ## kalacak biçimde çizer. draw_ring halkanın açı aralığını (PulseWave.BACK_ARC ya da
 ## FRONT_ARC) alıp o parçayı çizer.
 static func draw_pawn_in_ring(
-	canvas: CanvasItem, center: Vector2, radius: float, seat: int, draw_ring: Callable
+	canvas: CanvasItem, center: Vector2, radius: float, color: int, draw_ring: Callable
 ) -> void:
 	draw_ring.call(PulseWave.BACK_ARC)
-	draw_pawn(canvas, center, radius, seat)
+	draw_pawn(canvas, center, radius, color)
 	draw_ring.call(PulseWave.FRONT_ARC)
 
 

@@ -66,7 +66,21 @@ func _on_start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Leve
 	SaveStore.clear_match()
 	var game := GameMatch.create(Tuning.settings, bot_flags, pawns, _rng)
 	game.bot_level = bot_level
-	_begin(game)
+	_choose_colors(game)
+	game.starter = _rng.randi_range(0, game.seats.size() - 1)
+	_begin(game, true)
+
+
+## Tek oyunculu oyunda (botlu oyunda) insan oyuncu seçtiği renkte oynar; aynı telefonda çok
+## oyunculu oyunda her koltuk kendi rengindedir.
+func _choose_colors(game: GameMatch) -> void:
+	var human := game.bots.find(false)
+	if not game.bots.has(true) or human == GameMatch.NO_INDEX:
+		return
+	var count := game.colors.size()
+	game.colors = SeatColors.with_choice(
+		count, game.seats, game.seats[human], PlayerColor.current()
+	)
 
 
 func _on_resume_requested() -> void:
@@ -79,6 +93,7 @@ func _on_resume_requested() -> void:
 	_begin(game)
 
 
-func _begin(game: GameMatch) -> void:
+## Yeni oyunda (is_new) başlayan oyuncu kurayla gösterilir.
+func _begin(game: GameMatch, is_new := false) -> void:
 	_show_only(_game_screen)
-	_game_screen.start(game)
+	_game_screen.start(game, is_new)

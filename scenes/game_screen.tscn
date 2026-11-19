@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_screen.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/board_view.gd" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/ui/back_arrow.gd" id="back_arrow"]
 [ext_resource type="Script" path="res://scripts/ui/frosted_glass.gd" id="glass"]
 [ext_resource type="PackedScene" path="res://scenes/components/win_overlay.tscn" id="win_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/components/starter_draw.tscn" id="starter_draw"]
 
 [node name="GameScreen" type="Control"]
 layout_mode = 3
@@ -167,6 +168,11 @@ mouse_filter = 2
 script = ExtResource("6")
 
 [node name="WinOverlay" parent="." instance=ExtResource("win_overlay")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="StarterDraw" parent="." instance=ExtResource("starter_draw")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

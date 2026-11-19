@@ -163,6 +163,150 @@
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
 
+## Yerel oyunda renk seçimi (karar 2026-11-20, uygulandı)
+- Renk koltuktan ayrılır: oyuncu yine altta oturur, yalnızca taşlarının ve alanlarının rengi
+  değişir. Oyun başına "koltuk → renk" eşlemesi tutulur; bütün çizim (`seat_color` çağrıları) tek
+  yardımcıdan geçer. Kural motoru, bot ve simülasyon koltuk numarasıyla çalışmaya devam eder.
+- Renk yalnızca tek oyunculu modda, kurulum ekranında seçilir; son seçim tercih olarak saklanır
+  (varsayılan bugünkü renk, yeşil). Botlar kalan renkleri sırayla (kırmızı, mavi, yeşil, sarı
+  sırasıyla, seçileni atlayarak) alır.
+- Aynı telefonda çok oyunculu modda renk seçimi yok; oyuncular hangi renkte oynamak isterse o
+  rengin sırası geldiğinde oynar.
+- Renk eşlemesi kayda girer, `SAVE_VERSION` artar; yarım kalmış eski oyunun yüklenmemesi kabul
+  edildi.
+- Ağ oyununda tahta yönü kararını kolaylaştırır (renk koltuktan ayrılmış olur).
+- Kim başlar (yerel oyunda da): ağ oyunundaki gibi kura. Oyun başında renkler döner, rastgele
+  birinde durur; o başlar, sıra saat yönünde sürer. Tek oyunculuda da aynı telefonda çok
+  oyunculuda da geçerli. İlk oynayanın küçük avantajını (%52,8'e %47,2) dengeler. Uygulamada dikkat:
+  `GameMatch.next_turn()` turu artık sıra başlayan oyuncuya (`GameMatch.starter`) dönünce
+  artırıyor; başlayan kayıtta tutulur.
+- Uygulama: eşleme `SeatColors` ve `GameMatch.colors`, tercih `PlayerColor` autoload'u,
+  `SAVE_VERSION` 4. Kura ayrı katmandadır (`StarterDraw`): ekran kararır, ortada "Kim Başlıyor?"
+  başlığıyla oyuncuların taşları sırayla döner, yavaşlar, başlayanda durur ve "Sarı Başlıyor!"
+  gibi sonucu yazar. Süreleri `tuning.json` → `animation.starter_spin_*`. Kura yalnızca yeni oyunda
+  (devam edilen oyunda değil) oynar; sürerken el boştur ve saat durur. Tablette denenmedi.
+
+## Yol haritası: aynı ağda çok oyunculu (taslak, 2026-11-20)
+Davranış kararları verildi, uygulamaya başlanmadı. Başlanınca "Sunucu ve ağ yok" kararı "sunucu yok,
+yerel ağ var" olarak güncellenir. Sunucu gerekmez; bir cihaz oyunu kurar (host), diğerleri katılır.
+
+**Kararlar (2026-11-20)**
+- Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
+  (telefonu ver) ağ oyununda yok.
+- Ağ oyunundaki botlar (boş koltuk ve kopan oyuncunun yerine geçen) hep Orta seviyede oynar; lobide
+  seviye seçimi yok.
+- Oyuncu koparsa oyun 20 saniye bekler, sonra koltuğu bot devralır. Oyuncu yeniden bağlanırsa
+  koltuğuna geri döner.
+- Host koparsa ya da uygulamayı kapatırsa oyun biter; diğerlerine "oyun sona erdi" gösterilir.
+- Sıra süresi 20 saniye; dolunca o sırayı bot oynar. Yerel oyunda süre yok, değişmez.
+- Ağ oyunu kaydedilmez; açılıştaki "Devam et" yalnızca yerel oyun içindir.
+- Oyun içi 5 dakika geçiş reklamı ağ oyununda herkeste aynı anda çıkar: zamanı host belirler (insan
+  oyuncunun sırası başlamadan önce kuralı korunur), herkes bitirince oyun sürer. Host'ta "Reklamları
+  kaldır" varsa o oyunda oyun içi reklam hiç çıkmaz. Oyun sonu reklamı her cihazda kendi kuralıyla.
+- Duraklatma (mola için; yalnızca ağ oyununda, yerel oyunda yok): yalnızca host duraklatır ve
+  yalnızca host devam ettirir. Bütün ekranlar kararır, "Duraklatıldı" yazar ve altında ne kadar
+  süredir durulduğunu gösteren, üst çubuktaki oyun saatiyle aynı biçimde bir sayaç işler; diğerleri oyuna
+  müdahale edemez. Süre sınırı yok. Duraklatmada sıra süresi, oyun saati ve 5 dakika reklam süresi
+  işlemez.
+  - Molada isteyen oyuncu oyundan ayrılabilir; koltuğu bota geçer, bot da oyun devam edene kadar
+    oynamaz. Kendi isteğiyle ayrılma kesindir, geri dönülemez (istemeden kopan geri dönebilir).
+  - Molada kopma sayılmaz: 20 saniyelik kopma sayacı işlemez; oyuncu devam edilene kadar
+    dönebilir, dönmemişse devamda sayaç başlar.
+  - Host'un duraklatma ekranında "Telefonu kilitlemeyin, oyun biter" uyarısı yazar ve ekran açık
+    tutulur (host kopması oyunu bitirir).
+- Katılma: otomatik oyun bulma, QR kod ve oda kodu / elle IP; üçü de olacak.
+- QR okuma Google'ın kod tarayıcısıyla (Play Hizmetleri, ML Kit "Google code scanner") yapılır;
+  uygulama kamera izni istemez. Hazır resmî Godot eklentisi bilinmiyor, küçük bir Godot Android
+  eklentisi (AAR) yazılacak; AdMob/Billing gibi yalnızca Gradle'lı derlemede bulunur, başka yerde
+  sahte sürüm çalışır. Tarama ekranı Google'ındır (tema yok, dil sistem dilinde). Play Hizmetleri
+  yoksa ya da tarama başarısızsa oda koduna yönlendirilir. Modülü kurulumda indirten manifest
+  ayarı uygulamadan önce belgelerden doğrulanacak. Gizlilik politikasında kamera kullanımı anılacak.
+- Süreler (`20`, `20`) `data/tuning.json` içinde tutulur.
+- Oyun hızı: ağ oyununda herkes host'un hız ayarıyla oynar. 20 saniyelik sıra süresi animasyonlar
+  bitip oyuncunun eli hazır olunca başlar.
+- Ekran: lobi ve ağ oyunu süresince bütün cihazlarda ekran açık tutulur, oyun bitince normale döner.
+- Katılım koruması: bulunan oyuna girmek için host ekranındaki kısa oda kodu girilir; QR'da kod
+  içinde gelir. Ortak Wi-Fi'da yabancıların katılmasını önler.
+- Oyuncular yalnızca renkleriyle görünür; ad girilmez (başkalarına gösterilen kullanıcı içeriği yok).
+- "Tekrar oyna": host aynı oyuncularla hemen yeni oyun başlatır; ayrılanların yerine bot girer.
+- Bitiren oyuncu oyunu izler, isterse çıkar; çıkması kopma sayılmaz, oyunu etkilemez.
+- Geç hamle: host'un saati esastır. İstemcide geri sayım görünür; süre dolunca yarım seçim iptal
+  olur, host'a geç gelen hamle reddedilir ve sırayı bot oynar.
+
+**Açık kararlar**
+
+**Tahta yönü ve renkler (karar 2026-11-20)**
+- Her oyuncu lobide kendi rengini seçer (yerel renk seçicisi kullanılır, dolu renkler kapalı
+  görünür). Botlar kalan renkleri sırayla alır.
+- Her cihazda tahta, o cihazın oyuncusu altta kalacak şekilde döndürülerek çizilir. Yalnızca çizim
+  dönüşümüdür; kural motoru koltuk numarasıyla çalışır. Yerel oyunda döndürme yok (tek oyunculuda
+  oyuncu zaten altta, aynı telefonda çok oyunculuda tahta ortaktır).
+- Kim başlar: kura. Oyun başında zar atılır gibi renkler döner, rastgele birinde durur; o renk
+  başlar, sıra saat yönünde sürer. Sonucu host'un tohumlanabilir RNG'si belirler ve herkese
+  gönderir; bütün cihazlar aynı animasyonu aynı sonuçla oynatır.
+
+**Bilinen riskler ve önlemler (2026-11-20 incelemesi)**
+- Sıra akışı şu an `game_screen.gd` içinde (`GameMatch`'i doğrudan yönetiyor). Aşama 1'de ayrı bir
+  sınıfa taşınması çalışan yerel oyuna dokunan tek büyük değişikliktir. Aşama 1 ağ kodu olmadan
+  yapılır ve yerel oyunun aynı çalıştığı doğrulanmadan (testler, `simulate.gd`, ekran görüntüsü,
+  tablet) Aşama 2'ye geçilmez.
+- `game_screen.gd` her tur başında ve geri düğmesinde `SaveStore`'a yazıyor, oyun sonunda kaydı
+  siliyor. Ağ oyunu bu yoldan geçmemeli; yarım kalan yerel oyunun kaydı korunmalı (testle).
+- `bots` yalnızca evet/hayır tutuyor; ağ oyunu için koltuk durumu (uzaktaki insan, geçici bot,
+  kalıcı bot) ayrı tutulur, kayıt biçimi ve `SAVE_VERSION` değişmez.
+- Ağ oyunu yerel tercihleri (`Difficulty`, `GameSpeed`) değiştirmez.
+- Geçiş reklamı açıkken Android Godot'un döngüsünü durdurabilir; reklam izleyen host kopmuş
+  sanılabilir. ENet zaman aşımı en uzun reklamdan uzun tutulur, reklam sırasında kopma sayacı durur,
+  reklamı yüklenemeyen cihaz için üst süre sınırı olur. Gerçek cihazda denenecek.
+- Bağlanırken protokol sürümü ve ayar/tahta özeti karşılaştırılır; uyuşmazsa "Oyunu güncelleyin".
+- Mesajlarda metin değil çeviri anahtarı gönderilir; her cihaz kendi dilinde gösterir.
+
+**Güvenlik**
+- Port yalnızca lobi ve oyun süresince açık; yalnızca Wi-Fi adresinde dinlenir (her arayüzde
+  değil; mobil veride dışarıdan erişilebilir IPv6 olabilir).
+- Gelen her mesaj güvenilmez veridir: nesne çözme kapalı (`allow_object_decoding` false,
+  `bytes_to_var_with_objects` yok), boyut ve sıklık sınırı, en fazla 3 istemci, oyun başlayınca yeni
+  bağlantı reddi, bozuk mesaj çökertmez (`from_dict` gibi savunmacı okuma).
+- Host, niyetin sırası gelen koltuktan geldiğini ve `legal_moves()` içinde olduğunu doğrular;
+  istemci de host'tan geleni doğrular.
+- İstemciye yalnızca kendi eli gider. Host bütün elleri bilir; değiştirilmiş uygulamayla host hile
+  yapabilir, yerel arkadaş oyunu için kabul edildi.
+- QR ve oda kodu da güvenilmez veridir; yalnızca özel ağ adreslerine (192.168.x, 10.x,
+  172.16–31.x) bağlanılır.
+- Oyun bulma yayınında kişisel bilgi (cihaz adı, hesap) yok; yalnızca protokol sürümü, port,
+  oyuncu sayısı.
+- ENet trafiği şifresiz; yalnızca hamle verisi taşındığı için ilk sürümde kabul edildi.
+
+**Aşama 1: Hakem/istemci ayrımı (ağsız)**
+- `GameMatch` yalnızca host'ta çalışır; istemci yalnızca niyet gönderir (kart, taş, yol ayrımında
+  kare). Host doğrular, uygular, olayları yayar.
+- Niyet, olay ve durum için ağdan bağımsız mesaj biçimi; her oyuncuya yalnızca kendi eli gider.
+- Taşıyıcı arayüzü (`AdsBackend` gibi) ve aynı süreçte çalışan sahte taşıyıcı; GUT testleri.
+- Oyun ekranı yerel oyun ile ağ oyununu aynı olay akışından çizer.
+
+**Aşama 2: Bağlantı ve lobi**
+- `ENetMultiplayerPeer` ile gerçek taşıyıcı.
+- Oyun bulma: `PacketPeerUDP` yayını; yedek olarak QR/elle IP.
+- Lobi sahneleri: Oyun kur / Katıl, bulunan oyunlar, bekleyen oyuncular, renk seçimi, Başlat.
+  `main.gd` geçişleri; yeni metinler 8 dilde.
+
+**Aşama 3: Dayanıklılık**
+- Kopma ve yeniden bağlanma, host'un kopması, uygulamanın arka plana alınması.
+- Kararlaştırılan reklam ve zaman aşımı davranışı.
+
+**Aşama 4: Android ve Play**
+- İzinler: INTERNET ve ACCESS_NETWORK_STATE zaten var. Oyun bulma için ACCESS_WIFI_STATE ve
+  CHANGE_WIFI_MULTICAST_STATE; bazı telefonlarda yayın için `MulticastLock` gerekir (Godot almaz,
+  küçük eklenti gerekebilir; QR/IP ile katılma bunu atlatır).
+- Yeni Android sürümlerindeki yerel ağ erişimi izni hedef API'ye göre kontrol edilecek.
+- Gizlilik politikası ve Veri güvenliği formu yerel ağ kullanımına göre gözden geçirilecek.
+
+**Test**
+- Mesaj ve hakem mantığı sahte taşıyıcıyla birim testte; `tools/simulate.gd` ağ katmanından geçen
+  bir kipte de çalıştırılabilir.
+- Gerçek deneme: tablet + bilgisayarda Godot örneği (veya editörde birden çok örnek). Telefon
+  yalnızca Play dahili testinden yüklenir.
+
 ## Günlük
 - **2026-11-17:** Proje başlatıldı. Kural motoru, bot, tahta çizimi, kurulum ve oyun ekranı,
   elden ele geçiş ve kazanan ekranı yazıldı. Simülasyon ve gdlint temiz. Debug APK alındı;
@@ -283,3 +427,7 @@
   `BoardPainter.base_ellipse`). Taş çıkınca yeri boş altlık olarak görünüyor. Ferah dursun diye
   altlık taş tabanının 0.9 katı (`SOCKET_SCALE`) ve tepsideki yerler 0.2 kare yukarıda
   (`BASE_LIFT`). Dört renk ve dört aralık denemesinden seçildi, tablette görüldü.
+- **2026-11-20:** Yerel oyunda renk seçimi ve başlangıç kurası eklendi (kurulum ekranında "Rengin"
+  seçicisi, `SeatColors`, `PlayerColor`, kayıt sürümü 4). GUT 130/130, gdlint temiz, simülasyonda
+  bitmeyen oyun yok. Not: `tests/unit/test_move_picker.gd` önceden de `gdformat --check`'ten
+  geçmiyor (gdformat çok satırlı çağrıyı bozuk biçimde yeniden yazıyor); dokunulmadı.

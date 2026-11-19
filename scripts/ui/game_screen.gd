@@ -39,6 +39,7 @@ var _announced := 0
 @onready var _joker_box: HBoxContainer = %JokerBox
 @onready var _hand_view: HandView = %HandView
 @onready var _win_overlay: WinOverlay = %WinOverlay
+@onready var _starter_draw: StarterDraw = %StarterDraw
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
 
@@ -56,7 +57,8 @@ func _ready() -> void:
 	_cards.discard_landed.connect(_on_discard_landed)
 
 
-func start(game: GameMatch) -> void:
+## Yeni oyunda (draw_starter) ilk turdan önce başlayan oyuncu kurayla gösterilir.
+func start(game: GameMatch, draw_starter := false) -> void:
 	_game = game
 	_announced = game.finishers.size()
 	# Her oyunun botu kendi üretecini kullanır: önceki oyunun süren araması onunla çakışmaz.
@@ -65,6 +67,7 @@ func start(game: GameMatch) -> void:
 	_bot = Bot.new(game.settings.bot_profiles[game.bot_level], game.settings, rng)
 	_show_bot_level(game)
 	_board_view.board = game.board
+	_board_view.seat_colors = game.colors
 	_cards.settings = game.settings
 	_cards.speed_scale = GameSpeed.speed_scale()
 	_board_view.speed_scale = GameSpeed.speed_scale()
@@ -78,7 +81,25 @@ func start(game: GameMatch) -> void:
 	await get_tree().process_frame
 	if game != _game:
 		return
+	if draw_starter:
+		await _draw_starter()
+		if game != _game:
+			return
 	_start_turn()
+
+
+## Başlangıç kurası ayrı katmanda oynar; el o sırada boştur ve saat durur.
+func _draw_starter() -> void:
+	var game := _game
+	var colors: Array[int] = []
+	for seat: int in game.seats:
+		colors.append(game.colors[seat])
+	_clock_running = false
+	_hand_view.clear()
+	_starter_draw.play(colors, game.starter, game.settings, GameSpeed.speed_scale())
+	await _starter_draw.closed
+	if game == _game:
+		_clock_running = true
 
 
 func _process(delta: float) -> void:
@@ -145,9 +166,8 @@ func _start_turn() -> void:
 	_clear_selection()
 	_show_idle_hand()
 	# Deste sayacı burada değil, kart desteden kalktığı an düşer.
-	_refresh_turn_dots()
+	_show_turn(_game.current)
 	var seat := _game.current_seat()
-	_board_view.turn_seat = seat
 	if _game.is_bot_turn():
 		_play_bot_turn()
 	elif _game.playing_human_count() > 1:
@@ -201,18 +221,31 @@ func _refresh_table() -> void:
 
 ## Sıra noktalarında yalnızca oynamaya devam eden oyuncular görünür.
 func _refresh_turn_dots() -> void:
+	_show_turn_dots(_game.current)
+
+
+## Sıra oku ve noktaları index sıradaki oyuncuyu gösterir.
+func _show_turn(index: int) -> void:
+	_show_turn_dots(index)
+	_board_view.turn_seat = _game.seats[index]
+
+
+func _show_turn_dots(index: int) -> void:
 	var playing: Array[int] = []
-	for index: int in range(_game.seats.size()):
-		if _game.is_playing(index):
-			playing.append(_game.seats[index])
-	_turn_dots.show_turn(playing, playing.find(_game.current_seat()))
+	var current := 0
+	for player: int in range(_game.seats.size()):
+		if _game.is_playing(player):
+			if player == index:
+				current = playing.size()
+			playing.append(_game.colors[_game.seats[player]])
+	_turn_dots.show_turn(playing, current)
 
 
 ## Atılanlardaki son kartı atanın rengi; henüz kart atılmadıysa rozet görünmez.
 func _discard_badge() -> Color:
 	if _game.last_discard_seat == BoardLayout.NO_SEAT:
 		return Color.TRANSPARENT
-	return Skins.current.seat_color(_game.last_discard_seat)
+	return _seat_color(_game.last_discard_seat)
 
 
 ## Bot hamlesini arka planda düşünür; ekran bu sırada akıcı kalır. Kart, en az bot_delay
@@ -230,7 +263,7 @@ func _play_bot_turn() -> void:
 		return
 	var move := result[0]
 	var card_index := _bot.choose_discard(_game.current_hand()) if move == null else move.card_index
-	var color := Skins.current.seat_color(_game.current_seat())
+	var color := _seat_color(_game.current_seat())
 	var chosen := Card.NO_VALUE if move == null else move.value
 	_refresh_table()
 	await _cards.reveal_card(_hand_card(card_index), color, chosen)
@@ -307,7 +340,7 @@ func _send_human_card(card_index: int, action: Callable, chosen: int) -> void:
 	_clear_selection()
 	_hand_view.hold(card_index)
 	var game := _game
-	var color := Skins.current.seat_color(_game.current_seat())
+	var color := _seat_color(_game.current_seat())
 	await _cards.discard_card(rect, card, color, chosen)
 	if game == _game:
 		action.call()
@@ -351,9 +384,11 @@ func _end_match() -> void:
 	_hand_view.clear()
 	var ranking := MatchResult.ranking(_game)
 	var rounds: Array[int] = []
+	var ranked_colors: Array[int] = []
 	for seat: int in ranking:
 		rounds.append(MatchResult.finish_round(_game, seat))
-	_win_overlay.open(ranking, rounds, _seat_colors())
+		ranked_colors.append(_game.colors[seat])
+	_win_overlay.open(ranked_colors, rounds, _seat_colors())
 
 
 ## Bu turda yeni bitiren oyuncu varsa kısa duyuru gösterilir; oyun beklemeden sürer.
@@ -362,8 +397,8 @@ func _announce_finishers() -> void:
 		return
 	_announced = _game.finishers.size()
 	var seat := _game.finishers[_announced - 1]
-	var colors: Array[Color] = [Skins.current.seat_color(seat)]
-	_win_overlay.announce(seat, _announced, colors)
+	var colors: Array[Color] = [_seat_color(seat)]
+	_win_overlay.announce(_game.colors[seat], _announced, colors)
 
 
 # --- Hamle seçimi ---
@@ -476,7 +511,7 @@ func _show_handoff(seat: int, drew: bool) -> void:
 	var hidden := _game.current_hand().size() - (1 if drew else 0)
 	_hand_view.show_backs(hidden)
 	_handoff_button.text = tr("HANDOFF")
-	_handoff_glass.set_tint(Skins.current.seat_color(seat))
+	_handoff_glass.set_tint(_seat_color(seat))
 	_handoff_drew = drew
 	_handoff_button.show()
 
@@ -489,14 +524,20 @@ func _on_handoff_pressed() -> void:
 func _hide_overlays() -> void:
 	_handoff_button.hide()
 	_win_overlay.close()
+	_starter_draw.close()
 
 
 ## Oyundaki koltukların renkleri (konfeti için).
 func _seat_colors() -> Array[Color]:
 	var colors: Array[Color] = []
 	for seat: int in _game.seats:
-		colors.append(Skins.current.seat_color(seat))
+		colors.append(_seat_color(seat))
 	return colors
+
+
+## Koltuğun bu oyundaki rengi.
+func _seat_color(seat: int) -> Color:
+	return Skins.current.seat_color(_game.colors[seat])
 
 
 ## Oyun sonu geçiş reklamı kazanma ekranından çıkarken gösterilir; oyun içi reklam az önce

@@ -35,19 +35,20 @@ func _ready() -> void:
 	(%HomeButton as Button).pressed.connect(home_pressed.emit)
 
 
-## Oyun sonunu gösterir: ranking sıralamadaki koltuklar, rounds her birinin bitirdiği tur
-## (bitirmediyse MatchResult.NO_ROUND), colors konfetinin renkleridir.
+## Oyun sonunu gösterir: ranking sıralamadaki oyuncuların renkleri (kaplamadaki renk sırası),
+## rounds her birinin bitirdiği tur (bitirmediyse MatchResult.NO_ROUND), colors konfetinin
+## renkleridir.
 func open(ranking: Array[int], rounds: Array[int], colors: Array[Color]) -> void:
 	_set_banner(false)
-	_show_seat(ranking[0], tr("WIN") % Skins.current.seat_name(ranking[0]))
+	_show_color(ranking[0], tr("WIN") % Skins.current.seat_name(ranking[0]))
 	_fill_results(ranking, rounds)
 	_pop(colors)
 
 
-## Oyun sürerken bitiren oyuncuyu kısa süre duyurur; place 1'den başlar.
-func announce(seat: int, place: int, colors: Array[Color]) -> void:
+## Oyun sürerken bitiren oyuncuyu (rengiyle) kısa süre duyurur; place 1'den başlar.
+func announce(color: int, place: int, colors: Array[Color]) -> void:
 	_set_banner(true)
-	_show_seat(seat, tr("FINISHED") % [Skins.current.seat_name(seat), tr(RANK_KEY % place)])
+	_show_color(color, tr("FINISHED") % [Skins.current.seat_name(color), tr(RANK_KEY % place)])
 	_pop(colors)
 	_tween.tween_interval(Tuning.settings.finish_banner_time)
 	_tween.tween_callback(close)
@@ -61,10 +62,10 @@ func close() -> void:
 
 
 ## Taşı ve başlığı gösterir; yazıların arkasındaki cam oyuncunun rengini alır.
-func _show_seat(seat: int, title: String) -> void:
-	_pawn.seat = seat
+func _show_color(color: int, title: String) -> void:
+	_pawn.color = color
 	_title.text = title
-	_glass.set_tint(Skins.current.seat_color(seat))
+	_glass.set_tint(Skins.current.seat_color(color))
 
 
 ## Duyuruda karartma, tablo ve düğmeler gizlenir; katman dokunuşları engellemez.
@@ -86,7 +87,7 @@ func _fill_results(ranking: Array[int], rounds: Array[int]) -> void:
 			NO_ROUND if finish_round == MatchResult.NO_ROUND else tr("ROUND_N") % finish_round
 		)
 		_add_label(text)
-		pawn.seat = ranking[index]
+		pawn.color = ranking[index]
 		pawn.custom_minimum_size = Vector2.ONE * _row_height() * ROW_PAWN_SCALE
 
 

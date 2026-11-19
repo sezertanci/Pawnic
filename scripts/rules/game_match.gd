@@ -9,7 +9,7 @@ const NO_WINNER := -1
 ## Array.find bulamadığında döner.
 const NO_INDEX := -1
 ## Kayıt biçimi değişirse artırılır; eski biçimdeki kayıtlar yüklenmez.
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 ## Kayıt sözlüğünün anahtarları.
 const KEY_VERSION := "version"
 const KEY_BOARD := "board"
@@ -27,6 +27,8 @@ const KEY_BOT_LEVEL := "bot_level"
 const KEY_ROUND := "round"
 const KEY_FINISHERS := "finishers"
 const KEY_FINISH_ROUNDS := "finish_rounds"
+const KEY_COLORS := "colors"
+const KEY_STARTER := "starter"
 
 var settings: GameSettings
 var board: BoardState
@@ -37,6 +39,14 @@ var bot_level := Bot.Level.MEDIUM
 ## Her oyuncunun eli (Array[Card]).
 var hands: Array[Array] = []
 var current := 0
+## Oyuna başlayan oyuncunun sıra düzenindeki yeri; tur, sıra ona her döndüğünde artar.
+## Atanınca sıra da ona geçer (yeni oyunda ilk turdan önce atanır).
+var starter := 0:
+	set(value):
+		starter = value
+		current = value
+## Koltukların renkleri, koltuk sırasıyla (SeatColors).
+var colors: Array[int] = []
 ## Atılanların en üstündeki kartı atan koltuk; henüz kart atılmadıysa BoardLayout.NO_SEAT.
 var last_discard_seat := BoardLayout.NO_SEAT
 ## Atılanların en üstündeki joker oynandıysa seçilen sayı; değilse Card.NO_VALUE.
@@ -45,7 +55,7 @@ var top_discard_value := Card.NO_VALUE
 var elapsed := 0.0
 ## Son oyun içi reklamın gösterildiği oyun süresi; reklam gösterilmediyse AdSchedule.NO_AD.
 var last_ad_at := AdSchedule.NO_AD
-## Kaçıncı turda olunduğu; sıra ilk oyuncuya her döndüğünde artar.
+## Kaçıncı turda olunduğu; sıra başlayan oyuncuya her döndüğünde artar.
 var round_number := 1
 ## Bütün taşlarını eve getiren koltuklar, bitirme sırasıyla.
 var finishers: Array[int] = []
@@ -61,6 +71,7 @@ func _init(game_settings: GameSettings, rng: RandomNumberGenerator) -> void:
 	settings = game_settings
 	_rng = rng
 	board = BoardState.new(settings)
+	colors = SeatColors.identity(settings.board_layout.homes.size())
 
 
 ## Yeni oyun kurar: taşları dizer, desteyi karıştırır ve elleri dağıtır.
@@ -106,6 +117,7 @@ static func from_dict(
 		return null
 	if not _read_cards(data.get(KEY_DISCARD, []), game._discard_pile):
 		return null
+	game.starter = int(data.get(KEY_STARTER, 0))
 	game.current = int(data.get(KEY_CURRENT, 0))
 	game.last_discard_seat = int(data.get(KEY_LAST_DISCARD_SEAT, BoardLayout.NO_SEAT))
 	game.elapsed = float(data.get(KEY_ELAPSED, 0.0))
@@ -120,6 +132,9 @@ static func from_dict(
 		game.finishers.append(int(seat))
 	for finish_round: Variant in data.get(KEY_FINISH_ROUNDS, []):
 		game.finish_rounds.append(int(finish_round))
+	game.colors.clear()
+	for color: Variant in data.get(KEY_COLORS, []):
+		game.colors.append(int(color))
 	return game if game._is_consistent() else null
 
 
@@ -144,6 +159,8 @@ func to_dict() -> Dictionary:
 		KEY_ROUND: round_number,
 		KEY_FINISHERS: finishers,
 		KEY_FINISH_ROUNDS: finish_rounds,
+		KEY_COLORS: colors,
+		KEY_STARTER: starter,
 	}
 
 
@@ -236,7 +253,9 @@ func determinized(rng: RandomNumberGenerator) -> GameMatch:
 	copy.seats = seats
 	copy.bots = bots
 	copy.bot_level = bot_level
+	copy.starter = starter
 	copy.current = current
+	copy.colors = colors
 	copy.last_discard_seat = last_discard_seat
 	copy.top_discard_value = top_discard_value
 	copy.round_number = round_number
@@ -287,11 +306,11 @@ func winner() -> int:
 	return NO_WINNER if finishers.is_empty() else finishers[0]
 
 
-## Sırayı bitirmemiş sıradaki oyuncuya verir; sıra ilk oyuncuya döndükçe tur artar.
+## Sırayı bitirmemiş sıradaki oyuncuya verir; sıra başlayan oyuncuya döndükçe tur artar.
 func next_turn() -> void:
 	for _step: int in range(seats.size()):
 		current = (current + 1) % seats.size()
-		if current == 0:
+		if current == starter:
 			round_number += 1
 		if is_playing(current):
 			return
@@ -347,7 +366,7 @@ func _is_consistent() -> bool:
 		return false
 	var expected_seats: Array[int] = []
 	expected_seats.assign(SEAT_ORDER[count])
-	if seats != expected_seats or current < 0 or current >= count:
+	if seats != expected_seats or not _has_valid_turn_order():
 		return false
 	if last_discard_seat != BoardLayout.NO_SEAT and not seats.has(last_discard_seat):
 		return false
@@ -356,6 +375,14 @@ func _is_consistent() -> bool:
 	if not finishers.all(func(seat: int) -> bool: return board.has_finished(seat)):
 		return false
 	return board.owners.all(func(owner: int) -> bool: return seats.has(owner))
+
+
+## Sıradaki ve başlayan oyuncu oyunda, renk eşlemesi her rengi bir kez içeriyorsa true.
+func _has_valid_turn_order() -> bool:
+	var count := seats.size()
+	if current < 0 or current >= count or starter < 0 or starter >= count:
+		return false
+	return SeatColors.is_valid(colors, settings.board_layout.homes.size())
 
 
 static func _write_cards(cards: Array[Card]) -> Array:

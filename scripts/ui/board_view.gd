@@ -51,6 +51,9 @@ const TRAIL_LIGHTEN := 0.5
 const HOUSE_LINE_RATIO := 0.03
 
 var board: BoardState
+## Koltukların renkleri, koltuk sırasıyla (SeatColors); boşsa her koltuk kendi sırasındaki rengi
+## alır.
+var seat_colors: Array[int] = []
 var selectable: Array[int] = []
 ## Yol ayrımında varış karesi seçilirken dokunulabilecek kareler.
 var selectable_squares: Array[int] = []
@@ -113,6 +116,15 @@ func _draw() -> void:
 	_draw_previews()
 	_layout_pawns()
 	_draw_pawns()
+
+
+## Koltuğun rengi (kaplamadaki renk sırası).
+func color_of(seat: int) -> int:
+	return seat if seat_colors.is_empty() else seat_colors[seat]
+
+
+func _seat_color(seat: int) -> Color:
+	return Skins.current.seat_color(color_of(seat))
 
 
 ## Hamleden önceki taş merkezleri; hamle uygulanmadan alınıp animate_move'a verilir.
@@ -213,20 +225,20 @@ func _draw_square(square: int, active: Array[int]) -> void:
 	if owner == BoardLayout.NO_SEAT:
 		var color := skin.safe_color if layout.safe[square] else skin.track_color
 		if shortcut_seat != BoardLayout.NO_SEAT:
-			color = skin.seat_color(shortcut_seat).lightened(skin.shortcut_lighten)
+			color = _seat_color(shortcut_seat).lightened(skin.shortcut_lighten)
 		for seat: int in active:
 			if layout.starts[seat] == square:
-				color = skin.track_color.lerp(skin.seat_color(seat), skin.start_tint)
+				color = skin.track_color.lerp(_seat_color(seat), skin.start_tint)
 		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, color)
 	else:
-		var tint := skin.track_color.lerp(skin.seat_color(owner), skin.lane_tint)
+		var tint := skin.track_color.lerp(_seat_color(owner), skin.lane_tint)
 		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
 	_draw_mark(square, rect)
 	if shortcut_seat != BoardLayout.NO_SEAT:
 		var half := HOUSE_HALF * _cell_size() * MARK_RATIO
 		var bounds := Rect2(rect.get_center() - half, half * 2.0)
 		var line := rect.size.x * HOUSE_LINE_RATIO
-		var fill := skin.seat_color(shortcut_seat)
+		var fill := _seat_color(shortcut_seat)
 		CardSymbol.draw_house(self, bounds, fill, skin.outline_color, line)
 	if selectable_squares.has(square):
 		_draw_wave_frame(rect)
@@ -240,7 +252,7 @@ func _draw_home_tray(active: Array[int]) -> void:
 	var colors: Array[Color] = []
 	for seat: int in range(board.layout.homes.size()):
 		sides.append(_home_side(seat))
-		colors.append(skin.seat_color(seat) if active.has(seat) else skin.mark_color)
+		colors.append(_seat_color(seat) if active.has(seat) else skin.mark_color)
 	HomeTray.draw(self, _home_area(), sides, colors, skin, _cell_size())
 
 
@@ -249,7 +261,7 @@ func _update_spinner() -> void:
 	_spinner.visible = turn_seat != BoardLayout.NO_SEAT
 	_spinner.set_process(_spinner.visible)
 	if _spinner.visible:
-		_spinner.color = Skins.current.seat_color(turn_seat)
+		_spinner.color = _seat_color(turn_seat)
 
 
 ## Bitiş karelerinin hücrelerini kapsayan alan (piksel).
@@ -314,7 +326,7 @@ func _draw_links(active: Array[int]) -> void:
 func _draw_previews() -> void:
 	if preview_paths.is_empty():
 		return
-	var color := Skins.current.seat_color(preview_seat)
+	var color := _seat_color(preview_seat)
 	var cell := _cell_size()
 	for path: PackedInt32Array in preview_paths:
 		if path.is_empty():
@@ -331,7 +343,7 @@ func _draw_previews() -> void:
 ## Başlangıç alanı; içinden taş seçilebiliyorsa seçilebilir kare gibi çerçevelenir.
 func _draw_base(seat: int) -> void:
 	var base := _base_rect(seat)
-	BasePainter.draw_base(self, base, Skins.current.seat_color(seat), _cell_size())
+	BasePainter.draw_base(self, base, _seat_color(seat), _cell_size())
 	_draw_sockets(seat)
 	if _base_pawn(seat) != Move.NO_PAWN:
 		_draw_wave_frame(base, _cell_size() * BasePainter.CORNER_RATIO)
@@ -351,7 +363,7 @@ func _draw_base_link(seat: int) -> void:
 	var start := _cell_rect(board.layout.cells[board.layout.starts[seat]])
 	var skin := Skins.current
 	var flowing := _base_pawn(seat) != Move.NO_PAWN
-	var color := skin.seat_color(seat)
+	var color := _seat_color(seat)
 	BaseLink.draw(self, _base_rect(seat), start, color, skin, _cell_size(), flowing)
 
 
@@ -490,7 +502,7 @@ func _draw_trail(pawn: int) -> void:
 	var points := _animation.trail_points(pawn, _time, length, settings.trail_time)
 	if points.size() < 2:
 		return
-	var color := Skins.current.seat_color(board.owners[pawn]).lightened(TRAIL_LIGHTEN)
+	var color := _seat_color(board.owners[pawn]).lightened(TRAIL_LIGHTEN)
 	var fades := _trail_fades(points)
 	var colors := PackedColorArray()
 	var left := PackedVector2Array()
@@ -527,7 +539,7 @@ func _draw_shadow(center: Vector2, radius: float) -> void:
 
 func _draw_pawn(pawn: int, center: Vector2, radius: float) -> void:
 	var ring := _draw_pawn_ring.bind(pawn, center, radius)
-	BoardPainter.draw_pawn_in_ring(self, center, radius, board.owners[pawn], ring)
+	BoardPainter.draw_pawn_in_ring(self, center, radius, color_of(board.owners[pawn]), ring)
 
 
 ## Taşın ayağında, tabanını saran yere yatık (elips) halka. Başlangıç alanındaki seçilebilir

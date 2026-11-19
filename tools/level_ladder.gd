@@ -62,7 +62,7 @@ func _rate(settings: GameSettings, first: Bot.Level, second: Bot.Level) -> float
 	var finished := 0
 	for game_index: int in range(GAMES_PER_PAIR):
 		var game := BotRunner.new_game(settings, PLAYERS, PAWNS, game_index)
-		game.current = game_index % PLAYERS
+		game.starter = game_index % PLAYERS
 		var rng := RandomNumberGenerator.new()
 		rng.seed = game_index
 		var levels: Array[Bot.Level] = [first, second]

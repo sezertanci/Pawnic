@@ -3,9 +3,10 @@ extends Resource
 ## Tahtanın görünümü: renkler, saydamlıklar ve oyuncu renklerinin adları.
 ## Her tema themes/skins/ altında bu türden bir .tres dosyasıdır.
 
-## Koltuk sırasıyla oyuncu renkleri: üst, sağ, alt, sol.
+## Oyuncu renkleri renk sırasıyla: kırmızı, mavi, yeşil, sarı. Oyunda bir koltuğun rengi
+## SeatColors eşlemesiyle bulunur; birebir eşlemede sıra koltuk sırasıdır (üst, sağ, alt, sol).
 @export var seat_colors: Array[Color] = []
-## Koltuk sırasıyla oyuncu adlarının çeviri anahtarları.
+## Renk sırasıyla oyuncu adlarının (renk adlarının) çeviri anahtarları.
 @export var seat_name_keys: Array[String] = []
 @export var background_color := Color.BLACK
 @export var track_color := Color.WHITE
@@ -25,7 +26,7 @@ extends Resource
 @export var square_top := 0.0
 ## Kare dokusu (taş); ev yolu da aynı dokuyu sahibinin rengine boyanmış olarak kullanır.
 @export var track_texture: Texture2D
-## Koltuk sırasıyla taş görselleri.
+## Renk sırasıyla taş görselleri.
 @export var pawn_textures: Array[Texture2D] = []
 ## Ortadaki bitiş alanının ortasındaki harf görseli (uygulama simgesindeki P).
 @export var home_letter_texture: Texture2D
@@ -40,13 +41,13 @@ extends Resource
 @export var start_tint := 0.5
 
 
-func seat_color(seat: int) -> Color:
-	return seat_colors[seat]
+func seat_color(color: int) -> Color:
+	return seat_colors[color]
 
 
 func level_color(level: Bot.Level) -> Color:
 	return level_colors[level]
 
 
-func seat_name(seat: int) -> String:
-	return tr(seat_name_keys[seat])
+func seat_name(color: int) -> String:
+	return tr(seat_name_keys[color])

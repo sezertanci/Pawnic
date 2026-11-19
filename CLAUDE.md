@@ -44,7 +44,7 @@ Oyun prototip değildir; Play'de yayımlanacak bir ürünün temelidir.
   onu doğrudan kullanır.
 - Ekranlar ayrı sahnelerdir (`scenes/`); ekranlar arası geçişi `main.gd` yönetir.
 - Bağımlılıklar autoload'lar üzerinden verilir: `Tuning`, `SaveStore`, `Localization`, `Skins`,
-  `Ads`, `Iap`. Tema autoload'unun adı `Skins`'tir; Godot'da yerleşik `Skin` sınıfı vardır.
+  `Ads`, `Iap`, `PlayerColor`. Tema autoload'unun adı `Skins`'tir; Godot'da yerleşik `Skin` sınıfı vardır.
 - Reklam ve satın alma `AdsBackend` / `IapBackend` arayüzleriyle sarılır. Gerçek sağlayıcılar
   (AdMob, GodotGooglePlayBilling) yalnızca Gradle'lı derlemede bulunur; testte ve başka yerde
   sahte sürümler kullanılır. Reklamları kaldırma ürünü (`remove_ads`) banner ve geçiş reklamını

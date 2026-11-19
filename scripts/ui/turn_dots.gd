@@ -8,7 +8,7 @@ const RADIUS := 12.0
 const GAP := 8.0
 const RING_WIDTH := 3.0
 
-var _seats: Array[int] = []
+var _colors: Array[int] = []
 var _current := 0
 
 
@@ -17,15 +17,15 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not _seats.is_empty():
+	if not _colors.is_empty():
 		queue_redraw()
 
 
-## seats sıra düzenindeki koltuklar, current sırası gelenin bu listedeki yeri.
-func show_turn(seats: Array[int], current: int) -> void:
-	_seats = seats.duplicate()
+## colors sıra düzenindeki oyuncuların renkleri, current sırası gelenin bu listedeki yeri.
+func show_turn(colors: Array[int], current: int) -> void:
+	_colors = colors.duplicate()
 	_current = current
-	custom_minimum_size = Vector2(_step() * (_seats.size() - 1) + _pawn_width(), _pawn_height())
+	custom_minimum_size = Vector2(_step() * (_colors.size() - 1) + _pawn_width(), _pawn_height())
 	queue_redraw()
 
 
@@ -47,13 +47,13 @@ func _draw() -> void:
 	# Taşlar dikeyde ortalanır; ayak, görselin PAWN_FOOT oranındaki noktasıdır.
 	var top := (size.y - _pawn_height()) / 2.0
 	var foot_y := top + _pawn_height() * BoardPainter.PAWN_FOOT
-	for index: int in range(_seats.size()):
+	for index: int in range(_colors.size()):
 		var foot := Vector2(_pawn_width() / 2.0 + _step() * index, foot_y)
 		if index == _current:
 			var ring := _draw_ground_ring.bind(foot)
-			BoardPainter.draw_pawn_in_ring(self, foot, RADIUS, _seats[index], ring)
+			BoardPainter.draw_pawn_in_ring(self, foot, RADIUS, _colors[index], ring)
 		else:
-			BoardPainter.draw_pawn(self, foot, RADIUS, _seats[index])
+			BoardPainter.draw_pawn(self, foot, RADIUS, _colors[index])
 
 
 ## Sırası gelenin ayağının altında, taşın tabanını saran yatık (elips) dalga.

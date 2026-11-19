@@ -113,6 +113,20 @@ each_seat = true
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="ColorBox" type="VBoxContainer" parent="Box/Options/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ColorLabel" type="Label" parent="Box/Options/Box/ColorBox"]
+layout_mode = 2
+theme_type_variation = &"PanelLabel"
+text = "YOUR_COLOR"
+
+[node name="Colors" type="HBoxContainer" parent="Box/Options/Box/ColorBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="DifficultyBox" type="VBoxContainer" parent="Box/Options/Box"]
 unique_name_in_owner = true
 layout_mode = 2
