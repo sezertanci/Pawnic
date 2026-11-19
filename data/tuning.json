@@ -52,7 +52,10 @@
 		"draw_lift": 0.4,
 		"draw_lift_scale": 1.15,
 		"bot_hold_sec": 1.1,
-		"discard_sec": 0.48
+		"discard_sec": 0.48,
+		"shuffle_cards": 6,
+		"shuffle_stagger_sec": 0.07,
+		"shuffle_sec": 0.3
 	},
 	"effects": {
 		"logo_hop_sec": 0.7,
@@ -66,6 +69,10 @@
 		"confetti_sway": 30.0,
 		"confetti_max_sway_speed": 4.0,
 		"confetti_max_spin": 8.0
+	},
+	"ads": {
+		"interstitial_interval_sec": 300,
+		"end_ad_cooldown_sec": 120
 	},
 	"ui": {
 		"button_width": 520,

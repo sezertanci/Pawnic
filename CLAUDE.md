@@ -50,7 +50,9 @@ Oyun prototip değildir; Play'de yayımlanacak bir ürünün temelidir.
 - Yarım kalan oyun her tur başında `SaveStore`'a yazılır; kayıt biçimi değişirse
   `GameMatch.SAVE_VERSION` artırılır.
 - Rastgelelik tohumlanabilir `RandomNumberGenerator` ile verilir.
-- Geçiş reklamı oyunun ortasında gösterilmez. Analitik SDK eklenmez.
+- Geçiş reklamı oyun sonunda ve uzun oyunlarda `data/tuning.json`'daki aralıkla (5 dk) yalnızca
+  insan oyuncunun sırası başlamadan önce gösterilir; kart seçerken ya da taş yürürken gösterilmez.
+  Zamanlama `AdSchedule`'dadır. Analitik SDK eklenmez.
 
 ## Test
 - Birim testler GUT ile `tests/unit/` altında yazılır; isimler `test_<davranış>` biçimindedir ve

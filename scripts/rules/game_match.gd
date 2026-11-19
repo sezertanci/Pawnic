@@ -9,7 +9,7 @@ const NO_WINNER := -1
 ## Array.find bulamadığında döner.
 const NO_INDEX := -1
 ## Kayıt biçimi değişirse artırılır; eski biçimdeki kayıtlar yüklenmez.
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 ## Kayıt sözlüğünün anahtarları.
 const KEY_VERSION := "version"
 const KEY_BOARD := "board"
@@ -21,6 +21,7 @@ const KEY_DISCARD := "discard"
 const KEY_CURRENT := "current"
 const KEY_LAST_DISCARD_SEAT := "last_discard_seat"
 const KEY_ELAPSED := "elapsed"
+const KEY_LAST_AD_AT := "last_ad_at"
 const KEY_TOP_DISCARD_VALUE := "top_discard_value"
 const KEY_BOT_LEVEL := "bot_level"
 const KEY_ROUND := "round"
@@ -42,6 +43,8 @@ var last_discard_seat := BoardLayout.NO_SEAT
 var top_discard_value := Card.NO_VALUE
 ## Oyunun başından beri geçen süre (saniye); kayıtla birlikte saklanır.
 var elapsed := 0.0
+## Son oyun içi reklamın gösterildiği oyun süresi; reklam gösterilmediyse AdSchedule.NO_AD.
+var last_ad_at := AdSchedule.NO_AD
 ## Kaçıncı turda olunduğu; sıra ilk oyuncuya her döndüğünde artar.
 var round_number := 1
 ## Bütün taşlarını eve getiren koltuklar, bitirme sırasıyla.
@@ -106,6 +109,7 @@ static func from_dict(
 	game.current = int(data.get(KEY_CURRENT, 0))
 	game.last_discard_seat = int(data.get(KEY_LAST_DISCARD_SEAT, BoardLayout.NO_SEAT))
 	game.elapsed = float(data.get(KEY_ELAPSED, 0.0))
+	game.last_ad_at = float(data.get(KEY_LAST_AD_AT, AdSchedule.NO_AD))
 	game.top_discard_value = int(data.get(KEY_TOP_DISCARD_VALUE, Card.NO_VALUE))
 	var level := int(data.get(KEY_BOT_LEVEL, Bot.Level.MEDIUM))
 	if not Bot.Level.values().has(level):
@@ -134,6 +138,7 @@ func to_dict() -> Dictionary:
 		KEY_CURRENT: current,
 		KEY_LAST_DISCARD_SEAT: last_discard_seat,
 		KEY_ELAPSED: elapsed,
+		KEY_LAST_AD_AT: last_ad_at,
 		KEY_TOP_DISCARD_VALUE: top_discard_value,
 		KEY_BOT_LEVEL: bot_level,
 		KEY_ROUND: round_number,
@@ -184,6 +189,17 @@ func first_playing_human_hand() -> Array[Card]:
 
 func begin_turn() -> void:
 	_draw_into(current_hand())
+
+
+## Deste boşsa ve atılanlarda kart varsa atılanları karıştırıp yeni deste yapar, atılanlar
+## boşalır. Sıradaki oyuncu çekmeden önce çağrılır; karıştırma yapıldıysa true döner.
+func reshuffle_if_empty() -> bool:
+	if not _draw_pile.is_empty() or _discard_pile.is_empty():
+		return false
+	_draw_pile = _discard_pile
+	_discard_pile = []
+	_shuffle(_draw_pile)
+	return true
 
 
 ## Destede kalan kart sayısı.
@@ -308,11 +324,10 @@ func _build_deck() -> void:
 	_shuffle(_draw_pile)
 
 
+## Desteden bir kart çeker. Arayüz karıştırmayı önceden göstermediyse (bot denemeleri, testler)
+## boş deste burada yenilenir.
 func _draw_into(hand: Array[Card]) -> void:
-	if _draw_pile.is_empty():
-		_draw_pile = _discard_pile
-		_discard_pile = []
-		_shuffle(_draw_pile)
+	reshuffle_if_empty()
 	if not _draw_pile.is_empty():
 		hand.append(_draw_pile.pop_back())
 

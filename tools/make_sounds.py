@@ -3,6 +3,7 @@
 Sesler kayıt değil, notalardan hesaplanır: kısa yükseliş ve üstel sönme zarfı. Tuş ve adım sesleri
 RobiCodes'taki notalarla aynıdır. Işınlanma sesi tonu yükselen, titreşimli bir süpürmedir.
 Kart çekme sesi, yavaşça kabarıp sönen boğuk bir fışırtıdır (süzülmüş gürültü).
+Karıştırma sesi, kartların art arda birbirine çarptığı hızlı bir tıkırtı dizisidir ("brrrt").
 Yalnızca Python'un standart kütüphanesi gerekir.
 
 Kullanım: python tools/make_sounds.py assets/sounds
@@ -40,6 +41,17 @@ DRAW_SMOOTH_EDGE = 0.04     # Tek kutuplu süzgeç katsayısı: küçük değer 
 DRAW_SMOOTH_PEAK = 0.12
 DRAW_VOLUME = 0.6           # Süzülen gürültünün tepe genliği (tam ölçeğe oranla).
 DRAW_SEED = 7               # Her üretimde aynı ses çıksın.
+
+# Karıştırma: kısa gürültü vuruşları eşit aralıklarla dizilir; her vuruş hızla söner. Dizinin sonuna
+# doğru vuruşlar hafifler (kartlar desteye oturur). Süre tuning.json'daki karıştırma animasyonuna
+# yakındır.
+SHUFFLE_TAPS = 14
+SHUFFLE_SPACING = 0.045      # Vuruşlar arası saniye.
+SHUFFLE_TAP_SECONDS = 0.035
+SHUFFLE_SMOOTH = 0.35        # Çekme sesinden daha açık süzgeç: daha parlak tıkırtı.
+SHUFFLE_TAIL_GAIN = 0.4      # Son vuruşun ilk vuruşa oranla genliği.
+SHUFFLE_VOLUME = 0.7
+SHUFFLE_SEED = 11
 
 
 def sine(phase):
@@ -92,6 +104,22 @@ def render_draw():
     return [s / peak * DRAW_VOLUME * VOLUME for s in samples]
 
 
+def render_shuffle():
+    rng = random.Random(SHUFFLE_SEED)
+    tap_length = round(SHUFFLE_TAP_SECONDS * SAMPLE_RATE)
+    samples = [0.0] * (round(SHUFFLE_SPACING * SAMPLE_RATE * (SHUFFLE_TAPS - 1)) + tap_length)
+    for tap in range(SHUFFLE_TAPS):
+        first = round(tap * SHUFFLE_SPACING * SAMPLE_RATE)
+        loudness = 1 + (SHUFFLE_TAIL_GAIN - 1) * tap / (SHUFFLE_TAPS - 1)
+        smooth = 0.0
+        for i in range(tap_length):
+            smooth += SHUFFLE_SMOOTH * (rng.uniform(-1, 1) - smooth)
+            decay = SILENT_GAIN ** (i / tap_length)
+            samples[first + i] += smooth * decay * loudness
+    peak = max(abs(s) for s in samples)
+    return [s / peak * SHUFFLE_VOLUME * VOLUME for s in samples]
+
+
 def write_wav(path, samples):
     with wave.open(path, 'wb') as file:
         file.setnchannels(1)
@@ -105,6 +133,7 @@ def main(output_dir):
     sounds = {name: render(notes) for name, notes in MELODIES.items()}
     sounds['teleport'] = render_teleport()
     sounds['draw'] = render_draw()
+    sounds['shuffle'] = render_shuffle()
     for name, samples in sounds.items():
         write_wav(os.path.join(output_dir, f'{name}.wav'), samples)
         print(f'{name}.wav')

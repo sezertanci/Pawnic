@@ -1,15 +1,25 @@
-; Godot proje dosyası. Düzenlemeyi tercihen Godot editöründen yapın.
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
+
+[admob]
+
+general/ios/enabled=false
 
 [application]
 
 config/name="Pawnic"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://assets/icon/icon.png"
 boot_splash/bg_color=Color(0.12, 0.13, 0.17, 1)
 boot_splash/image="res://assets/icon/frame/icon.png"
+config/icon="res://assets/icon/icon.png"
 
 [autoload]
 
@@ -37,6 +47,10 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/admob/plugin.cfg")
+
 [gui]
 
 theme/custom="res://themes/ui_theme.tres"
@@ -48,7 +62,6 @@ pointing/emulate_touch_from_mouse=true
 [internationalization]
 
 locale/translations=PackedStringArray("res://data/translations.tr.translation", "res://data/translations.en.translation", "res://data/translations.de.translation", "res://data/translations.es.translation", "res://data/translations.fr.translation", "res://data/translations.it.translation", "res://data/translations.pt.translation", "res://data/translations.id.translation")
-locale/fallback="en"
 
 [rendering]
 

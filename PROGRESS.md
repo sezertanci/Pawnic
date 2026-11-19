@@ -8,7 +8,8 @@
 - Oyun prototip değil, yayımlanacak ürün olarak geliştirilir. Paket adı `com.sezertanci.pawnic`.
 - Diller: tr, en, de, es, fr, it, pt, id; hepsi tek `data/translations.csv` dosyasında.
 - Gelir: ödüllü/geçiş reklamı ve uygulama içi satın alma. İkisi de arayüzle sarıldı; gerçek
-  eklentiler seçilene kadar sahte sağlayıcılar çalışır. Geçiş reklamı oyunun ortasında gösterilmez.
+  eklentiler seçilene kadar sahte sağlayıcılar çalışır. Geçiş reklamı oyunun ortasında yalnızca
+  aşağıdaki 5 dakika kuralıyla gösterilir.
 - Yarım kalan oyun her tur başında kaydedilir; açılışta "Devam et" çıkar.
 - Tema altyapısı kuruldu (`BoardSkin`, `Skins` autoload'u); şimdilik tek tema: `classic`.
 - Testler GUT ile; derlemeler Gradle ile (APK tablet, AAB Play). Ayrı tasarım dokümanı yok.
@@ -73,9 +74,11 @@
 - Yer değiştirme ve çarpma yalnızca ana yoldaki taşlara uygulanır; güvenli karedeki rakip taş korunur.
   Yer değiştirmede oyuncunun kendi taşı güvenli karede de seçilebilir (2026-11-17, tablet denemesi).
 - Güvenli olmayan karede kendi taşının üstüne konulamaz.
-- Deste (52 kart): İleri 2–12, adetleri iki zarın gelme olasılığına göre (2 ve 12'den 1, 7'den 6;
-  toplam 36), Geri 3 (3), Geri 5 (2), Çıkış (4), Yer değiştir (2), Geri yolla 8 (2), Kısayol (1),
+- Deste (50 kart, güncel adetler `data/tuning.json`'da): İleri 1–12 (toplam 34), Geri 3 (3), Geri 5 (2), Çıkış (4), Yer değiştir (2), Geri yolla 8 (2), Kısayol (1),
   Joker (2, 1–6 arası) (2026-11-18: oyun normalde iki zarla oynandığı için).
+- Deste boşalınca sıradaki oyuncu çekmeden önce atılanlar karıştırılıp desteye döner; kısa bir
+  animasyon ve karıştırma sesi eşlik eder (2026-11-19). Sayaçlar kart desteden kalkınca düşer,
+  atılanlara inince artar.
   - Taş başlangıçtan Çıkış, İleri 6 veya Joker 6 ile çıkar.
   - Geri 3/5 kendi taşını geri götürür (ceza kartı); üstüne geldiği rakibi çarpar.
   - Geri yolla 8 rakip taşı 8 kare geri gönderir. Taş kendi renginden bir taşın üstüne düşecekse
@@ -96,7 +99,31 @@
 - Oyun süresi uzun olabilir (4 taşta oyuncu başına ~55 tur). Deneme sonrası kısaltma gerekebilir.
 - Hangi ek temaların olacağı kararlaştırılmadı. Ayarlar ekranında tema seçimi yok; şimdilik tek
   tema (`classic`) olduğu için gerek yok, ikinci tema gelince eklenecek.
-- AdMob eklentisi seçilmedi; UMP rıza ekranı eklenecek (hedef kitle 13 yaş ve üstü).
+- AdMob (2026-11-19): eklenti Poing Studios `godot-admob-plugin` v5.1.0 `addons/admob` altında,
+  `editor_plugins` ile açık. Android ikilileri `addons/admob/android/bin` altında (gitignore'daki
+  `android/` kalıbı yüzünden depoya girmez; yeni klonda eklenti kendisi indirir). iOS kapalı;
+  `addons/admob/ios/bin/package.gd` yer tutucusu iOS indirmesini engeller. Eklentinin örnek,
+  belge ve varlık klasörleri dışa aktarmadan hariç. Godot editörü her açılışta `project.godot`
+  başlığını kendi İngilizce metniyle yeniden yazıyor.
+  - Kod: `AdMobBackend` (UMP rızası → `MobileAds` başlatma → alt banner, geçiş ve ödüllü reklamı
+    önceden yükleme). Kimlikler ve içerik sınıfı (`T`) `data/ads_config.tres` içinde; şimdilik
+    Google test kimlikleri. Banner yüksekliği kadar bütün sütun (`AspectColumn.bottom_inset`)
+    yukarı kayar. Geçiş reklamı kazanma ekranındaki Tekrar Oyna / Ana Menü düğmelerinde gösterilir.
+  - Oyun içi reklam (2026-11-19): oyunlar 15 dakikayı bulabildiği için oyun süresi her 5 dakikayı
+    (`ads.interstitial_interval_sec`) doldurunca, insan oyuncunun sırası başlamadan hemen önce
+    geçiş reklamı çıkar. Öncesinde reklam anı (`last_ad_at`) kayda yazılır, saat reklam boyunca
+    durur; uygulama reklamda kapanırsa oyun aynı yerden sürer ve reklam orada yeniden çıkmaz
+    (kayıt sürümü 3). Son 2 dakikada (`ads.end_ad_cooldown_sec`) oyun içi reklam gösterildiyse oyun
+    sonu reklamı atlanır. Reklam öncesi uyarı yok. İnternet izinleri (INTERNET, ACCESS_NETWORK_STATE,
+    AD_ID) normal izindir, kurulumda verilir; oyuncuya sorulmaz.
+    Ayarlarda "Gizlilik Seçenekleri" düğmesi yalnızca rıza gereken bölgelerde görünür
+    (`MenuBlueButton` stili seçildi).
+  - Gerçek reklam yalnızca Gradle'lı ön ayarlarda çıkar; `/ty` hızlı (Gradle'sız) ön ayarı
+    kullandığı için tablette sahte sağlayıcı çalışır. Tablette denemek için "Android APK" ön ayarı
+    gerekir.
+  - Açık: AdMob hesabında uygulama açılınca gerçek uygulama kimliği (`admob/general/android/app_id`)
+    ve birim kimlikleri yazılacak; ödüllü reklamın ödülü ve düğmesi belli değil; banner yüklenemezse
+    yeniden denenmiyor; reklamları kaldırma satın alması (`remove_ads`) henüz reklamlara bağlı değil.
 - Play Billing için resmi eklenti eklenecek; ürün listesi belli değil.
 - Yükleme anahtarı `C:\Users\Lenovo\keys\pawnic-upload.jks` (takma ad `upload`), yolu ve şifresi
   `.godot/export_credentials.cfg` içinde. Play App Signing açık. 2 (1.1.0) dahili test kanalına
@@ -107,7 +134,6 @@
   `android:required="false"` ile ekleyecek. Reklam kimliği beyanı "Hayır"; AdMob gelince "Evet"
   yapılacak, reklam ve veri güvenliği formları da güncellenecek.
 - Çeviriler Claude tarafından yazıldı; anadili konuşan biri tarafından kontrol edilmeli.
-- Kullanıcının tablet denemesinden çıkan değişiklik listesi bekleniyor.
 - İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
   Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.

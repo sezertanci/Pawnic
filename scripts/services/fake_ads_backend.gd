@@ -16,3 +16,4 @@ func show_rewarded(placement: String) -> void:
 
 func show_interstitial() -> void:
 	interstitials_shown += 1
+	interstitial_closed.emit.call_deferred()

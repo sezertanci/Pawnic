@@ -10,6 +10,7 @@ var _rng := RandomNumberGenerator.new()
 
 @onready var _backdrop: TextureRect = $Column/Backdrop
 @onready var _sides: ColorRect = $Sides
+@onready var _column: AspectColumn = $Column
 @onready var _home: HomeScreen = $Column/HomeScreen
 @onready var _setup: SetupScreen = $Column/SetupScreen
 @onready var _game_screen: GameScreen = $Column/GameScreen
@@ -29,6 +30,8 @@ func _ready() -> void:
 	_game_screen.left.connect(_show_home)
 	_home.demo_requested.connect(_on_demo_requested)
 	_demo.closed.connect(_on_demo_closed)
+	_column.bottom_inset = Ads.banner_height
+	Ads.banner_height_changed.connect(_on_banner_height_changed)
 	_show_home()
 
 
@@ -43,6 +46,10 @@ func _show_only(screen: Control) -> void:
 		other.visible = other == screen
 	_backdrop.visible = screen != _game_screen and screen != _demo
 	_sides.visible = _backdrop.visible
+
+
+func _on_banner_height_changed(height: float) -> void:
+	_column.bottom_inset = height
 
 
 func _on_demo_requested() -> void:

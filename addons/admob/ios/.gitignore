@@ -1,0 +1,4 @@
+# Remove /bin folder line if you want to commit
+/bin/*
+# Pawnic: iOS yer tutucusu depoda kalır, eklenti iOS ikililerini indirmez.
+!/bin/package.gd

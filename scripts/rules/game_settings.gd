@@ -14,8 +14,9 @@ const KEY_DECK := "deck"
 const KEY_CARD_COUNT := "count"
 const KEY_EFFECTS := "effects"
 const KEY_UI := "ui"
+const KEY_ADS := "ads"
 const REQUIRED_KEYS: Array[String] = [
-	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS, KEY_UI
+	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS, KEY_UI, KEY_ADS
 ]
 
 var board_layout: BoardLayout
@@ -69,6 +70,11 @@ var card_draw_lift_scale := 0.0
 ## Botun oynadığı kartın atılanlar üstünde rozetiyle görünme süresi.
 var card_bot_hold := 0.0
 var card_discard_time := 0.0
+## Karıştırmada atılanlardan desteye art arda uçan kapalı kart sayısı, kalkışlar arası süre ve
+## bir kartın uçuş süresi.
+var card_shuffle_count := 0
+var card_shuffle_stagger := 0.0
+var card_shuffle_time := 0.0
 ## Ana ekran logosundaki taşların bir kareden ötekine zıplama süresi (saniye) ve yüksekliği
 ## (kare boyuna oranla).
 var logo_hop_time := 0.0
@@ -92,6 +98,10 @@ var menu_button_size := Vector2.ZERO
 var backdrop_blur := 0.0
 ## Evdeki (bitiş karesindeki küçük camdaki) taşların normal boylarına oranı.
 var home_pawn_scale := 0.0
+## Oyun içi geçiş reklamları arasında en az geçen oyun süresi (saniye).
+var interstitial_interval := 0.0
+## Oyun içi reklamdan bu kadar süre geçmeden oyun biterse oyun sonu reklamı atlanır (saniye).
+var end_ad_cooldown := 0.0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -109,6 +119,7 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_cards(root[KEY_CARDS])
 	settings._read_effects(root[KEY_EFFECTS])
 	settings._read_ui(root[KEY_UI])
+	settings._read_ads(root[KEY_ADS])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
 	return settings
@@ -172,6 +183,9 @@ func _read_cards(cards: Dictionary) -> void:
 	card_draw_lift_scale = float(cards["draw_lift_scale"])
 	card_bot_hold = float(cards["bot_hold_sec"])
 	card_discard_time = float(cards["discard_sec"])
+	card_shuffle_count = int(cards["shuffle_cards"])
+	card_shuffle_stagger = float(cards["shuffle_stagger_sec"])
+	card_shuffle_time = float(cards["shuffle_sec"])
 
 
 func _read_effects(effects: Dictionary) -> void:
@@ -192,3 +206,8 @@ func _read_ui(ui: Dictionary) -> void:
 	menu_button_size = Vector2(float(ui["button_width"]), float(ui["button_height"]))
 	backdrop_blur = float(ui["backdrop_blur"])
 	home_pawn_scale = float(ui["home_pawn_scale"])
+
+
+func _read_ads(ads: Dictionary) -> void:
+	interstitial_interval = float(ads["interstitial_interval_sec"])
+	end_ad_cooldown = float(ads["end_ad_cooldown_sec"])

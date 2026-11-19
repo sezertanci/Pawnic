@@ -53,6 +53,7 @@ func _ready() -> void:
 	(%BackButton as Button).pressed.connect(_on_back_pressed)
 	_cards.deck_pile = _deck_pile
 	_cards.discard_pile = _discard_pile
+	_cards.discard_landed.connect(_on_discard_landed)
 
 
 func start(game: GameMatch) -> void:
@@ -71,6 +72,7 @@ func start(game: GameMatch) -> void:
 	_hide_overlays()
 	_clock_running = true
 	_clock.text = format_clock(game.elapsed)
+	_refresh_table()
 	# Ekran yeni göründüğünde kapların düzeni henüz kurulmamıştır; ilk tur bir kare sonra başlar,
 	# yoksa kartlar sol üst köşeden (sıfır konum ve boyuttan) uçar.
 	await get_tree().process_frame
@@ -132,13 +134,18 @@ func is_waiting_for_human() -> bool:
 
 func _start_turn() -> void:
 	_awaiting_human = false
+	var game := _game
+	await _before_turn()
+	if game != _game:
+		return
 	SaveStore.store_match(_game.to_dict())
 	var hand_before := _game.current_hand().size()
 	_game.begin_turn()
 	var drew := _game.current_hand().size() > hand_before
 	_clear_selection()
 	_show_idle_hand()
-	_refresh_table()
+	# Deste sayacı burada değil, kart desteden kalktığı an düşer.
+	_refresh_turn_dots()
 	var seat := _game.current_seat()
 	_board_view.turn_seat = seat
 	if _game.is_bot_turn():
@@ -147,6 +154,39 @@ func _start_turn() -> void:
 		_show_handoff(seat, drew)
 	else:
 		_begin_human_turn(drew)
+
+
+## Sıradaki oyuncu çekmeden önce: deste boşsa karıştırma gösterilir, zamanı geldiyse reklam.
+func _before_turn() -> void:
+	var game := _game
+	if _game.reshuffle_if_empty():
+		await _show_reshuffle()
+		if game != _game:
+			return
+	if AdSchedule.is_due(_game):
+		await _show_mid_game_ad()
+		if game == _game:
+			_clock_running = true
+
+
+## Uzun oyunda insan oyuncunun sırasından önce geçiş reklamı: oyun önce kaydedilir ki uygulama
+## reklamda kapanırsa aynı yerden dönülsün ve reklam orada yeniden çıkmasın; saat reklam
+## boyunca durur.
+func _show_mid_game_ad() -> void:
+	_game.last_ad_at = _game.elapsed
+	SaveStore.store_match(_game.to_dict())
+	_clock_running = false
+	Ads.show_interstitial()
+	await Ads.interstitial_closed
+
+
+## Atılanlar karıştırılıp desteye döndü: atılanlar boşalır, kartlar desteye uçar ve deste
+## sayacı kartlar inince yeni sayıyı gösterir.
+func _show_reshuffle() -> void:
+	_discard_pile.set_count(_game.discard_count())
+	_discard_pile.set_top(null, _game.settings, Color.TRANSPARENT, Card.NO_VALUE)
+	await _cards.shuffle_to_deck()
+	_refresh_table()
 
 
 ## Deste ve atılanların sayısını, atılanların üstündeki kartı ve sıra noktalarını günceller.
@@ -192,6 +232,7 @@ func _play_bot_turn() -> void:
 	var card_index := _bot.choose_discard(_game.current_hand()) if move == null else move.card_index
 	var color := Skins.current.seat_color(_game.current_seat())
 	var chosen := Card.NO_VALUE if move == null else move.value
+	_refresh_table()
 	await _cards.reveal_card(_hand_card(card_index), color, chosen)
 	if game != _game:
 		return
@@ -203,6 +244,7 @@ func _play_bot_turn() -> void:
 
 ## Çekilen kart desteden ele uçar; kart inince oyuncu seçim yapabilir.
 func _begin_human_turn(drew: bool) -> void:
+	_refresh_table()
 	if drew:
 		var hand := _game.current_hand()
 		var last := hand.size() - 1
@@ -245,6 +287,11 @@ func _show_hand(is_playable: Callable) -> void:
 	for index: int in range(hand.size()):
 		playable.append(is_playable.call(index))
 	_hand_view.show_cards(hand, _game.settings, playable)
+
+
+## Kart atılanlara indiği an sayaç bir artar; hamle uygulanınca gerçek sayı yazılır.
+func _on_discard_landed() -> void:
+	_discard_pile.set_count(_game.discard_count() + 1)
 
 
 func _hand_card(card_index: int) -> Card:
@@ -452,11 +499,20 @@ func _seat_colors() -> Array[Color]:
 	return colors
 
 
+## Oyun sonu geçiş reklamı kazanma ekranından çıkarken gösterilir; oyun içi reklam az önce
+## gösterildiyse atlanır.
 func _on_replay_pressed() -> void:
 	_win_overlay.close()
+	_show_end_ad()
 	replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player(), _game.bot_level)
 
 
 func _on_home_pressed() -> void:
 	_win_overlay.close()
+	_show_end_ad()
 	finished.emit()
+
+
+func _show_end_ad() -> void:
+	if not AdSchedule.skips_end_ad(_game):
+		Ads.show_interstitial()

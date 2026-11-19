@@ -33,3 +33,13 @@ func test_fake_rewarded_ad_grants_reward() -> void:
 	await wait_physics_frames(1)
 
 	assert_signal_emitted_with_parameters(ads, "rewarded_completed", [PLACEMENT, true])
+
+
+func test_fake_interstitial_reports_closed() -> void:
+	var ads := FakeAdsBackend.new()
+	watch_signals(ads)
+
+	ads.show_interstitial()
+	await wait_physics_frames(1)
+
+	assert_signal_emitted(ads, "interstitial_closed")

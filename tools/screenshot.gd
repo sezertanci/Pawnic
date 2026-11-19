@@ -20,12 +20,14 @@ func _run() -> void:
 	root.add_child(main)
 	await _frames()
 	_save(out_dir.path_join("1a_home.png"))
-	main.get_node("HomeScreen").emit_signal("new_game_requested")
+	main.get_node("Column/HomeScreen").emit_signal("new_game_requested")
 	await _frames()
 	_save(out_dir.path_join("1b_setup.png"))
 	var bot_flags: Array[bool] = [false, true, true, true]
-	main.get_node("SetupScreen").emit_signal("start_requested", bot_flags, PAWNS, Bot.Level.MEDIUM)
-	var screen: Node = main.get_node("GameScreen")
+	main.get_node("Column/SetupScreen").emit_signal(
+		"start_requested", bot_flags, PAWNS, Bot.Level.MEDIUM
+	)
+	var screen: Node = main.get_node("Column/GameScreen")
 	for step: int in range(HUMAN_MOVES):
 		await _wait_for_human(screen)
 		await _play_like_bot(screen, out_dir if step == HUMAN_MOVES - 1 else "")
