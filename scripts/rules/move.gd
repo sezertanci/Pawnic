@@ -31,3 +31,17 @@ func _init(
 	value = move_value
 	target = move_target
 	destination = move_destination
+
+
+## Bütün alanları aynıysa true (ağdan ya da arayüzden gelen hamle yasal hamlelerle karşılaştırılır).
+func equals(other: Move) -> bool:
+	if other == null:
+		return false
+	return (
+		card_index == other.card_index
+		and action == other.action
+		and pawn == other.pawn
+		and value == other.value
+		and target == other.target
+		and destination == other.destination
+	)

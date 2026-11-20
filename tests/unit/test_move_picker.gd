@@ -87,18 +87,24 @@ func test_swap_target_stage_switches_to_other_own_pawn() -> void:
 
 func test_destination_stage_switches_to_other_own_pawn() -> void:
 	var other := Move.new(0, Move.Action.FORWARD, 1, 2)
-	_picker.reset(
-		_moves([
-			Move.new(0, Move.Action.FORWARD, 0, 2, Move.NO_PAWN, 5),
-			Move.new(0, Move.Action.FORWARD, 0, 2, Move.NO_PAWN, 7),
-			other,
-		])
+	(
+		_picker
+		. reset(
+			_moves(
+				[
+					Move.new(0, Move.Action.FORWARD, 0, 2, Move.NO_PAWN, 5),
+					Move.new(0, Move.Action.FORWARD, 0, 2, Move.NO_PAWN, 7),
+					other,
+				]
+			)
+		)
 	)
 	_picker.pick_card(0)
 	_picker.pick_pawn(0)
 
 	assert_eq(_picker.selectable_pawns(), _ints([1]))
 	assert_eq(_picker.pick_pawn(1), other)
+
 
 func test_is_card_playable_only_for_cards_with_moves() -> void:
 	_picker.reset(_moves([Move.new(1, Move.Action.FORWARD, 0, 2)]))

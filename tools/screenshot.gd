@@ -47,7 +47,8 @@ func _use_separate_save() -> void:
 ## Botun seçeceği hamleyi arayüzdeki adımlarla oynar. out_dir verilirse seçim anını kaydeder.
 func _play_like_bot(screen: Node, out_dir: String) -> void:
 	var game: GameMatch = screen.get("_game")
-	var bot: Bot = screen.get("_bot")
+	var referee: Node = screen.get("_referee")
+	var bot: Bot = referee.get("_bot")
 	var move := bot.choose_move(game)
 	if move == null:
 		screen.call("_on_card_pressed", 0)

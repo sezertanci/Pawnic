@@ -201,6 +201,19 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   koltuğun dosyadaki tepsi yerine konur (`BoardTurn.base_center`), görünüm döndürmesizle aynı kalır. Varsayılan
   `NO_SEAT`, yani yerel oyunda döndürme yok; ağ oyununda her cihaz kendi koltuğunu verecek.
   Birim testleri `test_board_turn.gd`'de; dört koltuk için ekran görüntüsüyle denetlendi.
+- Sıra akışının hakeme taşınması (2026-11-20): `MatchReferee` (scripts/match, Node) sırayı,
+  botları, kaydı, saati ve geçiş reklamının zamanını yürütür; olanları `MatchEvent` olarak yayar
+  (RESHUFFLED, AD_DUE, TURN_STARTED, CARD_REVEALED, MOVE_PLAYED, DISCARDED, PLAYER_FINISHED,
+  MATCH_OVER) ve her olaydan sonra ekranın `acknowledge()` çağırmasını bekler. Oyuncunun seçimi
+  `MatchIntent` (PLAY/DISCARD, koltukla) olarak `submit()` ile gelir; hakem sırayı ve hamlenin
+  yasallığını (`Move.equals`) denetler. `GameScreen` yalnızca olayları çizer; reklamı gösterir ama
+  zamanına hakem karar verir. Olay ve niyetler henüz sözlüğe çevrilmiyor (mesaj biçimi sonraki adım).
+  Küçük fark: reklam kaldırılmış olsa da reklam zamanı (`last_ad_at`) kaydedilir; görünür etkisi yok.
+  Hakem bir niyeti reddederse durum değişmez; ekran uyarı yazar, seçimi temizler ve hakem hâlâ o
+  oyuncuyu bekliyorsa sırayı yeniden açar (yerel oyunda seçici yalnızca yasal hamle verdiğinden
+  olmaz; ağ oyununda "niyet reddedildi" mesajı mesaj biçimi adımında tasarlanacak).
+  Birim testleri `test_match_referee.gd` ve `test_game_screen_intent.gd`'de; simülasyon ve ekran
+  görüntüsüyle denetlendi; tablette yerel oyunda hata görülmedi.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -210,7 +223,8 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - Oyuncu koparsa oyun 20 saniye bekler, sonra koltuğu bot devralır. Oyuncu yeniden bağlanırsa
   koltuğuna geri döner.
 - Host koparsa ya da uygulamayı kapatırsa oyun biter; diğerlerine "oyun sona erdi" gösterilir.
-- Sıra süresi 20 saniye; dolunca o sırayı bot oynar. Yerel oyunda süre yok, değişmez.
+- Sıra süresi 20 saniye; dolunca yalnızca o hamleyi bot oynar, koltuk oyuncuda kalır ve sıra
+  yeniden gelince oyuncudan hamle beklenir. Yerel oyunda süre yok, değişmez.
 - Ağ oyunu kaydedilmez; açılıştaki "Devam et" yalnızca yerel oyun içindir.
 - Oyun içi 5 dakika geçiş reklamı ağ oyununda herkeste aynı anda çıkar: zamanı host belirler (insan
   oyuncunun sırası başlamadan önce kuralı korunur), herkes bitirince oyun sürer. Host'ta "Reklamları
