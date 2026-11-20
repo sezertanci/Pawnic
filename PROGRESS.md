@@ -207,13 +207,27 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   MATCH_OVER) ve her olaydan sonra ekranın `acknowledge()` çağırmasını bekler. Oyuncunun seçimi
   `MatchIntent` (PLAY/DISCARD, koltukla) olarak `submit()` ile gelir; hakem sırayı ve hamlenin
   yasallığını (`Move.equals`) denetler. `GameScreen` yalnızca olayları çizer; reklamı gösterir ama
-  zamanına hakem karar verir. Olay ve niyetler henüz sözlüğe çevrilmiyor (mesaj biçimi sonraki adım).
+  zamanına hakem karar verir.
   Küçük fark: reklam kaldırılmış olsa da reklam zamanı (`last_ad_at`) kaydedilir; görünür etkisi yok.
   Hakem bir niyeti reddederse durum değişmez; ekran uyarı yazar, seçimi temizler ve hakem hâlâ o
   oyuncuyu bekliyorsa sırayı yeniden açar (yerel oyunda seçici yalnızca yasal hamle verdiğinden
-  olmaz; ağ oyununda "niyet reddedildi" mesajı mesaj biçimi adımında tasarlanacak).
+  olmaz; ağ oyununda REJECTED mesajı gider).
   Birim testleri `test_match_referee.gd` ve `test_game_screen_intent.gd`'de; simülasyon ve ekran
   görüntüsüyle denetlendi; tablette yerel oyunda hata görülmedi.
+- Mesaj biçimi ve sahte taşıyıcı (2026-11-20, yerel oyuna dokunulmadı): `Move`, `MatchIntent` ve
+  `MatchEvent` sözlüğe çevrilir (`to_dict`/`from_dict`); gelen veri `MessageData` ile savunmacı
+  okunur, bozuk alan null döner. Olaya açılan/çekilen kart, tur ve hakemin saati eklendi; çekilen
+  kart yalnızca çekene yazılır. `MatchView` istemcinin kopyasıdır: oyun başında ve yeniden
+  bağlanmada tamamı (SNAPSHOT) gönderilir, sonra olaylar `apply()` ile uygulanır; hamle kopyanın
+  tahtasında yasal değilse ya da kart uyuşmazsa `apply()` false döner ve istemci SNAPSHOT_REQUEST
+  ile tamamını yeniden ister. Zarf `MatchMessage` (`{"t": tür, "d": içerik}`; INTENT, EVENT,
+  SNAPSHOT, REJECTED, SNAPSHOT_REQUEST). `MatchTransport` arayüzü ve aynı süreçte eşleri bağlayan
+  `FakeTransport` (mesaj baytlara çevrilip nesnesiz okunur, bir kare sonra ulaşır). Olay bekleme:
+  host yalnızca kendi ekranını bekler; geride kalan istemci olayları sıraya alıp oynatır.
+  Testler `test_match_messages.gd`, `test_match_view.gd` (iki ve dört kişilik tam oyunda her sıra
+  başında bütün kopyalar host'taki oyunla karşılaştırılır) ve `test_fake_transport.gd`'de.
+  Host bağdaştırıcısı (eş → koltuk eşlemesi, niyeti hakeme verme, REJECTED gönderme, olayları her
+  eşe kendi görünümüyle yollama), el sıkışma ve protokol sürümü Aşama 2'ye kaldı.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi

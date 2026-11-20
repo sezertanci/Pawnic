@@ -110,12 +110,12 @@ static func from_dict(
 		game.bots.append(bool(flag))
 	for saved_hand: Variant in data.get(KEY_HANDS, []):
 		var hand := game._new_hand()
-		if not _read_cards(saved_hand, hand):
+		if not Card.read_all(saved_hand, hand):
 			return null
 		game.hands.append(hand)
-	if not _read_cards(data.get(KEY_DRAW, []), game._draw_pile):
+	if not Card.read_all(data.get(KEY_DRAW, []), game._draw_pile):
 		return null
-	if not _read_cards(data.get(KEY_DISCARD, []), game._discard_pile):
+	if not Card.read_all(data.get(KEY_DISCARD, []), game._discard_pile):
 		return null
 	game.starter = int(data.get(KEY_STARTER, 0))
 	game.current = int(data.get(KEY_CURRENT, 0))
@@ -141,15 +141,15 @@ static func from_dict(
 func to_dict() -> Dictionary:
 	var saved_hands: Array = []
 	for hand: Array[Card] in hands:
-		saved_hands.append(_write_cards(hand))
+		saved_hands.append(Card.write_all(hand))
 	return {
 		KEY_VERSION: SAVE_VERSION,
 		KEY_BOARD: board.to_dict(),
 		KEY_SEATS: seats,
 		KEY_BOTS: bots,
 		KEY_HANDS: saved_hands,
-		KEY_DRAW: _write_cards(_draw_pile),
-		KEY_DISCARD: _write_cards(_discard_pile),
+		KEY_DRAW: Card.write_all(_draw_pile),
+		KEY_DISCARD: Card.write_all(_discard_pile),
 		KEY_CURRENT: current,
 		KEY_LAST_DISCARD_SEAT: last_discard_seat,
 		KEY_ELAPSED: elapsed,
@@ -383,22 +383,3 @@ func _has_valid_turn_order() -> bool:
 	if current < 0 or current >= count or starter < 0 or starter >= count:
 		return false
 	return SeatColors.is_valid(colors, settings.board_layout.homes.size())
-
-
-static func _write_cards(cards: Array[Card]) -> Array:
-	var result: Array = []
-	for card: Card in cards:
-		result.append(card.to_dict())
-	return result
-
-
-## Kayıttaki kartları hedef diziye ekler; tanınmayan kart varsa false döner.
-static func _read_cards(saved: Variant, target: Array[Card]) -> bool:
-	if not saved is Array:
-		return false
-	for entry: Variant in saved:
-		var card := Card.from_dict(entry) if entry is Dictionary else null
-		if card == null:
-			return false
-		target.append(card)
-	return true

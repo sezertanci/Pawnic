@@ -67,7 +67,7 @@ func load_dict(data: Dictionary) -> bool:
 
 
 func _is_seat(value: Variant) -> bool:
-	if not (value is int or value is float):
+	if not MessageData.is_number(value):
 		return false
 	return int(value) >= 0 and int(value) < layout.seat_count()
 

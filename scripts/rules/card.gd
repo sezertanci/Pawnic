@@ -58,9 +58,29 @@ func to_dict() -> Dictionary:
 static func from_dict(data: Dictionary) -> Card:
 	var name: Variant = data.get(KEY_TYPE)
 	var saved_value: Variant = data.get(KEY_VALUE, NO_VALUE)
-	if not TYPE_BY_NAME.has(name) or not (saved_value is int or saved_value is float):
+	if not TYPE_BY_NAME.has(name) or not MessageData.is_number(saved_value):
 		return null
 	return Card.new(TYPE_BY_NAME[name], int(saved_value))
+
+
+## Kartları kayıt ya da mesaj için sözlük dizisine çevirir.
+static func write_all(cards: Array[Card]) -> Array:
+	var result: Array = []
+	for card: Card in cards:
+		result.append(card.to_dict())
+	return result
+
+
+## Kayıttaki ya da mesajdaki kartları hedef diziye ekler; tanınmayan kart varsa false döner.
+static func read_all(saved: Variant, target: Array[Card]) -> bool:
+	if not saved is Array:
+		return false
+	for entry: Variant in saved:
+		var card := Card.from_dict(entry) if entry is Dictionary else null
+		if card == null:
+			return false
+		target.append(card)
+	return true
 
 
 func label() -> String:

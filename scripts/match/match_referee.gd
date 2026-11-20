@@ -129,6 +129,9 @@ func _start_turn() -> void:
 	game.begin_turn()
 	var event := MatchEvent.new(MatchEvent.Kind.TURN_STARTED, game.current_seat())
 	event.drew = game.current_hand().size() > hand_before
+	event.card = game.current_hand().back() if event.drew else null
+	event.round_number = game.round_number
+	event.elapsed = game.elapsed
 	if not await _emit(event):
 		return
 	if game.is_bot_turn():
@@ -171,6 +174,7 @@ func _play_bot_turn() -> void:
 func _carry_out(card_index: int, move: Move) -> void:
 	var reveal := MatchEvent.new(MatchEvent.Kind.CARD_REVEALED, game.current_seat())
 	reveal.card_index = card_index
+	reveal.card = game.current_hand()[card_index]
 	reveal.value = Card.NO_VALUE if move == null else move.value
 	if not await _emit(reveal):
 		return
@@ -181,13 +185,16 @@ func _carry_out(card_index: int, move: Move) -> void:
 
 func _apply(card_index: int, move: Move) -> MatchEvent:
 	var seat := game.current_seat()
+	var card := game.current_hand()[card_index]
 	if move == null:
 		game.discard(card_index)
 		var discarded := MatchEvent.new(MatchEvent.Kind.DISCARDED, seat)
 		discarded.card_index = card_index
+		discarded.card = card
 		return discarded
 	var played := MatchEvent.new(MatchEvent.Kind.MOVE_PLAYED, seat)
 	played.card_index = card_index
+	played.card = card
 	played.move = move
 	played.path = game.board.move_path(move)
 	game.play(move)
