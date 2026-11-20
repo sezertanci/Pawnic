@@ -15,10 +15,20 @@ const KEY_CARD_COUNT := "count"
 const KEY_EFFECTS := "effects"
 const KEY_UI := "ui"
 const KEY_ADS := "ads"
+const KEY_NETWORK := "network"
 ## Tahta bölümünde tahta dosyasının yolunun anahtarı.
 const KEY_LAYOUT := "layout"
 const REQUIRED_KEYS: Array[String] = [
-	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS, KEY_UI, KEY_ADS
+	KEY_BOARD,
+	KEY_RULES,
+	KEY_BOT,
+	KEY_ANIMATION,
+	KEY_CARDS,
+	KEY_DECK,
+	KEY_EFFECTS,
+	KEY_UI,
+	KEY_ADS,
+	KEY_NETWORK,
 ]
 
 ## Ayar ve tahta dosyalarının içeriğinden alınan özet; ağ oyununda iki cihazın aynı kurallarla
@@ -113,6 +123,12 @@ var home_pawn_scale := 0.0
 var interstitial_interval := 0.0
 ## Oyun içi reklamdan bu kadar süre geçmeden oyun biterse oyun sonu reklamı atlanır (saniye).
 var end_ad_cooldown := 0.0
+## Ağ oyununda hostun dinlediği UDP portu.
+var network_port := 0
+## Ağdan gelen bir mesajın en fazla bayt sayısı; büyüğü çözülmeden atılır.
+var max_message_bytes := 0
+## Bir eşten saniyede okunan en fazla mesaj; fazlası atılır.
+var max_messages_per_sec := 0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -131,6 +147,7 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_effects(root[KEY_EFFECTS])
 	settings._read_ui(root[KEY_UI])
 	settings._read_ads(root[KEY_ADS])
+	settings._read_network(root[KEY_NETWORK])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
 	var board_path: String = root[KEY_BOARD][KEY_LAYOUT]
@@ -231,3 +248,9 @@ func _read_ui(ui: Dictionary) -> void:
 func _read_ads(ads: Dictionary) -> void:
 	interstitial_interval = float(ads["interstitial_interval_sec"])
 	end_ad_cooldown = float(ads["end_ad_cooldown_sec"])
+
+
+func _read_network(network: Dictionary) -> void:
+	network_port = int(network["port"])
+	max_message_bytes = int(network["max_message_bytes"])
+	max_messages_per_sec = int(network["max_messages_per_sec"])

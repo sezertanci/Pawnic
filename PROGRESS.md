@@ -238,9 +238,18 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   gelene kadar olayları atar. Kopyadaki geçen süre yalnızca sıra başında hostla eşitlenir.
   Testler `test_match_sessions.gd`'de (el sıkışma, koltuk, başka koltuk adına niyet, yabancı eş,
   uyuşmayan olay, sahte taşıyıcıyla tam oyun).
-  Sonraya kalanlar: oda kodu (lobiyle), en fazla 3 istemci ve oyun başlayınca yeni bağlantı reddi
-  (lobiyle), mesaj boyut/sıklık sınırı (gerçek taşıyıcıyla), oyun ekranının istemcide
-  `MatchView`'dan çizmesi.
+  Sonraya kalanlar: oda kodu (lobiyle), oyun başlayınca yeni bağlantı reddi (lobiyle), oyun
+  ekranının istemcide `MatchView`'dan çizmesi.
+- ENet taşıyıcısı (2026-11-20, ekran ve lobi yok, yerel oyuna dokunulmadı): `ENetTransport`
+  `ENetMultiplayerPeer`'i doğrudan kullanır (SceneMultiplayer yok), paketleri her karede okur.
+  Ayarlar `tuning.json`'daki `network` bölümünde: port 24680, en fazla mesaj 16 KB, eş başına
+  saniyede 20 mesaj. Büyük mesaj çözülmeden, sınırı aşan mesaj okunmadan atılır; bağlantı
+  kesilmez. Paket nesnesiz çözülür, sözlük olmayan atılır. Host en fazla `max_players - 1` istemci
+  kabul eder. Bağlı olmayan eşe mesaj gönderilmez. `MatchTransport`'a `peer_connected` /
+  `peer_disconnected` sinyalleri eklendi. `LocalAddress`: `is_private()` (10.x, 172.16–31.x,
+  192.168.x), `wifi_address()` (Wi-Fi'deki, yoksa ilk özel IPv4); host ve istemci yalnızca özel
+  ağ adresini ya da aynı cihazı (127.0.0.1, yalnızca deneme için) kabul eder. Testler
+  `test_enet_transport.gd` (aynı cihazda iki uç) ve `test_local_address.gd`'de.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi

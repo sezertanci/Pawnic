@@ -78,6 +78,11 @@
 		"interstitial_interval_sec": 300,
 		"end_ad_cooldown_sec": 120
 	},
+	"network": {
+		"port": 24680,
+		"max_message_bytes": 16384,
+		"max_messages_per_sec": 20
+	},
 	"ui": {
 		"button_width": 520,
 		"button_height": 120,

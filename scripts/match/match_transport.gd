@@ -5,6 +5,10 @@ extends RefCounted
 
 ## Bir eşten mesaj geldi. Mesaj güvenilmezdir; okuyan taraf MatchMessage ile denetler.
 signal message_received(peer_id: int, message: Dictionary)
+## Bir eş bağlandı (istemcide host).
+signal peer_connected(peer_id: int)
+## Bir eşin bağlantısı koptu.
+signal peer_disconnected(peer_id: int)
 
 ## Oyunu kuran cihazın eş numarası.
 const HOST_PEER := 1
