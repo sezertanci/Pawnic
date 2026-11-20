@@ -156,6 +156,9 @@
   4 (1.3.0) yüklenirken "çözmeyi planlıyorum" ile yoksayıldı. `addons/portrait_feature` dışa
   aktarma eklentisi (2026-11-19) özelliği manifeste `android:required="false"` ile yazar; sonraki
   AAB'de uyarı çıkmamalı.
+- Play: 6 (1.5.0) yüklenirken `android.hardware.wifi` uyarısı çıktı (Wi-Fi izinleri bu özelliği
+  dolaylı zorunlu yapıyor). Aynı eklentiye bu özellik de eklendi (2026-11-20); düzeltme bir sonraki
+  AAB'de (sürüm 7) geçerli olur.
 - Play beyanları AdMob'a göre güncellendi (2026-11-19): Reklam kimliği "Evet" (Analiz, Reklam veya
   pazarlama, Sahtekarlığı önleme), Reklamlar "Evet", Veri güvenliği formunda yaklaşık konum,
   kilitlenme günlükleri, teşhisler, diğer performans verileri, uygulama işlemleri ve cihaz
@@ -618,3 +621,5 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   çalışmazdı), üç ön ayarda sürüm yükseltildi.
 - **2026-11-20 (11):** `store/pawnic/privacy.html`'e "Yerel ağda oyun" bölümü (tr/en) eklendi;
   mağaza metinlerine (tr-TR, en-US) Wi-Fi oyunu bölümü ve 1.5.0 sürüm notu eklendi.
+- **2026-11-20 (12):** `addons/portrait_feature` eklentisi `android.hardware.wifi` özelliğini de
+  `required="false"` ile manifeste yazar (Play uyarısı).

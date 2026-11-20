@@ -1,6 +1,6 @@
 @tool
 extends EditorPlugin
-## Android dışa aktarmasına dikey ekran özelliği eklentisini bağlar.
+## Android dışa aktarmasına isteğe bağlı donanım özellikleri eklentisini bağlar.
 
 var _export_plugin: EditorExportPlugin
 
@@ -15,13 +15,18 @@ func _exit_tree() -> void:
 	_export_plugin = null
 
 
-## Ekran yönü dikey olunca Android `android.hardware.screen.portrait` özelliğini dolaylı olarak
-## zorunlu sayar ve Play bu yüzden uyarı verir. Özellik `required="false"` ile açıkça yazılınca
-## uyarı kalkar ve uygulama yalnızca yatay ekranı olan cihazlarda da listelenir.
+## Android bazı donanım özelliklerini dolaylı olarak zorunlu sayar ve Play bu yüzden uyarı verir:
+## dikey ekran yönü `android.hardware.screen.portrait`, Wi-Fi izinleri (ağ oyunu)
+## `android.hardware.wifi` özelliğini zorunlu yapar. Özellikler `required="false"` ile açıkça
+## yazılınca uyarı kalkar ve uygulama yalnızca yatay ekranı ya da Wi-Fi'ı olmayan cihazlarda da
+## listelenir; ağ oyunu dışında oyun Wi-Fi olmadan çalışır.
 class PortraitExportPlugin:
 	extends EditorExportPlugin
 
-	const FEATURE_NAME := "android.hardware.screen.portrait"
+	const FEATURE_NAMES: Array[String] = [
+		"android.hardware.screen.portrait",
+		"android.hardware.wifi",
+	]
 	const OPTIONAL_FEATURE := '<uses-feature android:name="%s" android:required="false" />'
 
 	func _get_name() -> String:
@@ -33,4 +38,7 @@ class PortraitExportPlugin:
 	func _get_android_manifest_element_contents(
 		_platform: EditorExportPlatform, _debug: bool
 	) -> String:
-		return OPTIONAL_FEATURE % FEATURE_NAME
+		var elements: PackedStringArray = []
+		for feature_name: String in FEATURE_NAMES:
+			elements.append(OPTIONAL_FEATURE % feature_name)
+		return "\n".join(elements)
