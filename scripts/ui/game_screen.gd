@@ -1,25 +1,44 @@
 class_name GameScreen
 extends Control
-## Oyun ekranı: hakemin (MatchReferee) olaylarını çizer ve oyuncunun dokunarak seçtiği hamleyi
-## hakeme niyet olarak iletir. Sıra akışı, botlar, kayıt ve süre hakemdedir.
+## Oyun ekranı: oyun kaynağının (MatchSource) olaylarını çizer ve oyuncunun dokunarak seçtiği
+## hamleyi kaynağa niyet olarak iletir. Yerel oyunda kaynak ekranın kendi hakemidir; ağ oyununda
+## hostta lobinin hakemi, istemcide hosttan gelen görünümdür. Sıra akışı, botlar, kayıt ve süre
+## kaynaktadır; ekran oyunu yalnızca kaynağın görünümünden (MatchView) okur.
 
-## Oyun bitip oyuncu kutlama ekranından ana ekrana dönmek istediğinde gelir.
+## Oyun bitip oyuncu kutlama ekranından çıkmak istediğinde ya da ağ oyunu bu cihazın dışında
+## sona erdiğinde gelir.
 signal finished
-## Oyun bitip oyuncu aynı ayarlarla yeniden oynamak istediğinde gelir.
+## Oyun bitip oyuncu aynı ayarlarla yeniden oynamak istediğinde gelir (yalnızca yerel oyun).
 signal replay_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
-## Oyuncu geri düğmesiyle ana ekrana döndüğünde gelir; oyun kayıtlı kalır.
+## Oyuncu geri düğmesiyle oyundan çıktığında gelir; yerel oyun kayıtlı kalır.
 signal left
 
 const SECONDS_PER_MINUTE := 60
 const SECONDS_PER_HOUR := 3600
 ## Joker sayı kartlarının eldeki kartlara göre boyu.
 const JOKER_CARD_SCALE := 0.7
+const LEAVE_MATCH_CONFIRM_KEY := "LEAVE_MATCH_CONFIRM"
+const END_MATCH_CONFIRM_KEY := "END_MATCH_CONFIRM"
+const GAME_ENDED_KEY := "GAME_ENDED"
+const LEAVE_KEY := "LEAVE"
+const CANCEL_KEY := "CANCEL"
+const OK_KEY := "OK"
 
+## Yerel oyunun hakemi.
 var _referee := MatchReferee.new()
-## Hakemin yönettiği oyun; oyun bırakılınca null.
+## Yerel hakemin yönettiği oyun; oyun bırakılınca null (ekran görüntüsü aracı ve testler okur).
 var _game: GameMatch:
 	get:
 		return _referee.game
+var _source: MatchSource
+## Kaynağın son görünümü; her olayın başında yenilenir.
+var _view: MatchView
+## Kaynak ya da görünüm baştan değişince artar; süren animasyon bayatladığını bununla anlar.
+var _generation := 0
+## Oyun sonu tablosu açıldıysa true.
+var _match_over := false
+## Onay katmanında onaylanınca yapılacak iş.
+var _confirm_action := Callable()
 ## Saatte gösterilen saniye; değişince saat yeniden yazılır.
 var _clock_second := -1
 var _picker := MovePicker.new()
@@ -42,19 +61,20 @@ var _pawns_before: Array[Vector2] = []
 @onready var _hand_view: HandView = %HandView
 @onready var _win_overlay: WinOverlay = %WinOverlay
 @onready var _starter_draw: StarterDraw = %StarterDraw
+@onready var _confirm: ConfirmOverlay = %ConfirmOverlay
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
 
 
 func _ready() -> void:
 	_referee.store = SaveStore
-	_referee.event_emitted.connect(_on_event)
 	add_child(_referee)
 	_board_view.pawn_pressed.connect(_on_pawn_pressed)
 	_board_view.square_pressed.connect(_on_square_pressed)
 	_hand_view.card_pressed.connect(_on_card_pressed)
 	_win_overlay.replay_pressed.connect(_on_replay_pressed)
 	_win_overlay.home_pressed.connect(_on_home_pressed)
+	_confirm.confirmed.connect(_on_confirmed)
 	_handoff_button.pressed.connect(_on_handoff_pressed)
 	(%BackButton as Button).pressed.connect(_on_back_pressed)
 	_cards.deck_pile = _deck_pile
@@ -62,60 +82,105 @@ func _ready() -> void:
 	_cards.discard_landed.connect(_on_discard_landed)
 
 
-## Yeni oyunda (draw_starter) ilk turdan önce başlayan oyuncu kurayla gösterilir.
+## Yerel oyunu başlatır; yeni oyunda (draw_starter) ilk turdan önce başlayan oyuncu kurayla
+## gösterilir.
 func start(game: GameMatch, draw_starter := false) -> void:
 	_referee.start(game)
-	_show_bot_level(game)
-	_board_view.board = game.board
-	_board_view.seat_colors = game.colors
-	_cards.settings = game.settings
-	_cards.speed_scale = GameSpeed.speed_scale()
-	_board_view.speed_scale = GameSpeed.speed_scale()
-	_hand_view.slot_count = game.settings.hand_size + 1
+	start_source(RefereeSource.new(_referee), draw_starter)
+
+
+## Oyunu kaynaktan çizer; kaynağın görünümü hazır olmalıdır.
+func start_source(source: MatchSource, draw_starter := false) -> void:
+	_release_source()
+	_source = source
+	_generation += 1
+	_source.event_emitted.connect(_on_event)
+	_source.intent_rejected.connect(_on_intent_rejected)
+	_source.view_reset.connect(_on_view_reset)
+	_source.ended.connect(_on_source_ended)
+	_match_over = false
+	_awaiting_human = false
+	_view = _source.view()
+	_set_up_table()
 	_hide_overlays()
 	_show_clock()
 	_refresh_table()
 	# Ekran yeni göründüğünde kapların düzeni henüz kurulmamıştır; ilk tur bir kare sonra başlar,
 	# yoksa kartlar sol üst köşeden (sıfır konum ve boyuttan) uçar.
 	await get_tree().process_frame
-	if game != _game:
+	if _has_left(source):
 		return
 	if draw_starter:
 		await _draw_starter()
-		if game != _game:
+		if _has_left(source):
 			return
-	_referee.begin()
+	_source.begin()
+
+
+## Eski kaynak bırakılır; sinyalleri artık ekrana gelmez.
+func _release_source() -> void:
+	if _source == null:
+		return
+	_source.detach()
+	_source.event_emitted.disconnect(_on_event)
+	_source.intent_rejected.disconnect(_on_intent_rejected)
+	_source.view_reset.disconnect(_on_view_reset)
+	_source.ended.disconnect(_on_source_ended)
+
+
+## Kaynak değiştiyse ya da oyun bırakıldıysa true.
+func _has_left(source: MatchSource) -> bool:
+	return source != _source or not source.is_live()
+
+
+## Animasyonun başladığı andan beri kaynak ya da görünüm değiştiyse true.
+func _is_stale(generation: int) -> bool:
+	return generation != _generation or not _source.is_live()
+
+
+## Tahta ağ oyununda oyuncunun koltuğu alta gelecek biçimde döner; hız kaynaktan gelir (ağ
+## oyununda hostunki).
+func _set_up_table() -> void:
+	_show_bot_level()
+	_board_view.bottom_seat = _view.viewer_seat if _source.is_networked() else BoardLayout.NO_SEAT
+	_board_view.board = _view.board
+	_board_view.seat_colors = _view.colors
+	_cards.settings = _view.settings
+	_cards.speed_scale = _source.speed_scale()
+	_board_view.speed_scale = _source.speed_scale()
+	_hand_view.slot_count = _view.settings.hand_size + 1
+	_win_overlay.set_networked(_source.is_networked())
 
 
 ## Başlangıç kurası ayrı katmanda oynar; el o sırada boştur ve saat henüz başlamamıştır.
 func _draw_starter() -> void:
-	var game := _game
 	var colors: Array[int] = []
-	for seat: int in game.seats:
-		colors.append(game.colors[seat])
+	for seat: int in _view.seats:
+		colors.append(_view.colors[seat])
 	_hand_view.clear()
-	_starter_draw.play(colors, game.starter, game.settings, GameSpeed.speed_scale())
+	_starter_draw.play(colors, _view.starter, _view.settings, _source.speed_scale())
 	await _starter_draw.closed
 
 
 func _process(_delta: float) -> void:
-	if _game != null and int(_game.elapsed) != _clock_second:
+	if _source != null and int(_source.elapsed()) != _clock_second:
 		_show_clock()
 
 
 func _show_clock() -> void:
-	_clock_second = int(_game.elapsed)
-	_clock.text = format_clock(_game.elapsed)
+	var seconds := _source.elapsed()
+	_clock_second = int(seconds)
+	_clock.text = format_clock(seconds)
 
 
 ## Botlu oyunda saatin yanında "/" ve seviyenin adı, seviyenin renginde görünür.
-func _show_bot_level(game: GameMatch) -> void:
-	var has_bots := game.bots.has(true)
+func _show_bot_level() -> void:
+	var has_bots := _view.bots.has(true)
+	var level := _source.bot_level()
 	_level_slash.visible = has_bots
 	_bot_level.visible = has_bots
-	_bot_level.text = Difficulty.level_key(game.bot_level)
-	var color := Skins.current.level_color(game.bot_level)
-	_bot_level.add_theme_color_override(ThemeKeys.FONT_COLOR, color)
+	_bot_level.text = Difficulty.level_key(level)
+	_bot_level.add_theme_color_override(ThemeKeys.FONT_COLOR, Skins.current.level_color(level))
 
 
 ## Geçen süreyi dakika:saniye (bir saati geçince saat:dakika:saniye) olarak yazar.
@@ -127,14 +192,37 @@ static func format_clock(seconds: float) -> String:
 	return "%d:%02d:%02d" % [floori(seconds / SECONDS_PER_HOUR), minutes, rest]
 
 
-## Oyunu bırakır (kayıt hakemde güncellenir). Bekleyen animasyonlar oyun değiştiği için
-## kendiliğinden sonlanır.
+## Ağ oyunu sürerken çıkmadan önce onay sorulur: hosta her zaman (oyun herkes için biter),
+## katılan oyuncuya henüz bitirmediyse (koltuğunu bot alır).
 func _on_back_pressed() -> void:
-	_referee.leave()
+	if not _source.is_networked() or _match_over or not _source.is_live():
+		_leave()
+	elif _source.is_host():
+		_ask(END_MATCH_CONFIRM_KEY, LEAVE_KEY, CANCEL_KEY, _leave)
+	elif not _view.finishers.has(_view.viewer_seat):
+		_ask(LEAVE_MATCH_CONFIRM_KEY, LEAVE_KEY, CANCEL_KEY, _leave)
+	else:
+		_leave()
+
+
+## Oyunu bırakır (yerel oyunun kaydı hakemde güncellenir). Bekleyen animasyonlar kaynak
+## bırakıldığı için kendiliğinden sonlanır.
+func _leave() -> void:
+	_source.leave()
 	_awaiting_human = false
 	_hide_overlays()
 	_board_view.stop_animation()
 	left.emit()
+
+
+## Onay katmanını açar; onaylanınca action çağrılır.
+func _ask(message_key: String, confirm_key: String, cancel_key: String, action: Callable) -> void:
+	_confirm_action = action
+	_confirm.ask(message_key, confirm_key, cancel_key)
+
+
+func _on_confirmed() -> void:
+	_confirm_action.call()
 
 
 ## Oyuncunun kart ya da taş seçmesi bekleniyorsa true (ekran görüntüsü aracı da kullanır).
@@ -142,13 +230,15 @@ func is_waiting_for_human() -> bool:
 	return _awaiting_human
 
 
-# --- Hakemin olayları ---
+# --- Kaynağın olayları ---
 
 
-## Olayı çizer, bitince hakemi devam ettirir. Çizim sürerken oyun bırakıldıysa (ya da yenisi
-## başladıysa) eski olay hakemi ilerletmez.
+## Olayı çizer, bitince kaynağı devam ettirir. Çizim sürerken kaynak ya da görünüm değiştiyse
+## eski olay kaynağı ilerletmez.
 func _on_event(event: MatchEvent) -> void:
-	var game := _game
+	var generation := _generation
+	_view = _source.view()
+	_board_view.board = _view.board
 	match event.kind:
 		MatchEvent.Kind.RESHUFFLED:
 			await _show_reshuffle()
@@ -168,8 +258,8 @@ func _on_event(event: MatchEvent) -> void:
 			_announce_finisher(event)
 		MatchEvent.Kind.MATCH_OVER:
 			_end_match()
-	if game == _game:
-		_referee.acknowledge()
+	if generation == _generation:
+		_source.acknowledge(event)
 
 
 func _on_turn_started(event: MatchEvent) -> void:
@@ -177,80 +267,114 @@ func _on_turn_started(event: MatchEvent) -> void:
 	_clear_selection()
 	_show_idle_hand()
 	# Deste sayacı burada değil, kart desteden kalktığı an düşer.
-	_show_turn(_game.current)
-	if _game.is_bot_turn():
+	_show_turn(_view.current)
+	if not _view.is_viewer_turn():
 		return
-	if _game.playing_human_count() > 1:
+	if _source.shares_device():
 		_show_handoff(event.seat, event.drew)
 	else:
 		_begin_human_turn(event.drew)
 
 
+## Kaynak niyeti reddetti: seçim kalkar; oyuncunun niyeti hâlâ bekleniyorsa seçim yeniden açılır,
+## yoksa ekran kaynağın sıradaki olayını bekler.
+func _on_intent_rejected() -> void:
+	_clear_selection()
+	if _source.is_awaiting_intent():
+		_show_human_turn()
+
+
+## Görünümün tamamı yeniden geldi: süren animasyonlar bırakılır ve masa baştan çizilir.
+func _on_view_reset() -> void:
+	_generation += 1
+	_awaiting_human = false
+	_board_view.stop_animation()
+	_clear_selection()
+	_handoff_button.hide()
+	_view = _source.view()
+	_board_view.board = _view.board
+	_refresh_table()
+	_show_turn(_view.current)
+	if _source.is_awaiting_intent():
+		_show_human_turn()
+	else:
+		_show_idle_hand()
+
+
+## Ağ oyunu bu cihazın dışında bitti (host oyunu kapattı ya da bağlantı koptu); oyun sonu tablosu
+## açıksa oyuncu oradan çıkar.
+func _on_source_ended() -> void:
+	if _match_over:
+		return
+	_generation += 1
+	_awaiting_human = false
+	_board_view.stop_animation()
+	_clear_selection()
+	_hide_overlays()
+	_ask(GAME_ENDED_KEY, OK_KEY, "", finished.emit)
+
+
 ## Atılanlar karıştırılıp desteye döndü: atılanlar boşalır, kartlar desteye uçar ve deste
 ## sayacı kartlar inince yeni sayıyı gösterir.
 func _show_reshuffle() -> void:
-	_discard_pile.set_count(_game.discard_count())
-	_discard_pile.set_top(null, _game.settings, Color.TRANSPARENT, Card.NO_VALUE)
+	_discard_pile.set_count(_view.discard_count)
+	_discard_pile.set_top(null, _view.settings, Color.TRANSPARENT, Card.NO_VALUE)
 	await _cards.shuffle_to_deck()
 	_refresh_table()
 
 
 ## Deste ve atılanların sayısını, atılanların üstündeki kartı ve sıra noktalarını günceller.
 func _refresh_table() -> void:
-	_deck_pile.set_count(_game.draw_count())
-	_discard_pile.set_count(_game.discard_count())
+	_deck_pile.set_count(_view.draw_count)
+	_discard_pile.set_count(_view.discard_count)
 	_discard_pile.set_top(
-		_game.top_discard(), _game.settings, _discard_badge(), _game.top_discard_value
+		_view.top_discard, _view.settings, _discard_badge(), _view.top_discard_value
 	)
-	_refresh_turn_dots()
-
-
-## Sıra noktalarında yalnızca oynamaya devam eden oyuncular görünür.
-func _refresh_turn_dots() -> void:
-	_show_turn_dots(_game.current)
+	_show_turn_dots(_view.current)
 
 
 ## Sıra oku ve noktaları index sıradaki oyuncuyu gösterir.
 func _show_turn(index: int) -> void:
 	_show_turn_dots(index)
-	_board_view.turn_seat = _game.seats[index]
+	_board_view.turn_seat = _view.seats[index]
 
 
+## Sıra noktalarında yalnızca oynamaya devam eden oyuncular görünür.
 func _show_turn_dots(index: int) -> void:
 	var playing: Array[int] = []
 	var current := 0
-	for player: int in range(_game.seats.size()):
-		if _game.is_playing(player):
+	for player: int in range(_view.seats.size()):
+		var seat := _view.seats[player]
+		if not _view.finishers.has(seat):
 			if player == index:
 				current = playing.size()
-			playing.append(_game.colors[_game.seats[player]])
+			playing.append(_view.colors[seat])
 	_turn_dots.show_turn(playing, current)
 
 
 ## Atılanlardaki son kartı atanın rengi; henüz kart atılmadıysa rozet görünmez.
 func _discard_badge() -> Color:
-	if _game.last_discard_seat == BoardLayout.NO_SEAT:
+	if _view.last_discard_seat == BoardLayout.NO_SEAT:
 		return Color.TRANSPARENT
-	return _seat_color(_game.last_discard_seat)
+	return _seat_color(_view.last_discard_seat)
 
 
 ## Çekilen kart desteden ele uçar; kart inince oyuncu seçim yapabilir.
 func _begin_human_turn(drew: bool) -> void:
 	_refresh_table()
 	if drew:
-		var hand := _game.current_hand()
-		var last := hand.size() - 1
+		var last := _view.hand.size() - 1
 		_show_hand(func(_index: int) -> bool: return true)
 		_hand_view.hold(last)
-		var game := _game
-		await _cards.draw_card(_hand_view.card_rect(last), _hand_card(last))
-		if game != _game:
+		var generation := _generation
+		await _cards.draw_card(_hand_view.card_rect(last), _view.hand[last])
+		if _is_stale(generation):
 			return
 	_show_human_turn()
 
 
 func _show_human_turn() -> void:
-	_picker.reset(_game.legal_moves())
+	_picker.reset(_view.legal_moves())
 	_show_hand(
 		func(index: int) -> bool: return _picker.must_discard() or _picker.is_card_playable(index)
 	)
@@ -259,63 +383,50 @@ func _show_human_turn() -> void:
 	_awaiting_human = true
 
 
-## Oyuncunun sırası değilken ya da taş yürürken: tek insanlı oyunda el soluk ve basılamaz kalır,
-## birden çok insan varsa el gizlenir (sıradaki oyuncu başkasının elini görmesin).
+## Oyuncunun sırası değilken ya da taş yürürken el soluk ve basılamaz kalır. Aynı cihazda birden
+## çok insan varsa el gizlenir (sıradaki oyuncu başkasının elini görmesin).
 func _show_idle_hand() -> void:
-	if _game.playing_human_count() != 1:
+	if _source.shares_device():
 		_hand_view.clear()
 		return
-	var hand := _game.first_playing_human_hand()
 	var playable: Array[bool] = []
-	playable.resize(hand.size())
+	playable.resize(_view.hand.size())
 	playable.fill(false)
-	_hand_view.show_cards(hand, _game.settings, playable)
+	_hand_view.show_cards(_view.hand, _view.settings, playable)
 
 
 ## Eli gösterir; is_playable kart sırasını alır, basılabilir olup olmadığını döner.
 func _show_hand(is_playable: Callable) -> void:
-	var hand := _game.current_hand()
 	var playable: Array[bool] = []
-	for index: int in range(hand.size()):
+	for index: int in range(_view.hand.size()):
 		playable.append(is_playable.call(index))
-	_hand_view.show_cards(hand, _game.settings, playable)
+	_hand_view.show_cards(_view.hand, _view.settings, playable)
 
 
 ## Kart atılanlara indiği an sayaç bir artar; hamle uygulanınca gerçek sayı yazılır.
 func _on_discard_landed() -> void:
-	_discard_pile.set_count(_game.discard_count() + 1)
+	_discard_pile.set_count(_view.discard_count + 1)
 
 
-func _hand_card(card_index: int) -> Card:
-	return _game.current_hand()[card_index]
-
-
-## Oyuncunun seçimi hakeme niyet olarak gider; hakem kartı açınca (CARD_REVEALED) kart uçar.
-## Hakem niyeti reddederse durum değişmemiştir: hakem hâlâ bu oyuncuyu bekliyorsa seçim yeniden
-## açılır, yoksa ekran hakemin sıradaki olayını bekler.
+## Oyuncunun seçimi kaynağa niyet olarak gider; kaynak kartı açınca (CARD_REVEALED) kart uçar,
+## reddederse intent_rejected gelir.
 func _send_intent(intent: MatchIntent) -> void:
 	_awaiting_human = false
-	if _referee.submit(intent):
-		return
-	push_warning("Hakem niyeti reddetti: koltuk %d, tür %d" % [intent.seat, intent.kind])
-	_clear_selection()
-	if _referee.is_awaiting_intent():
-		_show_human_turn()
+	_source.submit(intent)
 
 
-## Açılan kart atılanlara uçar: insan oyuncunun kartı elden kalkar, botun kartı açılır. Kartın
-## değeri jokerde seçilen sayıdır.
+## Açılan kart atılanlara uçar: bu cihazdaki oyuncunun kartı elden kalkar, başkasının kartı
+## açılır. Kartın değeri jokerde seçilen sayıdır.
 func _reveal_card(event: MatchEvent) -> void:
-	var card := _hand_card(event.card_index)
 	var color := _seat_color(event.seat)
-	if _game.is_bot_turn():
+	if event.seat != _view.viewer_seat:
 		_refresh_table()
-		await _cards.reveal_card(card, color, event.value)
+		await _cards.reveal_card(event.card, color, event.value)
 	else:
 		var rect := _hand_view.card_rect(event.card_index)
 		_clear_selection()
 		_hand_view.hold(event.card_index)
-		await _cards.discard_card(rect, card, color, event.value)
+		await _cards.discard_card(rect, event.card, color, event.value)
 	_pawns_before = _board_view.pawn_centers()
 
 
@@ -330,21 +441,22 @@ func _show_move(event: MatchEvent) -> void:
 
 ## Oyun bitti: sıralama tablosu açılır.
 func _end_match() -> void:
+	_match_over = true
 	_clear_selection()
 	_hand_view.clear()
-	var ranking := MatchResult.ranking(_game)
+	var ranking := MatchResult.order(_view.settings, _view.board, _view.seats, _view.finishers)
 	var rounds: Array[int] = []
 	var ranked_colors: Array[int] = []
 	for seat: int in ranking:
-		rounds.append(MatchResult.finish_round(_game, seat))
-		ranked_colors.append(_game.colors[seat])
+		rounds.append(MatchResult.round_of(_view.finishers, _view.finish_rounds, seat))
+		ranked_colors.append(_view.colors[seat])
 	_win_overlay.open(ranked_colors, rounds, _seat_colors())
 
 
 ## Yeni bitiren oyuncu için kısa duyuru gösterilir; oyun beklemeden sürer.
 func _announce_finisher(event: MatchEvent) -> void:
 	var colors: Array[Color] = [_seat_color(event.seat)]
-	_win_overlay.announce(_game.colors[event.seat], event.place, colors)
+	_win_overlay.announce(_view.colors[event.seat], event.place, colors)
 
 
 # --- Hamle seçimi ---
@@ -352,7 +464,7 @@ func _announce_finisher(event: MatchEvent) -> void:
 
 func _on_card_pressed(card_index: int) -> void:
 	if _picker.must_discard():
-		_send_intent(MatchIntent.discard(_game.current_seat(), card_index))
+		_send_intent(MatchIntent.discard(_view.current_seat(), card_index))
 		return
 	_clear_selection()
 	_hand_view.highlight(card_index)
@@ -406,7 +518,7 @@ func _show_pawns() -> void:
 func _on_pawn_pressed(pawn: int) -> void:
 	var move := _picker.pick_pawn(pawn)
 	if move != null:
-		_send_intent(MatchIntent.play(_game.current_seat(), move))
+		_send_intent(MatchIntent.play(_view.current_seat(), move))
 	elif _picker.stage == MovePicker.Stage.TARGET:
 		_show_pawns()
 	elif _picker.stage == MovePicker.Stage.DESTINATION:
@@ -416,7 +528,7 @@ func _on_pawn_pressed(pawn: int) -> void:
 func _on_square_pressed(square: int) -> void:
 	var move := _picker.pick_destination(square)
 	if move != null:
-		_send_intent(MatchIntent.play(_game.current_seat(), move))
+		_send_intent(MatchIntent.play(_view.current_seat(), move))
 
 
 func _set_selectable(pawns: Array[int], squares: Array[int] = []) -> void:
@@ -424,7 +536,7 @@ func _set_selectable(pawns: Array[int], squares: Array[int] = []) -> void:
 	_board_view.selectable_squares = squares
 	_board_view.selected_pawn = _picker.selected_pawn()
 	_board_view.preview_paths = _preview_paths()
-	_board_view.preview_seat = _game.current_seat()
+	_board_view.preview_seat = _view.current_seat()
 	_board_view.queue_redraw()
 
 
@@ -432,7 +544,7 @@ func _set_selectable(pawns: Array[int], squares: Array[int] = []) -> void:
 func _preview_paths() -> Array[PackedInt32Array]:
 	var paths: Array[PackedInt32Array] = []
 	for move: Move in _picker.candidates():
-		paths.append(PackedInt32Array(_game.board.move_path(move)))
+		paths.append(PackedInt32Array(_view.board.move_path(move)))
 	return paths
 
 
@@ -452,9 +564,10 @@ func _clear_values() -> void:
 # --- Sıra devri ve oyun sonu ---
 
 
-## Birden çok insan varken sıradaki oyuncunun eli kapalı durur; oyuncu düğmeye basınca açılır.
+## Aynı cihazda birden çok insan varken sıradaki oyuncunun eli kapalı durur; oyuncu düğmeye
+## basınca açılır.
 func _show_handoff(seat: int, drew: bool) -> void:
-	var hidden := _game.current_hand().size() - (1 if drew else 0)
+	var hidden := _view.hand.size() - (1 if drew else 0)
 	_hand_view.show_backs(hidden)
 	_handoff_button.text = tr("HANDOFF")
 	_handoff_glass.set_tint(_seat_color(seat))
@@ -471,23 +584,24 @@ func _hide_overlays() -> void:
 	_handoff_button.hide()
 	_win_overlay.close()
 	_starter_draw.close()
+	_confirm.hide()
 
 
 ## Oyundaki koltukların renkleri (konfeti için).
 func _seat_colors() -> Array[Color]:
 	var colors: Array[Color] = []
-	for seat: int in _game.seats:
+	for seat: int in _view.seats:
 		colors.append(_seat_color(seat))
 	return colors
 
 
 ## Koltuğun bu oyundaki rengi.
 func _seat_color(seat: int) -> Color:
-	return Skins.current.seat_color(_game.colors[seat])
+	return Skins.current.seat_color(_view.colors[seat])
 
 
 ## Oyun sonu geçiş reklamı kazanma ekranından çıkarken gösterilir; oyun içi reklam az önce
-## gösterildiyse atlanır.
+## gösterildiyse atlanır. Yeniden oyna yalnızca yerel oyunda görünür.
 func _on_replay_pressed() -> void:
 	_win_overlay.close()
 	_show_end_ad()
@@ -497,9 +611,10 @@ func _on_replay_pressed() -> void:
 func _on_home_pressed() -> void:
 	_win_overlay.close()
 	_show_end_ad()
+	_source.leave()
 	finished.emit()
 
 
 func _show_end_ad() -> void:
-	if not AdSchedule.skips_end_ad(_game):
+	if not _source.skips_end_ad():
 		Ads.show_interstitial()

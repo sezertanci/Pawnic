@@ -1,0 +1,189 @@
+extends GutTest
+## Oyun kaynakları: hakemden beslenen kaynağın bayatlaması ve hostun görünümü; istemci kaynağının
+## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
+## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi. Ağ sahte taşıyıcıyla kurulur.
+
+const SEED := 11
+const PAWNS := 4
+const TWO_HUMANS: Array[bool] = [false, false]
+const CLIENT_PEER := 2
+## Mesajın ulaşması için beklenen kare sayısı (gidiş ve dönüş).
+const FRAMES := 4
+## Tahtada olmayan taş; bu taşla hamle hiçbir zaman yasal değildir.
+const MISSING_PAWN := 99
+## İstemcinin sırasına kadar gelebilecek en fazla olay; aşılırsa döngü durur.
+const MAX_EVENTS := 20
+
+var _referee: MatchReferee
+var _game: GameMatch
+var _network: Dictionary
+var _host: HostSession
+var _room: GuestRoom
+var _source: ClientSource
+var _host_seat := BoardLayout.NO_SEAT
+var _client_seat := BoardLayout.NO_SEAT
+var _shown: Array[MatchEvent] = []
+
+
+func before_each() -> void:
+	_shown.clear()
+	_referee = MatchReferee.new()
+	_referee.in_game_ads = false
+	_referee.event_emitted.connect(func(_event: MatchEvent) -> void: _referee.acknowledge())
+	add_child_autofree(_referee)
+	_game = _new_game()
+	_host_seat = _game.current_seat()
+	_client_seat = _game.seats[(_game.current + 1) % _game.seats.size()]
+	_network = {}
+	_host = HostSession.new(
+		_referee, FakeTransport.new(MatchTransport.HOST_PEER, _network), _game.settings
+	)
+	_room = GuestRoom.new(_game.settings)
+	_room.session = ClientSession.new(FakeTransport.new(CLIENT_PEER, _network), _game.settings)
+	_source = ClientSource.new(_room)
+	_source.event_emitted.connect(func(event: MatchEvent) -> void: _shown.append(event))
+
+
+func after_each() -> void:
+	_referee.stop()
+
+
+func test_referee_source_goes_stale_when_referee_stops() -> void:
+	_referee.start(_game)
+	var source := RefereeSource.new(_referee)
+
+	_referee.stop()
+
+	assert_false(source.is_live())
+	assert_false(source.is_awaiting_intent())
+
+
+func test_host_source_views_own_seat() -> void:
+	_referee.start(_game)
+
+	var source := RefereeSource.new(_referee, _client_seat)
+
+	assert_true(source.is_host())
+	assert_eq(source.view().viewer_seat, _client_seat)
+
+
+func test_referee_source_reports_rejected_intent() -> void:
+	_referee.start(_game)
+	var source := RefereeSource.new(_referee, _host_seat)
+	_referee.begin()
+	watch_signals(source)
+
+	source.submit(_missing_move(_client_seat))
+
+	assert_signal_emitted(source, "intent_rejected")
+	assert_true(source.is_awaiting_intent())
+
+
+func test_client_source_waits_for_view_before_events() -> void:
+	await _start_match()
+
+	assert_eq(_shown.size(), 0)
+	assert_not_null(_source.view())
+	assert_eq(_source.view().viewer_seat, _client_seat)
+
+
+func test_client_source_holds_events_until_acknowledged() -> void:
+	await _start_match()
+	_source.begin()
+	_referee.submit(_host_turn())
+	await wait_frames(FRAMES)
+	assert_eq(_shown.size(), 1)
+
+	_acknowledge_until_client_turn()
+
+	assert_eq(_shown.back().kind, MatchEvent.Kind.TURN_STARTED)
+	assert_eq(_shown.back().seat, _client_seat)
+	assert_true(_source.is_awaiting_intent())
+
+
+func test_client_source_reports_rejection_of_its_intent() -> void:
+	await _reach_client_turn()
+	watch_signals(_source)
+
+	_source.submit(_missing_move(_client_seat))
+	assert_false(_source.is_awaiting_intent())
+	await wait_frames(FRAMES)
+
+	assert_signal_emitted(_source, "intent_rejected")
+	assert_true(_source.is_awaiting_intent())
+
+
+func test_lost_room_ends_client_source() -> void:
+	await _start_match()
+	watch_signals(_source)
+
+	_room.lost.emit(true)
+
+	assert_signal_emitted(_source, "ended")
+	assert_false(_source.is_live())
+
+
+func test_leaving_client_hands_seat_to_bot() -> void:
+	await _start_match()
+	watch_signals(_source)
+
+	_source.leave()
+	await wait_frames(FRAMES)
+
+	assert_signal_not_emitted(_source, "ended")
+	assert_false(_source.is_live())
+	assert_eq(_host.seat_of(CLIENT_PEER), BoardLayout.NO_SEAT)
+	assert_true(_game.bots[_game.seats.find(_client_seat)])
+
+
+## İstemci oturur, hakem oyunu başlatır ve ilk görünüm istemciye ulaşır; sıra hosttadır.
+func _start_match() -> void:
+	_room.session.join()
+	await wait_frames(FRAMES)
+	_host.seat_peer(CLIENT_PEER, _client_seat)
+	_referee.start(_game)
+	_host.share_match()
+	_referee.begin()
+	await wait_frames(FRAMES)
+
+
+## Host hamlesini oynar ve istemci gelen bütün olayları bitirir; sıra istemcidedir.
+func _reach_client_turn() -> void:
+	await _start_match()
+	_source.begin()
+	_referee.submit(_host_turn())
+	await wait_frames(FRAMES)
+	_acknowledge_until_client_turn()
+
+
+## Hostun sırasındaki ilk yasal hamle; yoksa ilk kartın atılması.
+func _host_turn() -> MatchIntent:
+	var legal := _game.legal_moves()
+	if legal.is_empty():
+		return MatchIntent.discard(_host_seat, 0)
+	return MatchIntent.play(_host_seat, legal[0])
+
+
+## Ekran gösterilen olayı bitirir; her bitirmede sıradaki tek olay gelir.
+func _acknowledge_until_client_turn() -> void:
+	for _step: int in range(MAX_EVENTS):
+		var last := _shown.back() as MatchEvent
+		if last.kind == MatchEvent.Kind.TURN_STARTED and last.seat == _client_seat:
+			return
+		var count := _shown.size()
+		_source.acknowledge(last)
+		assert_eq(_shown.size(), count + 1)
+
+
+func _missing_move(seat: int) -> MatchIntent:
+	return MatchIntent.play(seat, Move.new(0, Move.Action.FORWARD, MISSING_PAWN, 1))
+
+
+func _new_game() -> GameMatch:
+	var settings := GameSettings.load_from(GameSettings.DEFAULT_PATH)
+	settings.bot_delay = 0.0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED
+	var game := GameMatch.create(settings, TWO_HUMANS.duplicate(), PAWNS, rng)
+	game.bot_level = Bot.Level.EASY
+	return game

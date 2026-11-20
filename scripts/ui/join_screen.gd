@@ -2,10 +2,13 @@ class_name JoinScreen
 extends MarginContainer
 ## Ağ oyununa katılma ekranı. Önce yerel ağda bulunan oyunlar listelenir; seçilen oyun için oda
 ## kodu girilir, sonra hosta bağlanılır ve lobi gösterilir. Host reddederse nedeni yazılıp koda
-## dönülür; bağlantı koparsa nedeni yazılıp listeye dönülür. Ekran açıkken kapanmaz.
+## dönülür; bağlantı koparsa nedeni yazılıp listeye dönülür. Host oyunu başlatınca ilk görünüm
+## gelir ve oyun kaynağı verilir. Ekran açıkken kapanmaz.
 
 ## Oyuncu ekrandan çıktı; arama ve bağlantı kapatıldı.
 signal closed
+## Host oyunu başlattı; ilk görünüm geldi.
+signal started(source: MatchSource)
 
 enum Stage { SEARCH, CODE, CONNECTING, LOBBY }
 
@@ -22,6 +25,8 @@ const SEARCH_FAILED_KEY := "SEARCH_FAILED"
 var _stage := Stage.SEARCH
 var _finder: GameFinder
 var _room: GuestRoom
+## Odanın oyun kaynağı; oyun başlamadan önce kurulur ki ilk görünüm ve olaylar kaçmasın.
+var _source: ClientSource
 var _address := ""
 
 @onready var _search_box: Control = %SearchBox
@@ -45,7 +50,7 @@ func _ready() -> void:
 
 ## Oyun aramaya başlar.
 func open() -> void:
-	_close()
+	close()
 	_finder = GameFinder.new(Tuning.settings)
 	_finder.games_changed.connect(_show_games)
 	_show_message("" if _finder.start() else SEARCH_FAILED_KEY)
@@ -54,7 +59,9 @@ func open() -> void:
 	DisplayServer.screen_set_keep_on(true)
 
 
-func _close() -> void:
+## Aramayı ve bağlantıyı kapatır; ağ oyunu bitince de çağrılır.
+func close() -> void:
+	_source = null
 	if _room != null:
 		_room.close()
 		_room = null
@@ -112,6 +119,8 @@ func _on_join_pressed() -> void:
 	_room.refused.connect(_on_refused)
 	_room.lost.connect(_on_lost)
 	_room.session.lobby_changed.connect(_on_lobby_changed)
+	_source = ClientSource.new(_room)
+	_source.view_reset.connect(_on_match_started.bind(_source), CONNECT_ONE_SHOT)
 	if _room.join(_address, _code_field.text):
 		_set_stage(Stage.CONNECTING)
 	else:
@@ -121,6 +130,11 @@ func _on_join_pressed() -> void:
 func _on_lobby_changed(info: LobbyInfo) -> void:
 	_lobby_panel.show_lobby(info)
 	_set_stage(Stage.LOBBY)
+
+
+func _on_match_started(source: ClientSource) -> void:
+	if source == _source:
+		started.emit(source)
 
 
 func _on_color_chosen(color: int) -> void:
@@ -144,5 +158,5 @@ func _on_back_pressed() -> void:
 		_show_message("")
 		_set_stage(Stage.SEARCH)
 		return
-	_close()
+	close()
 	closed.emit()

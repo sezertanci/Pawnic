@@ -277,11 +277,7 @@ func determinized(rng: RandomNumberGenerator) -> GameMatch:
 
 
 func legal_moves() -> Array[Move]:
-	var moves: Array[Move] = []
-	var hand := current_hand()
-	for index: int in range(hand.size()):
-		moves.append_array(board.moves_for_card(current_seat(), hand[index], index))
-	return moves
+	return board.moves_for_hand(current_seat(), current_hand())
 
 
 ## Hamleyi oynar, kartı atılanlara koyar ve başlangıca dönen taş sayısını verir.

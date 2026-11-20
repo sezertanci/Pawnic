@@ -27,6 +27,8 @@ enum Type {
 	LOBBY,
 	## İstemciden hosta: lobide seçilen renk.
 	COLOR_CHOICE,
+	## İstemciden hosta: oyuncu oyundan çıktı; koltuğunu kalıcı olarak bot alır. İçerik boştur.
+	LEAVE,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -55,6 +57,10 @@ const KEY_PORT := "port"
 const KEY_PLAYERS := "players"
 const KEY_CODE := "code"
 const KEY_COLOR := "color"
+## Görünümle birlikte giden, hostun oyun hızı seviyesi (GameSpeed.Level).
+const KEY_SPEED := "speed"
+## Görünümle birlikte giden bayrak: host, görünümün sahibinin niyetini bekliyor.
+const KEY_AWAITING := "awaiting"
 
 
 static func make(type: Type, data: Dictionary) -> Dictionary:
@@ -69,12 +75,21 @@ static func event(match_event: MatchEvent, viewer_seat: int) -> Dictionary:
 	return make(Type.EVENT, match_event.to_dict(viewer_seat))
 
 
-static func snapshot(view: MatchView) -> Dictionary:
-	return make(Type.SNAPSHOT, view.to_dict())
+## Görünüm, hostun oyun hızıyla ve hostun bu oyuncunun niyetini bekleyip beklemediğiyle birlikte
+## gider; istemci animasyonları bu hızla oynatır.
+static func snapshot(view: MatchView, speed_level: int, awaiting := false) -> Dictionary:
+	var data := view.to_dict()
+	data[KEY_SPEED] = speed_level
+	data[KEY_AWAITING] = awaiting
+	return make(Type.SNAPSHOT, data)
 
 
 static func rejected(player_intent: MatchIntent) -> Dictionary:
 	return make(Type.REJECTED, player_intent.to_dict())
+
+
+static func leave() -> Dictionary:
+	return make(Type.LEAVE, {})
 
 
 static func snapshot_request() -> Dictionary:

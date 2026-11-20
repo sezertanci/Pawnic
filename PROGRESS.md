@@ -297,6 +297,21 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `tools/screenshot.gd` ağ sekmesini, host lobisini ve katılma ekranını da kaydeder.
   Sonraya kalanlar: Başla ve istemcide oyun ekranı (sonraki adım), elle IP ve QR ile katılma,
   oyun sırasında kopma.
+- Ağ oyununun başlaması, parça 1/3 (2026-11-20): Oyun ekranı oyunu artık bir kaynaktan çizer
+  (`MatchSource`): yerel oyunda ve hostta `RefereeSource` (hakem), istemcide `ClientSource`
+  (hosttan gelen görünüm ve olaylar; olayları ekran bitirene kadar sırada tutar, görünümün tamamı
+  gelince sırayı atar). Hostta Başla en az bir katılımcı gelince açılır (varsayım, sorulmadı);
+  basınca hakem oyunu başlatır ve görünüm herkese gider, istemcide oyun ekranı ilk görünümle
+  açılır. Tahta her cihazda kendi koltuğuna göre döner, hız hostunkidir, ağ oyunu kaydedilmez ve
+  oyun içi reklam çıkmaz. Geri tuşu: katılan oyuncuya "Oyundan çıkılsın mı? Yerini bir bot
+  alacak." sorulur, onaylarsa koltuğu kalıcı olarak bota geçer (LEAVE); hosta her zaman
+  "Oyun herkes için bitecek." sorulur. Host çıkarsa ya da bağlantı koparsa istemcide
+  "Kurucu oyunu kapattı." çıkar. Ağ oyunu bitince (ya da çıkınca) yeni oyun ekranının Ağ
+  sekmesine dönülür; sonuç ekranında Tekrar oyna gizlenir, ana menü düğmesi "Yeni oyun" olur.
+  Ortak onay katmanı `ConfirmOverlay` (`scenes/components/`). Testler `test_match_sources.gd`
+  ve `test_confirm_overlay.gd`'de.
+  Sıradakiler: parça 2 (20 sn sıra süresi), parça 3 (oyun sırasında kopma ve geri dönme).
+  Sonraya kalanlar: ağ oyununda Tekrar oyna, duraklatma ve ortak oyun içi reklam.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -542,3 +557,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   geçmiyor (gdformat çok satırlı çağrıyı bozuk biçimde yeniden yazıyor); dokunulmadı.
 - **2026-11-20 (2):** Ağ oyunu lobi ekranları (kurulumda "Ağda" sekmesi, Oyun Kur ve Katıl
   ekranları, `HostRoom` / `GuestRoom`). GUT 227/227, gdlint temiz, simülasyonda bitmeyen oyun yok.
+- **2026-11-20 (3):** Ağ oyunu başlıyor (parça 1/3: Başla, istemcide oyun ekranı, çıkış onayı).
+  GUT 238/238, gdlint ve gdformat temiz, simülasyonda bitmeyen oyun yok. Not: bilgisayarda açık
+  Godot pencereleri 24680/24681 portlarını tutarsa oyun bulma testleri başarısız olur.

@@ -2,8 +2,8 @@ class_name MatchReferee
 extends Node
 ## Oyunun hakemi: sıra akışını yürütür, botları oynatır, oyuncunun niyetini doğrulayıp uygular
 ## ve oyun süresini sayar. Arayüzü bilmez; olan her şeyi olay (MatchEvent) olarak yayar ve
-## ekranın olayı çizip acknowledge() çağırmasını bekler. Her sıranın başında oyun kaydedilir;
-## oyun bitince kayıt silinir.
+## ekranın olayı çizip acknowledge() çağırmasını bekler. Kayıt verildiyse her sıranın başında oyun
+## kaydedilir, oyun bitince kayıt silinir (ağ oyununda kayıt yoktur).
 
 ## Bir olay yayıldı; dinleyen, olayı bitirince acknowledge() çağırır.
 signal event_emitted(event: MatchEvent)
@@ -12,8 +12,10 @@ signal acknowledged
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 
-## Yarım kalan oyunun yazıldığı kayıt.
+## Yarım kalan oyunun yazıldığı kayıt; null ise oyun kaydedilmez.
 var store: SaveStoreScript
+## false ise oyun içi geçiş reklamı zamanı hiç gelmez (ağ oyunu).
+var in_game_ads := true
 ## Yönetilen oyun; durunca null.
 var game: GameMatch
 
@@ -56,7 +58,7 @@ func stop() -> void:
 
 ## Oyuncu oyundan çıkıyor: sıra başındaki kayıt durur, yalnızca geçen süre güncellenir.
 func leave() -> void:
-	if game != null and store.has_match():
+	if game != null and store != null and store.has_match():
 		var saved := store.load_match()
 		saved[GameMatch.KEY_ELAPSED] = game.elapsed
 		store.store_match(saved)
@@ -69,6 +71,18 @@ func acknowledge() -> void:
 		return
 	_waiting_ack = false
 	acknowledged.emit()
+
+
+## Koltuğu kalıcı olarak bota verir (ağ oyununda çıkan oyuncu); sıra o koltuktaysa ve niyeti
+## bekleniyorsa hamleyi hemen bot oynar.
+func hand_to_bot(seat: int) -> void:
+	var index := game.seats.find(seat)
+	if index == GameMatch.NO_INDEX or game.bots[index]:
+		return
+	game.bots[index] = true
+	if _awaiting_intent and game.current == index:
+		_awaiting_intent = false
+		_play_bot_turn()
 
 
 ## Sıradaki insan oyuncunun niyeti bekleniyorsa true.
@@ -114,6 +128,11 @@ func _emit(event: MatchEvent) -> bool:
 	return current == game and current != null
 
 
+func _save() -> void:
+	if store != null:
+		store.store_match(game.to_dict())
+
+
 # --- Sıra akışı ---
 
 
@@ -122,9 +141,9 @@ func _emit(event: MatchEvent) -> bool:
 func _start_turn() -> void:
 	if game.reshuffle_if_empty() and not await _emit(MatchEvent.new(MatchEvent.Kind.RESHUFFLED)):
 		return
-	if AdSchedule.is_due(game) and not await _show_ad():
+	if in_game_ads and AdSchedule.is_due(game) and not await _show_ad():
 		return
-	store.store_match(game.to_dict())
+	_save()
 	var hand_before := game.current_hand().size()
 	game.begin_turn()
 	var event := MatchEvent.new(MatchEvent.Kind.TURN_STARTED, game.current_seat())
@@ -144,7 +163,7 @@ func _start_turn() -> void:
 ## orada yeniden çıkmasın; saat reklam boyunca durur.
 func _show_ad() -> bool:
 	game.last_ad_at = game.elapsed
-	store.store_match(game.to_dict())
+	_save()
 	_clock_running = false
 	var resumed: bool = await _emit(MatchEvent.new(MatchEvent.Kind.AD_DUE, game.current_seat()))
 	if resumed:
@@ -225,5 +244,6 @@ func _announce_finishers() -> bool:
 ## Oyun bitti: saat durur, kayıt silinir. Bu olaydan sonra beklenecek bir şey yoktur.
 func _end_match() -> void:
 	_clock_running = false
-	store.clear_match()
+	if store != null:
+		store.clear_match()
 	event_emitted.emit(MatchEvent.new(MatchEvent.Kind.MATCH_OVER))

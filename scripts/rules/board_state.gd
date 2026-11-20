@@ -121,6 +121,14 @@ func moves_for_card(seat: int, card: Card, card_index: int) -> Array[Move]:
 ## Çıkışta yalnızca varış karesi döner. Kısayolda taş yol üstünden kayacağı için varışa kadarki
 ## bütün kareler döner. Yer değiştirmede oynanan taşın hedef taşa giden yolu (swap_path) döner.
 ## apply'dan önce çağrılır.
+## Eldeki bütün kartlarla koltuğun yapabileceği hamleler.
+func moves_for_hand(seat: int, hand: Array[Card]) -> Array[Move]:
+	var moves: Array[Move] = []
+	for index: int in range(hand.size()):
+		moves.append_array(moves_for_card(seat, hand[index], index))
+	return moves
+
+
 func move_path(move: Move) -> Array[int]:
 	var path: Array[int] = []
 	match move.action:

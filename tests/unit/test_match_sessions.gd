@@ -140,7 +140,8 @@ func test_messages_from_other_peers_are_ignored() -> void:
 	watch_signals(_client)
 
 	_stranger.send(CLIENT_PEER, MatchMessage.welcome())
-	_stranger.send(CLIENT_PEER, MatchMessage.snapshot(MatchView.of(_game, _client_seat)))
+	var view := MatchView.of(_game, _client_seat)
+	_stranger.send(CLIENT_PEER, MatchMessage.snapshot(view, GameSpeed.Level.NORMAL))
 	await wait_frames(FRAMES)
 
 	assert_signal_not_emitted(_client, "welcomed")

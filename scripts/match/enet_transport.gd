@@ -57,10 +57,11 @@ func join(address: String) -> bool:
 	return true
 
 
-## Bağlantıyı kapatır; taşıyıcı yeniden kurulabilir.
+## Bağlantıyı kapatır; kuyruktaki mesajlar önce gönderilir. Taşıyıcı yeniden kurulabilir.
 func close() -> void:
 	if _peer == null:
 		return
+	_peer.host.flush()
 	_peer.close()
 	_release()
 

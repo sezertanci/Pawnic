@@ -4,7 +4,8 @@ extends RefCounted
 ## olaylarını eşlere taşır. Eş ancak el sıkışmadan (HELLO → WELCOME) geçip bir koltuğa oturtulunca
 ## oyuna katılır. Niyetteki koltuk alanına güvenilmez; koltuk, eşin oturtulduğu koltuktur. Host
 ## yalnızca kendi ekranının bitirmesini bekler; olaylar eşlere beklemeden gider. Reddedilen eşe
-## REFUSED gönderilip bağlantısı kesilir.
+## REFUSED gönderilip bağlantısı kesilir. Oyundan çıkan (LEAVE) eşin koltuğunu kalıcı olarak bot
+## alır; eşe artık olay gitmez.
 
 ## Eş el sıkışmadan geçti.
 signal peer_welcomed(peer_id: int)
@@ -12,6 +13,8 @@ signal peer_welcomed(peer_id: int)
 ## Sürümü uyan eşin kabul denetimi (ör. lobinin oda kodu): HELLO içeriğini alır, ret nedenini
 ## (MatchMessage.Refusal) ya da MatchMessage.NO_REFUSAL döndürür. Boşsa her uyumlu eş kabul edilir.
 var admission: Callable
+## Görünümle eşlere giden oyun hızı seviyesi (GameSpeed.Level); hostun seçtiği hızdır.
+var speed_level: int = GameSpeed.Level.NORMAL
 
 var _referee: MatchReferee
 var _transport: MatchTransport
@@ -59,6 +62,8 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 			_take_intent(peer_id, data)
 		MatchMessage.Type.SNAPSHOT_REQUEST:
 			_send_snapshot(peer_id)
+		MatchMessage.Type.LEAVE:
+			_release_seat(peer_id)
 
 
 func _greet(peer_id: int, data: Dictionary) -> void:
@@ -95,7 +100,19 @@ func _send_snapshot(peer_id: int) -> void:
 	var seat := seat_of(peer_id)
 	if seat == BoardLayout.NO_SEAT or _referee.game == null:
 		return
-	_transport.send(peer_id, MatchMessage.snapshot(MatchView.of(_referee.game, seat)))
+	var view := MatchView.of(_referee.game, seat)
+	var awaiting := _referee.is_awaiting_intent() and _referee.game.current_seat() == seat
+	_transport.send(peer_id, MatchMessage.snapshot(view, speed_level, awaiting))
+
+
+## Eş oyundan çıktı: koltuğu bota geçer, eş oyundan düşer.
+func _release_seat(peer_id: int) -> void:
+	var seat := seat_of(peer_id)
+	if seat == BoardLayout.NO_SEAT:
+		return
+	_seats.erase(peer_id)
+	if _referee.game != null:
+		_referee.hand_to_bot(seat)
 
 
 func _on_event(event: MatchEvent) -> void:

@@ -125,6 +125,17 @@ func current_seat() -> int:
 	return seats[current]
 
 
+## Sıra izleyicideyse true.
+func is_viewer_turn() -> bool:
+	return viewer_seat != BoardLayout.NO_SEAT and current_seat() == viewer_seat
+
+
+## İzleyicinin elindeki kartlarla sıradaki koltuğun yapabileceği hamleler; sıra izleyicide
+## değilse anlamsızdır.
+func legal_moves() -> Array[Move]:
+	return board.moves_for_hand(current_seat(), hand)
+
+
 func _start_turn(event: MatchEvent) -> bool:
 	var index := seats.find(event.seat)
 	if index == GameMatch.NO_INDEX:

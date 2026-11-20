@@ -20,7 +20,12 @@ func select(level: Level) -> void:
 
 ## Seçili seviyenin animasyon hız çarpanı.
 func speed_scale() -> float:
-	return Tuning.settings.speed_levels[current()]
+	return scale_of(current())
+
+
+## Seviyenin animasyon hız çarpanı (ağ oyununda hostun seviyesi).
+func scale_of(level: Level) -> float:
+	return Tuning.settings.speed_levels[level]
 
 
 func level_key(level: Level) -> String:

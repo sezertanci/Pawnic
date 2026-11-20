@@ -17,6 +17,8 @@ const NO_ROUND := "—"
 const ROW_PAWN_SCALE := 1.6
 ## Tablo yazılarının tema türü.
 const RESULT_STYLE := &"ResultLabel"
+const MAIN_MENU_KEY := "MAIN_MENU"
+const NEW_GAME_KEY := "NEW_GAME"
 
 var _tween: Tween
 
@@ -33,6 +35,12 @@ var _tween: Tween
 func _ready() -> void:
 	(%ReplayButton as Button).pressed.connect(replay_pressed.emit)
 	(%HomeButton as Button).pressed.connect(home_pressed.emit)
+
+
+## Ağ oyununda yeniden oyna düğmesi gizlenir, ana ekran düğmesi yeni oyun kurmaya götürür.
+func set_networked(networked: bool) -> void:
+	(%ReplayButton as Button).visible = not networked
+	(%HomeButton as Button).text = NEW_GAME_KEY if networked else MAIN_MENU_KEY
 
 
 ## Oyun sonunu gösterir: ranking sıralamadaki oyuncuların renkleri (kaplamadaki renk sırası),

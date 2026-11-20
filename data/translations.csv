@@ -122,3 +122,7 @@ REFUSED_VERSION,Oyunu güncelleyin; sürümler farklı.,Update the game; the ver
 REFUSED_WRONG_CODE,Oda kodu yanlış.,Wrong room code.,Falscher Raumcode.,Código de sala incorrecto.,Code de salle incorrect.,Codice stanza errato.,Código da sala incorreto.,Kode ruang salah.
 REFUSED_ROOM_FULL,Oda dolu.,The room is full.,Der Raum ist voll.,La sala está llena.,La salle est pleine.,La stanza è piena.,A sala está cheia.,Ruang sudah penuh.
 REFUSED_MATCH_STARTED,Oyun başlamış.,The game has already started.,Das Spiel hat bereits begonnen.,La partida ya empezó.,La partie a déjà commencé.,La partita è già iniziata.,O jogo já começou.,Permainan sudah dimulai.
+LEAVE_MATCH_CONFIRM,Oyundan çıkılsın mı? Yerini bir bot alacak.,Leave the game? A bot will take your place.,Spiel verlassen? Ein Bot übernimmt deinen Platz.,¿Salir de la partida? Un bot ocupará tu lugar.,Quitter la partie ? Un bot prendra ta place.,Uscire dalla partita? Un bot prenderà il tuo posto.,Sair do jogo? Um bot vai ocupar o seu lugar.,Keluar dari permainan? Bot akan menggantikanmu.
+END_MATCH_CONFIRM,Oyundan çıkılsın mı? Oyun herkes için bitecek.,Leave the game? It will end for everyone.,Spiel verlassen? Es endet für alle.,¿Salir de la partida? Terminará para todos.,Quitter la partie ? Elle se terminera pour tout le monde.,Uscire dalla partita? Finirà per tutti.,Sair do jogo? Ele vai terminar para todos.,Keluar dari permainan? Permainan akan berakhir untuk semua.
+LEAVE,Çık,Leave,Verlassen,Salir,Quitter,Esci,Sair,Keluar
+CANCEL,Vazgeç,Cancel,Abbrechen,Cancelar,Annuler,Annulla,Cancelar,Batal

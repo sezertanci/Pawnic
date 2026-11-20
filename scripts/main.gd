@@ -7,6 +7,8 @@ extends Control
 const BLUR_PARAMETER := &"blur_radius"
 
 var _rng := RandomNumberGenerator.new()
+## Oyun ekranındaki oyun ağ oyunuysa true; bitince Ağ sekmesine dönülür.
+var _network := false
 
 @onready var _backdrop: TextureRect = $Column/Backdrop
 @onready var _sides: ColorRect = $Sides
@@ -31,9 +33,11 @@ func _ready() -> void:
 	_setup.join_requested.connect(_on_join_requested)
 	_host_lobby.closed.connect(_show_only.bind(_setup))
 	_join.closed.connect(_show_only.bind(_setup))
-	_game_screen.finished.connect(_show_home)
+	_host_lobby.started.connect(_on_network_started)
+	_join.started.connect(_on_network_started)
+	_game_screen.finished.connect(_on_game_closed)
 	_game_screen.replay_requested.connect(_on_start_requested)
-	_game_screen.left.connect(_show_home)
+	_game_screen.left.connect(_on_game_closed)
 	_home.demo_requested.connect(_on_demo_requested)
 	_demo.closed.connect(_on_demo_closed)
 	_column.bottom_inset = Ads.banner_height
@@ -66,6 +70,24 @@ func _on_host_requested() -> void:
 func _on_join_requested() -> void:
 	_show_only(_join)
 	_join.open()
+
+
+func _on_network_started(source: MatchSource) -> void:
+	_network = true
+	_show_only(_game_screen)
+	_game_screen.start_source(source, true)
+
+
+## Ağ oyunu bitince bağlantılar kapanır ve yeni oyun ekranının Ağ sekmesine dönülür.
+func _on_game_closed() -> void:
+	if not _network:
+		_show_home()
+		return
+	_network = false
+	_host_lobby.close_room()
+	_join.close()
+	_setup.show_network()
+	_show_only(_setup)
 
 
 func _on_demo_requested() -> void:

@@ -104,6 +104,12 @@ func _build_level_buttons() -> void:
 		button.pressed.connect(Difficulty.select.bind(level))
 
 
+## Ağ sekmesini seçili gösterir (ağ oyunu bitince buraya dönülür).
+func show_network() -> void:
+	(%NetworkTab as Button).button_pressed = true
+	_set_mode(Mode.NETWORK)
+
+
 func _set_mode(mode: Mode) -> void:
 	_mode = mode
 	_refresh_mode()

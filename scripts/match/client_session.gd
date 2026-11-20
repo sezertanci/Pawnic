@@ -20,6 +20,10 @@ signal lobby_changed(info: LobbyInfo)
 
 ## İstemcinin kopyası; ilk görünüm gelene kadar null.
 var view: MatchView
+## Son görünümle gelen hostun oyun hızı seviyesi (GameSpeed.Level).
+var speed_level: int = GameSpeed.Level.NORMAL
+## Son görünüm geldiğinde host bu oyuncunun niyetini bekliyorsa true.
+var host_awaiting := false
 ## Lobinin son hâli; ilk lobi mesajı gelene kadar null.
 var lobby: LobbyInfo
 
@@ -51,6 +55,12 @@ func choose_color(color: int) -> void:
 func send_intent(intent: MatchIntent) -> void:
 	if _welcomed:
 		_transport.send(MatchTransport.HOST_PEER, MatchMessage.intent(intent))
+
+
+## Hosta oyundan çıktığını bildirir; koltuğunu bot alır.
+func leave() -> void:
+	if _welcomed:
+		_transport.send(MatchTransport.HOST_PEER, MatchMessage.leave())
 
 
 func _on_message(peer_id: int, message: Dictionary) -> void:
@@ -85,12 +95,17 @@ func _update_lobby(data: Dictionary) -> void:
 		lobby_changed.emit(lobby)
 
 
-## Bozuk görünüm yok sayılır; kopya değişmez.
+## Bozuk görünüm (hız ve bekleme bayrağı dahil) yok sayılır; kopya değişmez.
 func _reset(data: Dictionary) -> void:
 	var received := MatchView.from_dict(_settings, data)
-	if received == null:
+	var levels := _settings.speed_levels.size()
+	var level := MessageData.read_index(data, MatchMessage.KEY_SPEED, 0, levels)
+	var awaiting: Variant = data.get(MatchMessage.KEY_AWAITING)
+	if received == null or level == MessageData.INVALID or not awaiting is bool:
 		return
 	view = received
+	speed_level = level
+	host_awaiting = awaiting
 	_awaiting_snapshot = false
 	view_reset.emit(view)
 
