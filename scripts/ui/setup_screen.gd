@@ -1,25 +1,34 @@
 class_name SetupScreen
 extends MarginContainer
 ## Yeni oyun ekranı: oyun modu, oyuncu ve taş sayısı seçimi; tek oyunculu modda oyuncunun rengi
-## ve bot zorluğu.
+## ve bot zorluğu. Ağ modunda seçenekler yerine oyun kurma ve katılma düğmeleri görünür; ağ
+## oyununun ayarları lobide seçilir.
 
 signal start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
 signal back_requested
+## Ağ modunda oyun kurulmak istendi.
+signal host_requested
+## Ağ modunda oyuna katılmak istendi.
+signal join_requested
 
-enum Mode { SINGLE, MULTI }
+enum Mode { SINGLE, MULTI, NETWORK }
 
-const HINT_KEYS := {Mode.SINGLE: "MODE_SINGLE_HINT", Mode.MULTI: "MODE_MULTI_HINT"}
+const HINT_KEYS := {
+	Mode.SINGLE: "MODE_SINGLE_HINT",
+	Mode.MULTI: "MODE_MULTI_HINT",
+	Mode.NETWORK: "MODE_NETWORK_HINT",
+}
 const COUNT_KEYS := {Mode.SINGLE: "SET_BOTS", Mode.MULTI: "SET_PLAYERS"}
 ## Tek oyunculu modda sayı seçici bot sayısını gösterir; insan oyuncu bir kişidir.
 const HUMAN_SEATS := 1
-## Renk düğmelerindeki taş görselinin genişliği (piksel).
-const COLOR_ICON_WIDTH := 28
-const ICON_MAX_WIDTH := &"icon_max_width"
 
 var _mode := Mode.SINGLE
 var _player_count := 0
 
 @onready var _mode_hint: Label = %ModeHint
+@onready var _game_options: Control = %GameOptions
+@onready var _start: Button = %StartButton
+@onready var _network_buttons: Control = %NetworkButtons
 @onready var _count: Stepper = %CountStepper
 @onready var _pawns: Stepper = %PawnStepper
 @onready var _difficulty: Control = %DifficultyBox
@@ -35,17 +44,29 @@ func _ready() -> void:
 	(%BackButton as Button).pressed.connect(back_requested.emit)
 	(%SingleTab as Button).pressed.connect(_set_mode.bind(Mode.SINGLE))
 	(%MultiTab as Button).pressed.connect(_set_mode.bind(Mode.MULTI))
+	(%NetworkTab as Button).pressed.connect(_set_mode.bind(Mode.NETWORK))
+	(%HostButton as Button).pressed.connect(host_requested.emit)
+	(%JoinButton as Button).pressed.connect(join_requested.emit)
 	_count.value_changed.connect(_on_count_changed)
-	(%StartButton as Button).pressed.connect(_on_start_pressed)
+	_start.pressed.connect(_on_start_pressed)
 	_build_color_buttons()
 	_build_level_buttons()
 	_refresh_mode()
 
 
 func _refresh_mode() -> void:
+	var on_network := _mode == Mode.NETWORK
+	_mode_hint.text = HINT_KEYS[_mode]
+	_game_options.visible = not on_network
+	_start.visible = not on_network
+	_network_buttons.visible = on_network
+	if not on_network:
+		_refresh_options()
+
+
+func _refresh_options() -> void:
 	var settings := Tuning.settings
 	var offset := _count_offset()
-	_mode_hint.text = HINT_KEYS[_mode]
 	_difficulty.visible = _mode == Mode.SINGLE
 	_color_box.visible = _mode == Mode.SINGLE
 	_count.configure(
@@ -66,12 +87,8 @@ func _count_offset() -> int:
 func _build_color_buttons() -> void:
 	var group := ButtonGroup.new()
 	var current := PlayerColor.current()
-	var skin := Skins.current
 	for color: int in PlayerColor.colors():
-		var key := skin.seat_name_keys[color]
-		var button := ChoiceButtons.add(_colors, key, group, color == current)
-		button.icon = skin.pawn_textures[color]
-		button.add_theme_constant_override(ICON_MAX_WIDTH, COLOR_ICON_WIDTH)
+		var button := ChoiceButtons.add_color(_colors, color, group, color == current)
 		button.pressed.connect(PlayerColor.select.bind(color))
 
 

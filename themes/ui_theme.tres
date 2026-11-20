@@ -456,6 +456,44 @@ modulate_color = Color(1, 1, 1, 1)
 texture = ExtResource("button_orange_round")
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
+[sub_resource type="StyleBoxTexture" id="menu_green_disabled"]
+content_margin_left = 100.0
+content_margin_top = 14.0
+content_margin_right = 40.0
+content_margin_bottom = 22.0
+texture = ExtResource("button_green")
+texture_margin_left = 100.0
+texture_margin_right = 50.0
+modulate_color = Color(1, 1, 1, 0.45)
+
+[sub_resource type="StyleBoxFlat" id="choice_disabled"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.93, 0.89, 0.8, 0.35)
+border_width_bottom = 6
+border_color = Color(0.8, 0.75, 0.64, 0.35)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="code_field"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.93, 0.89, 0.8, 1)
+border_width_bottom = 6
+border_color = Color(0.8, 0.75, 0.64, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+corner_detail = 16
+
 [resource]
 default_font_size = 30
 MarginContainer/constants/margin_left = 24
@@ -616,7 +654,8 @@ MenuGreenButton/styles/normal = SubResource("menu_green")
 MenuGreenButton/styles/hover = SubResource("menu_green")
 MenuGreenButton/styles/pressed = SubResource("menu_green_pressed")
 MenuGreenButton/styles/hover_pressed = SubResource("menu_green_pressed")
-MenuGreenButton/styles/disabled = SubResource("menu_green")
+MenuGreenButton/styles/disabled = SubResource("menu_green_disabled")
+MenuGreenButton/colors/font_disabled_color = Color(1, 1, 1, 0.6)
 MenuGreenButton/styles/focus = SubResource("card_focus")
 MenuBlueButton/base_type = &"Button"
 MenuBlueButton/font_sizes/font_size = 36
@@ -696,6 +735,13 @@ RoundButton/styles/disabled = SubResource("round_disabled")
 RoundButton/styles/focus = SubResource("card_focus")
 StepperRow/base_type = &"PanelContainer"
 StepperRow/styles/panel = SubResource("stepper_row")
+CodeField/base_type = &"LineEdit"
+CodeField/font_sizes/font_size = 48
+CodeField/colors/font_color = Color(0.12, 0.13, 0.17, 1)
+CodeField/colors/font_placeholder_color = Color(0.12, 0.13, 0.17, 0.35)
+CodeField/colors/caret_color = Color(0.12, 0.13, 0.17, 1)
+CodeField/styles/normal = SubResource("code_field")
+CodeField/styles/focus = SubResource("card_focus")
 HeaderStrip/base_type = &"PanelContainer"
 HeaderStrip/styles/panel = SubResource("header_strip")
 ChoiceButton/base_type = &"Button"
@@ -709,7 +755,9 @@ ChoiceButton/styles/normal = SubResource("choice_off")
 ChoiceButton/styles/hover = SubResource("choice_off")
 ChoiceButton/styles/pressed = SubResource("tab_on")
 ChoiceButton/styles/hover_pressed = SubResource("tab_on")
-ChoiceButton/styles/disabled = SubResource("choice_off")
+ChoiceButton/styles/disabled = SubResource("choice_disabled")
+ChoiceButton/colors/font_disabled_color = Color(0.12, 0.13, 0.17, 0.4)
+ChoiceButton/colors/icon_disabled_color = Color(1, 1, 1, 0.4)
 ChoiceButton/styles/focus = SubResource("card_focus")
 ToggleSwitch/base_type = &"Button"
 ToggleSwitch/colors/track_on = Color(0.25, 0.68, 0.35, 1)

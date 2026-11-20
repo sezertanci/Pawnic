@@ -278,6 +278,25 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   görünmez. Testler `test_host_lobby.gd`, `test_lobby_info.gd`, `test_enet_transport.gd`'de.
   Sonraya kalanlar: lobi ekranları (Aşama 2), host ayrılan oyuncuyu başlamadan önce görür ama
   oyun sırasında kopma (20 sn bekleme, bot devralması) henüz yok.
+- Lobi ekranları (2026-11-20): Kurulum ekranına üçüncü sekme "Ağda" (ipucu "Aynı Wi-Fi'da")
+  eklendi; bu sekmede oyun seçenekleri ve Başla yerine "Oyun Kur" ve "Katıl" düğmeleri görünür,
+  ana ekran değişmedi. Ekransız `HostRoom` (oturum, lobi, taşıyıcı ve yayıncı bir arada) ve
+  `GuestRoom` (bağlanınca kodla katılır; `refused`, `lost(was_welcomed)`) ekranlardan ayrı ve
+  ENet ile uçtan uca test edildi (`test_network_rooms.gd`). `HostLobbyScreen` oda kodunu, oyuncu
+  ve taş sayısını, koltuk satırlarını (`LobbyPanel`: dolu satırda taş ve renk adı, kendi satırında
+  "Sen", hostunkinde "Kurucu"; boş satır soluk "Bot") ve renk düğmelerini (başkasının rengi kapalı)
+  gösterir. Başla görünür ama kapalıdır. `JoinScreen` bulunan oyunları "Oyun 1 · Oyuncu: 2"
+  biçiminde listeler (IP gösterilmez), seçilen oyun için oda kodu ister, katılınca aynı lobi
+  panelini ve "Kurucunun oyunu başlatması bekleniyor" yazısını gösterir. Bulma portu açılamazsa
+  (aynı bilgisayarda ikinci Katıl penceresi ya da portu tutan başka uygulama) ayrı
+  `SEARCH_FAILED` mesajı çıkar ve arama yazısı gizlenir. Ret nedenleri ve kopma
+  ekranda yazar. Lobi ekranları açıkken ekran kapanmaz. Hosta bağlanma zaman aşımı
+  `connect_timeout_ms` (5 sn; bağlanınca ENet'in olağan değerine dönülür); önceden ulaşılamayan
+  hostta 30 sn bekleniyordu. Renk düğmesi kurulumu `ChoiceButtons.add_color`'da ortaklaştı; temada
+  kapalı yeşil düğme ve kapalı seçim düğmesi soluk görünür, oda kodu alanı için `CodeField` var.
+  `tools/screenshot.gd` ağ sekmesini, host lobisini ve katılma ekranını da kaydeder.
+  Sonraya kalanlar: Başla ve istemcide oyun ekranı (sonraki adım), elle IP ve QR ile katılma,
+  oyun sırasında kopma.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -378,7 +397,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - `ENetMultiplayerPeer` ile gerçek taşıyıcı.
 - Oyun bulma: `PacketPeerUDP` yayını; yedek olarak QR/elle IP.
 - Lobi sahneleri: Oyun kur / Katıl, bulunan oyunlar, bekleyen oyuncular, renk seçimi, Başlat.
-  `main.gd` geçişleri; yeni metinler 8 dilde.
+  `main.gd` geçişleri; yeni metinler 8 dilde. (Başlat dışında yapıldı, 2026-11-20.)
 
 **Aşama 3: Dayanıklılık**
 - Kopma ve yeniden bağlanma, host'un kopması, uygulamanın arka plana alınması.
@@ -521,3 +540,5 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   seçicisi, `SeatColors`, `PlayerColor`, kayıt sürümü 4). GUT 130/130, gdlint temiz, simülasyonda
   bitmeyen oyun yok. Not: `tests/unit/test_move_picker.gd` önceden de `gdformat --check`'ten
   geçmiyor (gdformat çok satırlı çağrıyı bozuk biçimde yeniden yazıyor); dokunulmadı.
+- **2026-11-20 (2):** Ağ oyunu lobi ekranları (kurulumda "Ağda" sekmesi, Oyun Kur ve Katıl
+  ekranları, `HostRoom` / `GuestRoom`). GUT 227/227, gdlint temiz, simülasyonda bitmeyen oyun yok.

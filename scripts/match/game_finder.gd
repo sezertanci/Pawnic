@@ -36,6 +36,11 @@ func start() -> bool:
 	return true
 
 
+## Dinleme sürüyor mu (start() başarılı ve stop() çağrılmadı).
+func is_listening() -> bool:
+	return _socket != null
+
+
 func stop() -> void:
 	if _socket != null:
 		_socket.close()

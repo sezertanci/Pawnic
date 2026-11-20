@@ -1,6 +1,7 @@
 extends GutTest
 ## Oyun bulma aynı cihazda: hostun yayını bulunur, oyuncu sayısı güncellenir, yayını kesilen oyun
-## listeden düşer; bozuk, yabancı ya da başka sürümdeki yayın atılır.
+## listeden düşer; bozuk, yabancı ya da başka sürümdeki yayın atılır. Aynı portta ikinci bulucu
+## dinleyemez.
 
 ## Yayının bulunması için beklenen en fazla süre (saniye).
 const TIMEOUT := 3.0
@@ -86,6 +87,19 @@ func test_bad_announcements_are_ignored() -> void:
 
 func test_announcer_refuses_public_address() -> void:
 	assert_false(_announcer.start(PUBLIC_ADDRESS))
+
+
+func test_second_finder_on_same_port_fails() -> void:
+	# Arrange
+	var second := GameFinder.new(_settings)
+
+	# Act
+	var started := second.start()
+
+	# Assert
+	assert_false(started)
+	assert_false(second.is_listening())
+	assert_true(_finder.is_listening())
 
 
 func _send_raw(packets: Array[PackedByteArray]) -> void:

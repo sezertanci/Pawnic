@@ -98,46 +98,62 @@ button_group = SubResource("mode_group")
 text = "MODE_MULTI"
 autowrap_mode = 3
 
+[node name="NetworkTab" type="Button" parent="Box/Options/Box/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_group = SubResource("mode_group")
+text = "MODE_NETWORK"
+autowrap_mode = 3
+
 [node name="ModeHint" type="Label" parent="Box/Options/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PanelHint"
 horizontal_alignment = 1
 
-[node name="CountStepper" parent="Box/Options/Box" instance=ExtResource("2")]
+[node name="GameOptions" type="VBoxContainer" parent="Box/Options/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CountStepper" parent="Box/Options/Box/GameOptions" instance=ExtResource("2")]
 unique_name_in_owner = true
 layout_mode = 2
 each_seat = true
 
-[node name="PawnStepper" parent="Box/Options/Box" instance=ExtResource("2")]
+[node name="PawnStepper" parent="Box/Options/Box/GameOptions" instance=ExtResource("2")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ColorBox" type="VBoxContainer" parent="Box/Options/Box"]
+[node name="ColorBox" type="VBoxContainer" parent="Box/Options/Box/GameOptions"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ColorLabel" type="Label" parent="Box/Options/Box/ColorBox"]
+[node name="ColorLabel" type="Label" parent="Box/Options/Box/GameOptions/ColorBox"]
 layout_mode = 2
 theme_type_variation = &"PanelLabel"
 text = "YOUR_COLOR"
 
-[node name="Colors" type="HBoxContainer" parent="Box/Options/Box/ColorBox"]
+[node name="Colors" type="HBoxContainer" parent="Box/Options/Box/GameOptions/ColorBox"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DifficultyBox" type="VBoxContainer" parent="Box/Options/Box"]
+[node name="DifficultyBox" type="VBoxContainer" parent="Box/Options/Box/GameOptions"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="DifficultyLabel" type="Label" parent="Box/Options/Box/DifficultyBox"]
+[node name="DifficultyLabel" type="Label" parent="Box/Options/Box/GameOptions/DifficultyBox"]
 layout_mode = 2
 theme_type_variation = &"PanelLabel"
 text = "DIFFICULTY"
 
-[node name="Levels" type="HBoxContainer" parent="Box/Options/Box/DifficultyBox"]
+[node name="Levels" type="HBoxContainer" parent="Box/Options/Box/GameOptions/DifficultyBox"]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -152,5 +168,27 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_type_variation = &"MenuGreenButton"
 text = "START"
+script = ExtResource("4")
+symbol = 0
+
+[node name="NetworkButtons" type="VBoxContainer" parent="Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="HostButton" type="Button" parent="Box/NetworkButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MenuGreenButton"
+text = "HOST_GAME"
+script = ExtResource("4")
+symbol = 1
+
+[node name="JoinButton" type="Button" parent="Box/NetworkButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MenuBlueButton"
+text = "JOIN_GAME"
 script = ExtResource("4")
 symbol = 0

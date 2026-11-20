@@ -58,10 +58,14 @@ func info() -> LobbyInfo:
 	return _info_for(0)
 
 
+## Seçilebilecek en küçük oyuncu sayısı: ayardaki en küçük sayı, lobidekilerden az olmamak üzere.
+func min_seat_count() -> int:
+	return maxi(_settings.min_players, _members.size() + 1)
+
+
 ## Oyuncu sayısını değiştirir; aralık dışıysa, lobidekilerden azsa ya da oyun başladıysa false.
 func set_seat_count(count: int) -> bool:
-	var low := maxi(_settings.min_players, _members.size() + 1)
-	if _started or count < low or count > _settings.max_players:
+	if _started or count < min_seat_count() or count > _settings.max_players:
 		return false
 	seat_count = count
 	_broadcast()

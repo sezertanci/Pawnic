@@ -23,6 +23,7 @@ func _run() -> void:
 	main.get_node("Column/HomeScreen").emit_signal("new_game_requested")
 	await _frames()
 	_save(out_dir.path_join("1b_setup.png"))
+	await _capture_network(main, out_dir)
 	var bot_flags: Array[bool] = [false, true, true, true]
 	main.get_node("Column/SetupScreen").emit_signal(
 		"start_requested", bot_flags, PAWNS, Bot.Level.MEDIUM
@@ -35,6 +36,23 @@ func _run() -> void:
 	_save(out_dir.path_join("3_board.png"))
 	DirAccess.remove_absolute(SAVE_PATH)
 	quit()
+
+
+## Kurulumun ağ sekmesini, host lobisini ve katılma ekranını kaydeder; sonra kuruluma döner.
+func _capture_network(main: Control, out_dir: String) -> void:
+	var setup := main.get_node("Column/SetupScreen")
+	var tab: Button = setup.get_node("%NetworkTab")
+	tab.button_pressed = true
+	tab.emit_signal("pressed")
+	await _frames()
+	_save(out_dir.path_join("1c_setup_network.png"))
+	for step: Array in [["host_requested", "HostLobbyScreen"], ["join_requested", "JoinScreen"]]:
+		setup.emit_signal(step[0])
+		await _frames()
+		_save(out_dir.path_join("1d_%s.png" % (step[1] as String).to_snake_case()))
+		var screen := main.get_node("Column").get_node(step[1] as String)
+		(screen.get_node("%BackButton") as Button).emit_signal("pressed")
+		await _frames()
 
 
 ## Gerçek kayıt dosyasını bozmamak için ayrı bir kayıt yolu kullanır.

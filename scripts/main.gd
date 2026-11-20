@@ -1,8 +1,8 @@
 extends Control
-## Ana sahne: ana ekran, yeni oyun ekranı, oyun ekranı ve demo arasında geçişi yapar,
-## yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede sütunun yanlarını dolduran
-## düz renk yalnızca menü ekranlarında görünür; arka plan, düğmeler öne çıksın diye hafifçe
-## bulanıklaştırılır.
+## Ana sahne: ana ekran, yeni oyun ekranı, ağ lobisi ekranları, oyun ekranı ve demo arasında
+## geçişi yapar, yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede sütunun
+## yanlarını dolduran düz renk yalnızca menü ekranlarında görünür; arka plan, düğmeler öne
+## çıksın diye hafifçe bulanıklaştırılır.
 
 const BLUR_PARAMETER := &"blur_radius"
 
@@ -15,6 +15,8 @@ var _rng := RandomNumberGenerator.new()
 @onready var _setup: SetupScreen = $Column/SetupScreen
 @onready var _game_screen: GameScreen = $Column/GameScreen
 @onready var _demo: DemoScreen = $Column/DemoScreen
+@onready var _host_lobby: HostLobbyScreen = $Column/HostLobbyScreen
+@onready var _join: JoinScreen = $Column/JoinScreen
 
 
 func _ready() -> void:
@@ -25,6 +27,10 @@ func _ready() -> void:
 	_home.new_game_requested.connect(_show_only.bind(_setup))
 	_setup.back_requested.connect(_show_home)
 	_setup.start_requested.connect(_on_start_requested)
+	_setup.host_requested.connect(_on_host_requested)
+	_setup.join_requested.connect(_on_join_requested)
+	_host_lobby.closed.connect(_show_only.bind(_setup))
+	_join.closed.connect(_show_only.bind(_setup))
 	_game_screen.finished.connect(_show_home)
 	_game_screen.replay_requested.connect(_on_start_requested)
 	_game_screen.left.connect(_show_home)
@@ -42,7 +48,7 @@ func _show_home() -> void:
 
 ## Verilen ekranı gösterir, ötekileri gizler.
 func _show_only(screen: Control) -> void:
-	for other: Control in [_home, _setup, _game_screen, _demo]:
+	for other: Control in [_home, _setup, _game_screen, _demo, _host_lobby, _join]:
 		other.visible = other == screen
 	_backdrop.visible = screen != _game_screen and screen != _demo
 	_sides.visible = _backdrop.visible
@@ -50,6 +56,16 @@ func _show_only(screen: Control) -> void:
 
 func _on_banner_height_changed(height: float) -> void:
 	_column.bottom_inset = height
+
+
+func _on_host_requested() -> void:
+	_show_only(_host_lobby)
+	_host_lobby.open()
+
+
+func _on_join_requested() -> void:
+	_show_only(_join)
+	_join.open()
 
 
 func _on_demo_requested() -> void:

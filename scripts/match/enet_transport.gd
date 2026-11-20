@@ -6,8 +6,14 @@ extends MatchTransport
 ## Paket nesne çözme kapalıyken okunur; sözlük olmayan atılır. Paketler her karede okunur. Host
 ## bağlantıyı kesince istemci taşıyıcısı kendini kapatır.
 
+## Bağlantı kendiliğinden kapandı: istemci hosta bağlanamadı ya da host bağlantıyı kesti. close()
+## ile kapatınca gelmez.
+signal closed
+
 ## Bağlantı yokken eş numarası.
 const NO_PEER := 0
+## ENet zaman aşımında sıfır, olağan değeri seçer.
+const DEFAULT_TIMEOUT := 0
 const MSEC_PER_SEC := 1000
 
 var _settings: GameSettings
@@ -37,13 +43,16 @@ func host(bind_address: String) -> bool:
 
 
 ## Hosta bağlanmaya başlar; adres izinli değilse ya da bağlantı kurulamazsa false. Bağlantı
-## kurulunca peer_connected(HOST_PEER) gelir.
+## kurulunca peer_connected(HOST_PEER) gelir. connect_timeout_ms içinde bağlanılamazsa bağlantı
+## düşer; bağlanınca ENet'in olağan zaman aşımına dönülür.
 func join(address: String) -> bool:
 	if _peer != null or not LocalAddress.is_allowed(address):
 		return false
 	var peer := ENetMultiplayerPeer.new()
 	if peer.create_client(address, _settings.network_port) != OK:
 		return false
+	var timeout := _settings.connect_timeout_ms
+	peer.get_peer(MatchTransport.HOST_PEER).set_timeout(timeout, timeout, timeout)
 	_attach(peer)
 	return true
 
@@ -98,6 +107,7 @@ func _attach(peer: ENetMultiplayerPeer) -> void:
 func _poll() -> void:
 	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		_release()
+		closed.emit()
 	if _peer == null:
 		return
 	_peer.poll()
@@ -127,6 +137,8 @@ func _within_rate(peer_id: int) -> bool:
 
 
 func _on_peer_connected(peer_id: int) -> void:
+	if peer_id == MatchTransport.HOST_PEER:
+		_peer.get_peer(peer_id).set_timeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT)
 	_peers.append(peer_id)
 	peer_connected.emit(peer_id)
 

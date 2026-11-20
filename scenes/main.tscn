@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/ui/aspect_column.gd" id="6"]
 [ext_resource type="Shader" path="res://themes/shaders/soft_blur.gdshader" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/demo_screen.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/host_lobby_screen.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/join_screen.tscn" id="10"]
 
 [sub_resource type="ShaderMaterial" id="backdrop_blur"]
 shader = ExtResource("7")
@@ -67,5 +69,13 @@ visible = false
 layout_mode = 1
 
 [node name="DemoScreen" parent="Column" instance=ExtResource("8")]
+visible = false
+layout_mode = 1
+
+[node name="HostLobbyScreen" parent="Column" instance=ExtResource("9")]
+visible = false
+layout_mode = 1
+
+[node name="JoinScreen" parent="Column" instance=ExtResource("10")]
 visible = false
 layout_mode = 1
