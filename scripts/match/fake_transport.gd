@@ -19,16 +19,32 @@ func own_peer() -> int:
 	return _peer_id
 
 
-## Bağlı olmayan eşe giden mesaj, ağdaki gibi kaybolur.
+## Bağlı olmayan eşe giden ya da ağdan çıkmış eşin gönderdiği mesaj, ağdaki gibi kaybolur.
 func send(peer_id: int, message: Dictionary) -> void:
-	var link: WeakRef = _network.get(peer_id)
-	var target: FakeTransport = null if link == null else link.get_ref()
-	if target == null:
+	var target := _linked(peer_id)
+	if target == null or not _network.has(_peer_id):
 		return
 	var copy: Variant = bytes_to_var(var_to_bytes(message))
 	target.message_received.emit.call_deferred(_peer_id, copy)
 
 
-## Eşi ağdan çıkarır (bağlantının kopması).
+func kick(peer_id: int) -> void:
+	var target := _linked(peer_id)
+	if target != null:
+		target.disconnect_peer()
+
+
+## Eşi ağdan çıkarır (bağlantının kopması); iki uç da bir kare sonra peer_disconnected alır.
 func disconnect_peer() -> void:
-	_network.erase(_peer_id)
+	if not _network.erase(_peer_id):
+		return
+	for peer_id: int in _network:
+		var other := _linked(peer_id)
+		if other != null:
+			other.peer_disconnected.emit.call_deferred(_peer_id)
+			peer_disconnected.emit.call_deferred(peer_id)
+
+
+func _linked(peer_id: int) -> FakeTransport:
+	var link: WeakRef = _network.get(peer_id)
+	return null if link == null else link.get_ref()

@@ -84,7 +84,9 @@
 		"max_messages_per_sec": 20,
 		"discovery_port": 24681,
 		"announce_interval_ms": 1000,
-		"announce_expiry_ms": 3000
+		"announce_expiry_ms": 3000,
+		"room_code_digits": 4,
+		"max_wrong_codes": 10
 	},
 	"ui": {
 		"button_width": 520,

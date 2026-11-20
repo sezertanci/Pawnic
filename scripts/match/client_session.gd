@@ -15,9 +15,13 @@ signal view_reset(view: MatchView)
 signal event_received(event: MatchEvent)
 ## Host niyeti reddetti.
 signal intent_rejected(intent: MatchIntent)
+## Lobinin hâli değişti (oyuncu, renk ya da ayar).
+signal lobby_changed(info: LobbyInfo)
 
 ## İstemcinin kopyası; ilk görünüm gelene kadar null.
 var view: MatchView
+## Lobinin son hâli; ilk lobi mesajı gelene kadar null.
+var lobby: LobbyInfo
 
 var _transport: MatchTransport
 var _settings: GameSettings
@@ -32,9 +36,15 @@ func _init(transport: MatchTransport, settings: GameSettings) -> void:
 	_transport.message_received.connect(_on_message)
 
 
-## Hosta el sıkışma mesajını gönderir.
-func join() -> void:
-	_transport.send(MatchTransport.HOST_PEER, MatchMessage.hello(_settings))
+## Hosta oda koduyla el sıkışma mesajını gönderir.
+func join(room_code: String = "") -> void:
+	_transport.send(MatchTransport.HOST_PEER, MatchMessage.hello(_settings, room_code))
+
+
+## Lobide seçilen rengi hosta gönderir; el sıkışma bitmemişse gönderilmez.
+func choose_color(color: int) -> void:
+	if _welcomed:
+		_transport.send(MatchTransport.HOST_PEER, MatchMessage.color_choice(color))
 
 
 ## Niyeti hosta gönderir; el sıkışma bitmemişse gönderilmez.
@@ -55,6 +65,8 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 		refused.emit(MessageData.read_int(data, MatchMessage.KEY_REASON))
 	elif not _welcomed:
 		return
+	elif type == MatchMessage.Type.LOBBY:
+		_update_lobby(data)
 	elif type == MatchMessage.Type.SNAPSHOT:
 		_reset(data)
 	elif type == MatchMessage.Type.EVENT:
@@ -63,6 +75,14 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 		var intent := MatchIntent.from_dict(data)
 		if intent != null:
 			intent_rejected.emit(intent)
+
+
+## Bozuk lobi yok sayılır.
+func _update_lobby(data: Dictionary) -> void:
+	var received := LobbyInfo.from_dict(_settings, data)
+	if received != null:
+		lobby = received
+		lobby_changed.emit(lobby)
 
 
 ## Bozuk görünüm yok sayılır; kopya değişmez.

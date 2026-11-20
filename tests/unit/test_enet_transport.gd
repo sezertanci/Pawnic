@@ -106,6 +106,45 @@ func test_host_accepts_one_less_than_max_players() -> void:
 	assert_eq(_host_peers.size(), allowed)
 
 
+func test_message_sent_before_kick_arrives() -> void:
+	var client := await _connect()
+	client.message_received.connect(
+		func(_peer: int, message: Dictionary) -> void: _client_inbox.append(message)
+	)
+
+	_host.send(client.own_peer(), {KEY_TEXT: "güle güle"})
+	_host.kick(client.own_peer())
+	await wait_for_signal(client.peer_disconnected, TIMEOUT)
+
+	assert_eq(_client_inbox, [{KEY_TEXT: "güle güle"}])
+	assert_signal_emitted_with_parameters(client, "peer_disconnected", [MatchTransport.HOST_PEER])
+	await wait_frames(2)
+	assert_eq(client.own_peer(), ENetTransport.NO_PEER)
+
+
+func test_messages_from_kicked_peer_are_dropped() -> void:
+	var client := await _connect()
+
+	_host.kick(client.own_peer())
+	client.send(MatchTransport.HOST_PEER, {KEY_TEXT: "hâlâ burada"})
+	await wait_seconds(SETTLE)
+
+	assert_eq(_host_inbox, [])
+
+
+func test_new_peers_are_refused_after_lock() -> void:
+	_host.refuse_new_peers()
+	var late := ENetTransport.new(_settings)
+	_clients.append(late)
+
+	late.join(LocalAddress.LOOPBACK)
+	late.send(MatchTransport.HOST_PEER, {KEY_TEXT: "geç kaldım"})
+	await wait_seconds(SETTLE)
+
+	assert_eq(_host_peers, [])
+	assert_eq(_host_inbox, [])
+
+
 ## İstemciyi hosta bağlar; iki uç da bağlantıyı görene kadar bekler.
 func _connect() -> ENetTransport:
 	var client := ENetTransport.new(_settings)

@@ -3,7 +3,15 @@ extends RefCounted
 ## Ağ oyununda hostun bağdaştırıcısı: taşıyıcıdan gelen mesajları hakeme (MatchReferee), hakemin
 ## olaylarını eşlere taşır. Eş ancak el sıkışmadan (HELLO → WELCOME) geçip bir koltuğa oturtulunca
 ## oyuna katılır. Niyetteki koltuk alanına güvenilmez; koltuk, eşin oturtulduğu koltuktur. Host
-## yalnızca kendi ekranının bitirmesini bekler; olaylar eşlere beklemeden gider.
+## yalnızca kendi ekranının bitirmesini bekler; olaylar eşlere beklemeden gider. Reddedilen eşe
+## REFUSED gönderilip bağlantısı kesilir.
+
+## Eş el sıkışmadan geçti.
+signal peer_welcomed(peer_id: int)
+
+## Sürümü uyan eşin kabul denetimi (ör. lobinin oda kodu): HELLO içeriğini alır, ret nedenini
+## (MatchMessage.Refusal) ya da MatchMessage.NO_REFUSAL döndürür. Boşsa her uyumlu eş kabul edilir.
+var admission: Callable
 
 var _referee: MatchReferee
 var _transport: MatchTransport
@@ -54,12 +62,22 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 
 
 func _greet(peer_id: int, data: Dictionary) -> void:
-	if not MatchMessage.is_compatible(data, _settings):
-		_transport.send(peer_id, MatchMessage.refused(MatchMessage.Refusal.VERSION_MISMATCH))
+	if _welcomed.has(peer_id):
 		return
-	if not _welcomed.has(peer_id):
-		_welcomed.append(peer_id)
+	var reason := _refusal(data)
+	if reason != MatchMessage.NO_REFUSAL:
+		_transport.send(peer_id, MatchMessage.refused(reason))
+		_transport.kick(peer_id)
+		return
+	_welcomed.append(peer_id)
 	_transport.send(peer_id, MatchMessage.welcome())
+	peer_welcomed.emit(peer_id)
+
+
+func _refusal(data: Dictionary) -> int:
+	if not MatchMessage.is_compatible(data, _settings):
+		return MatchMessage.Refusal.VERSION_MISMATCH
+	return MatchMessage.NO_REFUSAL if admission.is_null() else admission.call(data)
 
 
 ## Niyet, eşin oturduğu koltuk adına hakeme verilir; hakem reddederse eşe REJECTED gider.

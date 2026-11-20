@@ -3,7 +3,8 @@ extends MatchTransport
 ## Yerel ağdaki gerçek taşıyıcı (ENet, UDP). Host yalnızca verilen özel ağ adresinde dinler ve en
 ## fazla oyuncu sayısının bir eksiği kadar istemci kabul eder. Gelen paket güvenilmezdir: sınırdan
 ## büyüğü çözülmeden, eş başına saniyedeki sınırı aşanlar okunmadan atılır (bağlantı kesilmez).
-## Paket nesne çözme kapalıyken okunur; sözlük olmayan atılır. Paketler her karede okunur.
+## Paket nesne çözme kapalıyken okunur; sözlük olmayan atılır. Paketler her karede okunur. Host
+## bağlantıyı kesince istemci taşıyıcısı kendini kapatır.
 
 ## Bağlantı yokken eş numarası.
 const NO_PEER := 0
@@ -52,10 +53,29 @@ func close() -> void:
 	if _peer == null:
 		return
 	_peer.close()
+	_release()
+
+
+## Bağlantı kapandı (kendimiz ya da host kesti); taşıyıcı yeniden kurulabilir.
+func _release() -> void:
 	_peer = null
 	_peers.clear()
 	_window_starts.clear()
 	_window_counts.clear()
+
+
+## Bağlantı kuyruktaki paketler gönderildikten sonra kesilir; anında kesmede (disconnect_peer)
+## kuyruk boşaltılır ve ret mesajı ulaşmaz.
+func kick(peer_id: int) -> void:
+	if not _peers.has(peer_id):
+		return
+	_forget(peer_id)
+	_peer.get_peer(peer_id).peer_disconnect_later()
+
+
+func refuse_new_peers() -> void:
+	if _peer != null:
+		_peer.refuse_new_connections = true
 
 
 func own_peer() -> int:
@@ -76,6 +96,8 @@ func _attach(peer: ENetMultiplayerPeer) -> void:
 
 
 func _poll() -> void:
+	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
+		_release()
 	if _peer == null:
 		return
 	_peer.poll()
@@ -85,7 +107,9 @@ func _poll() -> void:
 
 
 func _receive(peer_id: int, bytes: PackedByteArray) -> void:
-	if bytes.size() > _settings.max_message_bytes or not _within_rate(peer_id):
+	if not _peers.has(peer_id) or bytes.size() > _settings.max_message_bytes:
+		return
+	if not _within_rate(peer_id):
 		return
 	var message: Variant = bytes_to_var(bytes)
 	if message is Dictionary:
@@ -108,7 +132,11 @@ func _on_peer_connected(peer_id: int) -> void:
 
 
 func _on_peer_disconnected(peer_id: int) -> void:
+	_forget(peer_id)
+	peer_disconnected.emit(peer_id)
+
+
+func _forget(peer_id: int) -> void:
 	_peers.erase(peer_id)
 	_window_starts.erase(peer_id)
 	_window_counts.erase(peer_id)
-	peer_disconnected.emit(peer_id)

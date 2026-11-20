@@ -238,8 +238,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   gelene kadar olayları atar. Kopyadaki geçen süre yalnızca sıra başında hostla eşitlenir.
   Testler `test_match_sessions.gd`'de (el sıkışma, koltuk, başka koltuk adına niyet, yabancı eş,
   uyuşmayan olay, sahte taşıyıcıyla tam oyun).
-  Sonraya kalanlar: oda kodu (lobiyle), oyun başlayınca yeni bağlantı reddi (lobiyle), oyun
-  ekranının istemcide `MatchView`'dan çizmesi.
+  Sonraya kalanlar: oyun ekranının istemcide `MatchView`'dan çizmesi.
 - ENet taşıyıcısı (2026-11-20, ekran ve lobi yok, yerel oyuna dokunulmadı): `ENetTransport`
   `ENetMultiplayerPeer`'i doğrudan kullanır (SceneMultiplayer yok), paketleri her karede okur.
   Ayarlar `tuning.json`'daki `network` bölümünde: port 24680, en fazla mesaj 16 KB, eş başına
@@ -260,6 +259,25 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `announce_expiry_ms`). Testler `test_game_discovery.gd`'de (aynı cihazda).
   Sonraya kalanlar: gerçek Wi-Fi'da (tablet + bilgisayar) deneme; Android'de `MulticastLock` ve
   izinler (Aşama 4).
+- Lobi mantığı (2026-11-20, ekran yok): `HostLobby` her oyun kuruluşunda 4 haneli rastgele oda
+  kodu üretir (`room_code_digits`). İstemci kodu HELLO içinde gönderir (`ClientSession.join(kod)`).
+  `HostSession.admission` sırayla denetler: oyun başladıysa `MATCH_STARTED`, kod yanlışsa
+  `WRONG_CODE`, koltuklar doluysa `ROOM_FULL`; reddedilen eşe REFUSED gider ve bağlantısı kesilir
+  (`MatchTransport.kick`). Lobide toplam 10 yanlış denemede (`max_wrong_codes`) yeni kod üretilir
+  ve sayaç sıfırlanır. Host oyuncu sayısını (2–4, lobidekilerden az olamaz) ve taş sayısını seçer;
+  varsayılanlar 4 oyuncu ve `default_pawns`. Katılan sıradaki yere oturur, ilk boş rengi alır,
+  COLOR_CHOICE ile boş bir renge geçebilir (dolu renk reddedilir, lobi ona yeniden gönderilir).
+  Her değişiklikte LOBBY (`LobbyInfo`: oyuncu ve taş sayısı, katılma sırasıyla renkler, alıcının
+  yeri) herkese gider; ayrılan oyuncunun yeri ve rengi boşalır. `start()` oyunu kurar: host sıra
+  düzeninde ilk, katılanlar katılma sırasıyla koltuk alır, boş koltuklara Orta bot oturur, renkler
+  `SeatColors.with_choices` ile, başlayan `MatchStarter` ile seçilir (yerel oyun da onu kullanır);
+  yeni bağlantı alınmaz (`refuse_new_peers`). ENet'te `kick` kuyruktaki paketler gidince keser
+  (`peer_disconnect_later`; anında kesmede ret mesajı kayboluyor, testle görüldü), kesilen eşin
+  paketleri okunmaz; host kesince istemci taşıyıcısı kendini kapatır. Kilitli host ENet düzeyinde
+  istemciye kısa süre "bağlandı" der ama eşi hemen sıfırlar; host tarafında bağlantı ve mesaj
+  görünmez. Testler `test_host_lobby.gd`, `test_lobby_info.gd`, `test_enet_transport.gd`'de.
+  Sonraya kalanlar: lobi ekranları (Aşama 2), host ayrılan oyuncuyu başlamadan önce görür ama
+  oyun sırasında kopma (20 sn bekleme, bot devralması) henüz yok.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi

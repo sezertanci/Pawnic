@@ -67,7 +67,7 @@ func _on_start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Leve
 	var game := GameMatch.create(Tuning.settings, bot_flags, pawns, _rng)
 	game.bot_level = bot_level
 	_choose_colors(game)
-	game.starter = _rng.randi_range(0, game.seats.size() - 1)
+	MatchStarter.choose(game, _rng)
 	_begin(game, true)
 
 

@@ -135,6 +135,10 @@ var discovery_port := 0
 var announce_interval_ms := 0
 ## Bu kadar süre yayını gelmeyen oyun bulunanlar listesinden çıkar (milisaniye).
 var announce_expiry_ms := 0
+## Oda kodunun basamak sayısı.
+var room_code_digits := 0
+## Bir lobide bu kadar yanlış oda kodu denenince host yeni kod üretir.
+var max_wrong_codes := 0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -263,3 +267,5 @@ func _read_network(network: Dictionary) -> void:
 	discovery_port = int(network["discovery_port"])
 	announce_interval_ms = int(network["announce_interval_ms"])
 	announce_expiry_ms = int(network["announce_expiry_ms"])
+	room_code_digits = int(network["room_code_digits"])
+	max_wrong_codes = int(network["max_wrong_codes"])

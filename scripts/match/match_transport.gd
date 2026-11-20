@@ -22,3 +22,14 @@ func own_peer() -> int:
 ## Mesajı eşe gönderir. Mesaj yalnızca sözlük, dizi, sayı, metin ve mantıksal değer içerir.
 func send(_peer_id: int, _message: Dictionary) -> void:
 	pass
+
+
+## Eşin bağlantısını keser; kesmeden önce gönderilen mesajlar eşe ulaşır, eşten gelenler artık
+## okunmaz.
+func kick(_peer_id: int) -> void:
+	pass
+
+
+## Bundan sonra gelen bağlantıları kabul etmez (oyun başladı).
+func refuse_new_peers() -> void:
+	pass

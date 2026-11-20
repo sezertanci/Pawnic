@@ -16,11 +16,19 @@ static func identity(count: int) -> Array[int]:
 ## seats oyundaki koltuklardır (sıra düzeninde); önce bunlar, sonra oyunda olmayan koltuklar
 ## renk alır, böylece eşleme her rengi bir kez içerir.
 static func with_choice(count: int, seats: Array[int], human_seat: int, color: int) -> Array[int]:
+	var chosen: Dictionary[int, int] = {human_seat: color}
+	return with_choices(count, seats, chosen)
+
+
+## Birden çok oyuncunun seçtiği renkler (koltuk → renk, renkler farklı); öteki koltuklar kalan
+## renkleri with_choice'taki sırayla alır.
+static func with_choices(count: int, seats: Array[int], chosen: Dictionary[int, int]) -> Array[int]:
 	var colors := identity(count)
 	var free := identity(count)
-	free.erase(color)
-	colors[human_seat] = color
-	for seat: int in _others(count, seats, human_seat):
+	for seat: int in chosen:
+		colors[seat] = chosen[seat]
+		free.erase(chosen[seat])
+	for seat: int in _others(count, seats, chosen.keys()):
 		colors[seat] = free.pop_front()
 	return colors
 
@@ -34,10 +42,10 @@ static func is_valid(colors: Array[int], count: int) -> bool:
 	return sorted == identity(count)
 
 
-## İnsan oyuncu dışındaki koltuklar: önce oyundakiler sıra düzeninde, sonra oyunda olmayanlar.
-static func _others(count: int, seats: Array[int], human_seat: int) -> Array[int]:
+## Renk seçmemiş koltuklar: önce oyundakiler sıra düzeninde, sonra oyunda olmayanlar.
+static func _others(count: int, seats: Array[int], chosen: Array[int]) -> Array[int]:
 	var others: Array[int] = []
 	for seat: int in seats + identity(count):
-		if seat != human_seat and not others.has(seat):
+		if not chosen.has(seat) and not others.has(seat):
 			others.append(seat)
 	return others

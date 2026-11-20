@@ -14,7 +14,7 @@ enum Type {
 	REJECTED,
 	## İstemciden hosta: kopya olayla uyuşmadı, görünümün tamamı isteniyor. İçerik boştur.
 	SNAPSHOT_REQUEST,
-	## İstemciden hosta, bağlanınca: protokol sürümü ve ayar özeti.
+	## İstemciden hosta, bağlanınca: protokol sürümü, ayar özeti ve oda kodu.
 	HELLO,
 	## Hosttan istemciye: el sıkışma kabul edildi. İçerik boştur.
 	WELCOME,
@@ -23,13 +23,26 @@ enum Type {
 	## Hosttan yerel ağa (oyun bulma yayını): protokol sürümü, oyun portu ve oyuncu sayısı. Kişisel
 	## bilgi taşımaz.
 	ANNOUNCE,
+	## Hosttan istemciye: lobinin alıcıya görünen hâli (LobbyInfo).
+	LOBBY,
+	## İstemciden hosta: lobide seçilen renk.
+	COLOR_CHOICE,
 }
 
 ## El sıkışmanın reddedilme nedeni.
 enum Refusal {
 	## Protokol sürümü ya da ayar özeti farklı; oyuncunun oyunu güncellemesi gerekir.
 	VERSION_MISMATCH,
+	## Oda kodu yanlış.
+	WRONG_CODE,
+	## Lobideki koltuklar dolu.
+	ROOM_FULL,
+	## Oyun başladı; yeni oyuncu alınmıyor.
+	MATCH_STARTED,
 }
+
+## El sıkışma kabul edildiğinde ret nedeni yerine kullanılır.
+const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
 const PROTOCOL_VERSION := 1
@@ -40,6 +53,8 @@ const KEY_DIGEST := "digest"
 const KEY_REASON := "reason"
 const KEY_PORT := "port"
 const KEY_PLAYERS := "players"
+const KEY_CODE := "code"
+const KEY_COLOR := "color"
 
 
 static func make(type: Type, data: Dictionary) -> Dictionary:
@@ -66,8 +81,11 @@ static func snapshot_request() -> Dictionary:
 	return make(Type.SNAPSHOT_REQUEST, {})
 
 
-static func hello(settings: GameSettings) -> Dictionary:
-	return make(Type.HELLO, {KEY_PROTOCOL: PROTOCOL_VERSION, KEY_DIGEST: settings.digest})
+static func hello(settings: GameSettings, room_code: String = "") -> Dictionary:
+	return make(
+		Type.HELLO,
+		{KEY_PROTOCOL: PROTOCOL_VERSION, KEY_DIGEST: settings.digest, KEY_CODE: room_code}
+	)
 
 
 static func welcome() -> Dictionary:
@@ -82,6 +100,14 @@ static func announce(port: int, players: int) -> Dictionary:
 	return make(
 		Type.ANNOUNCE, {KEY_PROTOCOL: PROTOCOL_VERSION, KEY_PORT: port, KEY_PLAYERS: players}
 	)
+
+
+static func lobby(info: LobbyInfo) -> Dictionary:
+	return make(Type.LOBBY, info.to_dict())
+
+
+static func color_choice(color: int) -> Dictionary:
+	return make(Type.COLOR_CHOICE, {KEY_COLOR: color})
 
 
 ## HELLO içeriği bu cihazla aynı protokol sürümünü ve ayar özetini taşıyorsa true.

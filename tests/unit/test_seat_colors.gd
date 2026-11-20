@@ -46,6 +46,18 @@ func test_with_choice_keeps_every_color_once() -> void:
 	assert_true(SeatColors.is_valid(colors, SEAT_COUNT))
 
 
+func test_with_choices_gives_others_remaining_colors_in_order() -> void:
+	var seats: Array[int] = [BOTTOM, LEFT, TOP]
+	var chosen: Dictionary[int, int] = {BOTTOM: YELLOW, LEFT: RED}
+
+	var colors := SeatColors.with_choices(SEAT_COUNT, seats, chosen)
+
+	assert_eq(colors[BOTTOM], YELLOW)
+	assert_eq(colors[LEFT], RED)
+	assert_eq(colors[TOP], BLUE)
+	assert_eq(colors[RIGHT], GREEN)
+
+
 func test_is_valid_with_repeated_color_returns_false() -> void:
 	var colors: Array[int] = [RED, RED, GREEN, YELLOW]
 
