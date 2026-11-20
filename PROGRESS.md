@@ -623,3 +623,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   mağaza metinlerine (tr-TR, en-US) Wi-Fi oyunu bölümü ve 1.5.0 sürüm notu eklendi.
 - **2026-11-20 (12):** `addons/portrait_feature` eklentisi `android.hardware.wifi` özelliğini de
   `required="false"` ile manifeste yazar (Play uyarısı).
+- **2026-11-21:** Kurulum ekranındaki mod sekmeleri yazısız, yalnızca simgeli oldu (beyaz SVG,
+  temada yazı rengiyle boyanır): tek avatar, Wi-Fi (ortada), üçlü avatar. Kullanılmayan
+  `MODE_SINGLE`, `MODE_MULTI`, `MODE_NETWORK` çevirileri silindi; açıklama satırı yerinde.

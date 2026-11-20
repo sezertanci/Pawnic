@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" path="res://scenes/components/stepper.tscn" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/back_arrow.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="4"]
+[ext_resource type="Texture2D" path="res://assets/images/icon_single.svg" id="icon_single"]
+[ext_resource type="Texture2D" path="res://assets/images/icon_multi.svg" id="icon_multi"]
+[ext_resource type="Texture2D" path="res://assets/images/icon_wifi.svg" id="icon_wifi"]
 
 [sub_resource type="ButtonGroup" id="mode_group"]
 
@@ -84,19 +87,8 @@ theme_type_variation = &"TabButton"
 toggle_mode = true
 button_pressed = true
 button_group = SubResource("mode_group")
-text = "MODE_SINGLE"
-autowrap_mode = 3
-
-[node name="MultiTab" type="Button" parent="Box/Options/Box/Tabs"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 76)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"TabButton"
-toggle_mode = true
-button_group = SubResource("mode_group")
-text = "MODE_MULTI"
-autowrap_mode = 3
+icon = ExtResource("icon_single")
+icon_alignment = 1
 
 [node name="NetworkTab" type="Button" parent="Box/Options/Box/Tabs"]
 unique_name_in_owner = true
@@ -106,8 +98,19 @@ size_flags_horizontal = 3
 theme_type_variation = &"TabButton"
 toggle_mode = true
 button_group = SubResource("mode_group")
-text = "MODE_NETWORK"
-autowrap_mode = 3
+icon = ExtResource("icon_wifi")
+icon_alignment = 1
+
+[node name="MultiTab" type="Button" parent="Box/Options/Box/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_group = SubResource("mode_group")
+icon = ExtResource("icon_multi")
+icon_alignment = 1
 
 [node name="ModeHint" type="Label" parent="Box/Options/Box"]
 unique_name_in_owner = true

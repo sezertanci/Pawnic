@@ -1,7 +1,5 @@
 keys,tr,en,de,es,fr,it,pt,id
 RESUME,Devam Et,Continue,Fortsetzen,Continuar,Reprendre,Continua,Continuar,Lanjutkan
-MODE_SINGLE,Tek Oyunculu,Single Player,Einzelspieler,Un Jugador,Solo,Giocatore Singolo,Um Jogador,Pemain Tunggal
-MODE_MULTI,Çok Oyunculu,Multiplayer,Mehrspieler,Multijugador,Multijoueur,Multigiocatore,Multijogador,Multipemain
 MODE_SINGLE_HINT,Botlara Karşı,Against Bots,Gegen Bots,Contra Bots,Contre Des Bots,Contro Bot,Contra Bots,Lawan Bot
 MODE_MULTI_HINT,Aynı Telefonda,On The Same Phone,Auf Einem Handy,En El Mismo Teléfono,Sur Le Même Téléphone,Sullo Stesso Telefono,No Mesmo Celular,Di Satu Ponsel
 SET_BOTS,Bot Sayısı,Bots,Bots,Bots,Bots,Bot,Bots,Jumlah Bot
@@ -98,7 +96,6 @@ LANG_ID,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Bahasa Indonesia,Baha
 PRIVACY_OPTIONS,Gizlilik Seçenekleri,Privacy Options,Datenschutzoptionen,Opciones De Privacidad,Options De Confidentialité,Opzioni Sulla Privacy,Opções De Privacidade,Opsi Privasi
 REMOVE_ADS,Reklamları Kaldır,Remove Ads,Werbung Entfernen,Quitar Anuncios,Supprimer Les Pubs,Rimuovi Pubblicità,Remover Anúncios,Hapus Iklan
 REMOVE_ADS_PRICE,Reklamları Kaldır (%s),Remove Ads (%s),Werbung Entfernen (%s),Quitar Anuncios (%s),Supprimer Les Pubs (%s),Rimuovi Pubblicità (%s),Remover Anúncios (%s),Hapus Iklan (%s)
-MODE_NETWORK,Ağda,Network,Netzwerk,En Red,En Réseau,In Rete,Em Rede,Jaringan
 MODE_NETWORK_HINT,Aynı Wi-Fi'da,On The Same Wi-Fi,Im Selben WLAN,En La Misma Wi-Fi,Sur Le Même Wi-Fi,Sulla Stessa Wi-Fi,No Mesmo Wi-Fi,Di Wi-Fi Yang Sama
 HOST_GAME,Oyun Kur,Host Game,Spiel Erstellen,Crear Partida,Créer Une Partie,Crea Partita,Criar Jogo,Buat Permainan
 JOIN_GAME,Katıl,Join,Beitreten,Unirse,Rejoindre,Unisciti,Entrar,Gabung
