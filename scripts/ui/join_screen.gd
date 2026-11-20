@@ -19,6 +19,11 @@ const REFUSAL_KEYS := {
 	MatchMessage.Refusal.MATCH_STARTED: "REFUSED_MATCH_STARTED",
 }
 const CONNECTION_FAILED_KEY := "CONNECTION_FAILED"
+const LOSS_KEYS := {
+	GuestRoom.Loss.CONNECT_FAILED: CONNECTION_FAILED_KEY,
+	GuestRoom.Loss.HOST_CLOSED: GameScreen.GAME_ENDED_KEY,
+	GuestRoom.Loss.HOST_LOST: GameScreen.HOST_UNREACHABLE_KEY,
+}
 ## Oyun bulma portu açılamadı (ör. başka bir uygulama tutuyor).
 const SEARCH_FAILED_KEY := "SEARCH_FAILED"
 
@@ -156,8 +161,8 @@ func _on_refused(reason: int) -> void:
 	_set_stage(Stage.CODE)
 
 
-func _on_lost(was_welcomed: bool) -> void:
-	_show_message("GAME_ENDED" if was_welcomed else CONNECTION_FAILED_KEY)
+func _on_lost(loss: GuestRoom.Loss) -> void:
+	_show_message(LOSS_KEYS[loss])
 	_set_stage(Stage.SEARCH)
 
 

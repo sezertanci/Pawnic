@@ -12,6 +12,8 @@ signal peer_disconnected(peer_id: int)
 
 ## Oyunu kuran cihazın eş numarası.
 const HOST_PEER := 1
+## Eş yokken eş numarası yerine kullanılır.
+const NO_PEER := 0
 
 
 ## Bu cihazın eş numarası.
@@ -27,9 +29,4 @@ func send(_peer_id: int, _message: Dictionary) -> void:
 ## Eşin bağlantısını keser; kesmeden önce gönderilen mesajlar eşe ulaşır, eşten gelenler artık
 ## okunmaz.
 func kick(_peer_id: int) -> void:
-	pass
-
-
-## Bundan sonra gelen bağlantıları kabul etmez (oyun başladı).
-func refuse_new_peers() -> void:
 	pass

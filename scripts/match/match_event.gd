@@ -43,6 +43,8 @@ var card: Card
 ## TURN_STARTED'da tur ve hakemin saatindeki geçen süre; istemci saatini buna eşitler.
 var round_number := 0
 var elapsed := 0.0
+## Ağ oyununda hostun olaya verdiği sıra numarası; istemci olayı bitirince hosta geri gönderir.
+var serial := 0
 
 
 func _init(event_kind: Kind, event_seat := BoardLayout.NO_SEAT) -> void:

@@ -12,15 +12,27 @@ var _game: GameMatch
 var _own_seat: int
 ## Ağ oyununda odanın kodu; yerel oyunda boş.
 var _room_code: String
+## Ağ oyununda hostun oturumu (oyuncuların bağlantı durumu için); yerel oyunda null.
+var _session: HostSession
 
 
 ## Hakemin start()'ından sonra kurulur.
-func _init(referee: MatchReferee, own_seat := BoardLayout.NO_SEAT, room_code := "") -> void:
+func _init(
+	referee: MatchReferee,
+	own_seat := BoardLayout.NO_SEAT,
+	room_code := "",
+	session: HostSession = null
+) -> void:
 	_referee = referee
 	_game = referee.game
 	_own_seat = own_seat
 	_room_code = room_code
+	_session = session
 	_referee.event_emitted.connect(_on_event)
+
+
+func seat_wait(seat: int) -> float:
+	return SeatPresence.PRESENT if _session == null else _session.seat_wait(seat)
 
 
 func view() -> MatchView:

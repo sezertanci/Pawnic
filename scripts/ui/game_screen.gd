@@ -20,6 +20,8 @@ const JOKER_CARD_SCALE := 0.7
 const LEAVE_MATCH_CONFIRM_KEY := "LEAVE_MATCH_CONFIRM"
 const END_MATCH_CONFIRM_KEY := "END_MATCH_CONFIRM"
 const GAME_ENDED_KEY := "GAME_ENDED"
+const HOST_UNREACHABLE_KEY := "HOST_UNREACHABLE"
+const RECONNECTING_KEY := "RECONNECTING"
 const LEAVE_KEY := "LEAVE"
 const CANCEL_KEY := "CANCEL"
 const OK_KEY := "OK"
@@ -51,6 +53,10 @@ var _handoff_drew := false
 var _awaiting_human := false
 ## Taşlar, hamle uygulanmadan önceki yerlerinde (yürüme animasyonu buradan başlar).
 var _pawns_before: Array[Vector2] = []
+## Ağ oyununda hostla bağlantı koptu; yeniden bağlanılıyor katmanı açık.
+var _reconnecting := false
+## Sıra noktalarındaki taşların koltukları, noktalarla aynı sırada.
+var _dot_seats: Array[int] = []
 
 @onready var _clock: Label = %Clock
 @onready var _level_slash: Label = %LevelSlash
@@ -103,7 +109,9 @@ func start_source(source: MatchSource, draw_starter := false) -> void:
 	_source.intent_rejected.connect(_on_intent_rejected)
 	_source.view_reset.connect(_on_view_reset)
 	_source.ended.connect(_on_source_ended)
+	_source.connection_changed.connect(_on_connection_changed)
 	_match_over = false
+	_reconnecting = false
 	_awaiting_human = false
 	_view = _source.view()
 	_set_up_table()
@@ -131,6 +139,7 @@ func _release_source() -> void:
 	_source.intent_rejected.disconnect(_on_intent_rejected)
 	_source.view_reset.disconnect(_on_view_reset)
 	_source.ended.disconnect(_on_source_ended)
+	_source.connection_changed.disconnect(_on_connection_changed)
 
 
 ## Kaynak değiştiyse ya da oyun bırakıldıysa true.
@@ -174,6 +183,8 @@ func _process(_delta: float) -> void:
 	if int(_source.elapsed()) != _clock_second:
 		_show_clock()
 	_show_turn_timer()
+	if _source.is_networked() and not _match_over:
+		_show_seat_waits()
 
 
 ## Sıradaki insan oyuncunun sıra süresi (ağ oyunu) elin üstündeki çubukta, oyuncunun renginde
@@ -346,17 +357,31 @@ func _on_view_reset() -> void:
 		_show_idle_hand()
 
 
-## Ağ oyunu bu cihazın dışında bitti (host oyunu kapattı ya da bağlantı koptu); oyun sonu tablosu
-## açıksa oyuncu oradan çıkar.
-func _on_source_ended() -> void:
+## Ağ oyunu bu cihazın dışında bitti (host oyunu kapattı ya da hosta artık ulaşılamıyor); oyun
+## sonu tablosu açıksa oyuncu oradan çıkar.
+func _on_source_ended(by_host: bool) -> void:
 	if _match_over:
 		return
 	_generation += 1
+	_reconnecting = false
 	_awaiting_human = false
 	_board_view.stop_animation()
 	_clear_selection()
 	_hide_overlays()
-	_ask(GAME_ENDED_KEY, OK_KEY, "", finished.emit)
+	_ask(GAME_ENDED_KEY if by_host else HOST_UNREACHABLE_KEY, OK_KEY, "", finished.emit)
+
+
+## Hostla bağlantı koparken yeniden bağlanılıyor katmanı açılır, oyuncu oradan çıkabilir;
+## bağlantı düzelince katman kapanır. Oyun bittiyse oyun sonu tablosu kalır.
+func _on_connection_changed(lost: bool) -> void:
+	if _match_over:
+		return
+	if lost:
+		_reconnecting = true
+		_ask(RECONNECTING_KEY, LEAVE_KEY, "", _leave)
+	elif _reconnecting:
+		_reconnecting = false
+		_confirm.hide()
 
 
 ## Atılanlar karıştırılıp desteye döndü: atılanlar boşalır, kartlar desteye uçar ve deste
@@ -388,13 +413,24 @@ func _show_turn(index: int) -> void:
 func _show_turn_dots(index: int) -> void:
 	var playing: Array[int] = []
 	var current := 0
+	_dot_seats.clear()
 	for player: int in range(_view.seats.size()):
 		var seat := _view.seats[player]
 		if not _view.finishers.has(seat):
 			if player == index:
 				current = playing.size()
 			playing.append(_view.colors[seat])
+			_dot_seats.append(seat)
 	_turn_dots.show_turn(playing, current)
+
+
+## Ağ oyununda bağlantısı kopan oyuncuların taşları, koltuklarını bot alana kadar kalan süreyle
+## soluk görünür.
+func _show_seat_waits() -> void:
+	var waits: Array[float] = []
+	for seat: int in _dot_seats:
+		waits.append(_source.seat_wait(seat))
+	_turn_dots.show_waits(waits)
 
 
 ## Atılanlardaki son kartı atanın rengi; henüz kart atılmadıysa rozet görünmez.

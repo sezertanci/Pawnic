@@ -69,7 +69,7 @@ func test_closing_host_loses_welcomed_guest() -> void:
 	_host.close()
 	await wait_for_signal(guest.lost, TIMEOUT)
 
-	assert_signal_emitted_with_parameters(guest, "lost", [true])
+	assert_signal_emitted_with_parameters(guest, "lost", [GuestRoom.Loss.HOST_CLOSED])
 
 
 func test_unreachable_host_is_lost_unwelcomed() -> void:
@@ -80,7 +80,7 @@ func test_unreachable_host_is_lost_unwelcomed() -> void:
 	guest.join(LocalAddress.LOOPBACK, WRONG_CODE)
 	await wait_for_signal(guest.lost, UNREACHABLE_TIMEOUT)
 
-	assert_signal_emitted_with_parameters(guest, "lost", [false])
+	assert_signal_emitted_with_parameters(guest, "lost", [GuestRoom.Loss.CONNECT_FAILED])
 
 
 func test_announced_player_count_follows_lobby() -> void:

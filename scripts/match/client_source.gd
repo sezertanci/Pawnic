@@ -32,6 +32,8 @@ var _clock_start := 0
 var _clock_running := false
 ## Sıra süresinin bittiği an (Time.get_ticks_msec); süre işlemiyorsa NO_DEADLINE.
 var _turn_deadline := NO_DEADLINE
+## Bağlantı kopukken donan kalan süre; donmuş süre yoksa MatchReferee.NO_TURN_TIMER.
+var _frozen_time := MatchReferee.NO_TURN_TIMER
 
 
 func _init(room: GuestRoom) -> void:
@@ -42,6 +44,7 @@ func _init(room: GuestRoom) -> void:
 	_session.intent_rejected.connect(_on_intent_rejected)
 	_session.turn_timer_started.connect(_on_turn_timer_started)
 	_room.lost.connect(_on_lost)
+	_room.connection_changed.connect(_on_connection_changed)
 
 
 func view() -> MatchView:
@@ -64,7 +67,7 @@ func acknowledge(event: MatchEvent) -> void:
 	if event != _shown:
 		return
 	_shown = null
-	_session.finish_event()
+	_session.finish_event(event)
 	_pump()
 
 
@@ -79,6 +82,8 @@ func is_awaiting_intent() -> bool:
 
 
 func turn_time_left() -> float:
+	if _frozen_time != MatchReferee.NO_TURN_TIMER:
+		return _frozen_time
 	if _turn_deadline == NO_DEADLINE or _timer_expired():
 		return MatchReferee.NO_TURN_TIMER
 	return (_turn_deadline - Time.get_ticks_msec()) / MSEC_PER_SECOND
@@ -99,6 +104,11 @@ func detach() -> void:
 	_session.intent_rejected.disconnect(_on_intent_rejected)
 	_session.turn_timer_started.disconnect(_on_turn_timer_started)
 	_room.lost.disconnect(_on_lost)
+	_room.connection_changed.disconnect(_on_connection_changed)
+
+
+func seat_wait(seat: int) -> float:
+	return _session.seat_wait(seat)
 
 
 func is_live() -> bool:
@@ -176,6 +186,7 @@ func _on_turn_timer_started(seat: int, seconds: float) -> void:
 
 ## seconds NO_TURN_TIMER ise süre durur.
 func _set_deadline(seconds: float) -> void:
+	_frozen_time = MatchReferee.NO_TURN_TIMER
 	if seconds == MatchReferee.NO_TURN_TIMER:
 		_turn_deadline = NO_DEADLINE
 	else:
@@ -186,11 +197,25 @@ func _timer_expired() -> bool:
 	return _turn_deadline != NO_DEADLINE and Time.get_ticks_msec() >= _turn_deadline
 
 
-func _on_lost(_was_welcomed: bool) -> void:
+func _on_lost(loss: GuestRoom.Loss) -> void:
 	if _closed:
 		return
 	_close()
-	ended.emit()
+	ended.emit(loss == GuestRoom.Loss.HOST_CLOSED)
+
+
+## Bağlantı kopukken oyuncu hamle yapamaz; sıra süresi donar, düzelince kaldığı yerden sürer
+## (host kendi kalan süresini ayrıca bildirir).
+func _on_connection_changed(lost: bool) -> void:
+	if _closed:
+		return
+	if lost:
+		var left := turn_time_left()
+		_turn_deadline = NO_DEADLINE
+		_frozen_time = left
+	elif _frozen_time != MatchReferee.NO_TURN_TIMER:
+		_set_deadline(_frozen_time)
+	connection_changed.emit(lost)
 
 
 func _close() -> void:

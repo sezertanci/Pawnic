@@ -318,8 +318,8 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   sekmesine dönülür; sonuç ekranında Tekrar oyna gizlenir, ana menü düğmesi "Yeni oyun" olur.
   Ortak onay katmanı `ConfirmOverlay` (`scenes/components/`). Testler `test_match_sources.gd`
   ve `test_confirm_overlay.gd`'de.
-  Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Sıradaki: parça 3 (oyun sırasında kopma
-  ve geri dönme).
+  Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Parça 3 (oyun sırasında kopma ve geri
+  dönme) yapıldı (2026-11-21 (3)).
   Sonraya kalanlar: ağ oyununda Tekrar oyna, duraklatma ve ortak oyun içi reklam.
 
 **Kararlar (2026-11-20)**
@@ -642,3 +642,50 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   sayı). Kırmızı oyuncuyla karışmasın diye son 5 sn çubuk rengi değişmez; çubuk her saniye
   kırmızı ışık yayıp söner (zemin stilinin gölgesi, temada `glow_size`), sayı kırmızı olur.
   Çubuk ve sayı tahtanın genişliğine hizalanır (`BoardView.grid_rect()`); geniş ekranda taşmaz.
+- **2026-11-21 (3):** Ağ oyunu parça 3, kopma ve geri dönme. `tuning.json` → `network`:
+  `peer_timeout_ms` (20000, ENet eş zaman aşımı), `heartbeat_interval_ms` (1000),
+  `silence_limit_ms` (3000), `rejoin_wait_sec` (20), `rejoin_interval_ms` (1000).
+  `PROTOCOL_VERSION` 4 oldu; yeni mesajlar `HEARTBEAT`, `SEAT_STATUS`, `CLOSED`, yeni ret
+  `NOT_IN_MATCH`. Host ve istemci birbirine her saniye yoklama gönderir (`PeerWatch`; cihaz
+  arka planda durduysa o süre sessizlik sayılmaz). Hostta (`HostSession`): bağlantısı kopan ya da
+  3 sn sesi gelmeyen eşin koltuğu uzakta sayılır (`SeatPresence`), diğer eşlere bildirilir; oyun
+  sürer, sıra o koltuğa gelirse 20 sn'nin kalanı kadar beklenir (karar değişti, aşağıdaki nota bak).
+  Süre dolunca koltuğu Orta bot oynar (`MatchReferee.hand_to_bot`). WELCOME eşe bir yeniden katılma
+  anahtarı verir; eş aynı anahtarla yeniden bağlanınca eski bağlantısı kesilir, koltuğu geri
+  verilir (`MatchReferee.take_back`; süren bot hamlesi biter, oyuncu sonraki sırasında oynar) ve
+  görünümün tamamı gönderilir. Bilinmeyen anahtar `NOT_IN_MATCH` ile reddedilir. Lobi kilitlenince
+  yeni bağlantı reddedilmez (`refuse_new_peers` kaldırıldı), oyun başladıktan sonra yalnızca
+  anahtarlı eş kabul edilir; host yeniden bağlanan eşin eski bağlantısı için iki katı bağlantı
+  ayırır. Host odayı kapatınca eşlere `CLOSED` gider; ENet taşıyıcı kapanırken (host da) kuyruğu
+  boşaltıp bağlantıyı sonra keser. İstemcide (`GuestRoom`): oyun sürerken bağlantı koparsa her
+  saniye aynı hosta anahtarla bağlanmaya çalışılır; oyuncu Çık'a basana, host `CLOSED` gönderene
+  ya da yeniden bağlanırken ret gelene kadar sürer (kurucu uzun süre dönmezse deneme sürer,
+  kullanıcı Çık'la çıkar). Ekran: bağlantı kopukken (ya da hostun sesi kesilince) "Bağlantı
+  koptu. Yeniden bağlanılıyor…" katmanı ve Çık düğmesi; düzelince kapanır. Oyun sonu mesajları:
+  host kapattıysa "Kurucu oyunu kapattı.", host artık oyunu tanımıyorsa "Kurucuya ulaşılamadı,
+  oyun sona erdi." (`RECONNECTING`, `HOST_UNREACHABLE`, 8 dil). Sıra göstergesinde (`TurnDots`)
+  kopan oyuncunun taşı soluk çizilir, bot alana kadar kalan saniye taşın üstünde yazar. Yeni
+  testler `test_peer_presence.gd` ve `test_match_reconnect.gd`'de. gdlint ve gdformat temiz;
+  GUT 271/271; simülasyonda bitmeyen 0. İki cihazla denendi (kullanıcı): uygulamayı arka plana
+  alma ve interneti kesme sonrasında bekleme süresince bot devreye girdi, oyuncu yeniden
+  bağlanıp koltuğuna döndü.
+  Denemede bulunan hata: kurucu uygulamayı arka plana alınca istemcide "yeniden bağlanılıyor"
+  katmanı çıkıyor, oyuncu hamle yapamıyor ama sıra süresi doluyordu. Düzeltme: bağlantı kopukken
+  istemcide sıra süresi donar, düzelince kaldığı yerden sürer (`ClientSource`). Hostun cihazı
+  durursa (sessizlik sınırından uzun kare) o süre sıra süresinden düşülmez ve kalan süre eşlere
+  yeniden gönderilir (`MatchReferee`). Sesi kesilip aynı bağlantıdan dönen eşe hostun kalan sıra
+  süresi gönderilir (`HostSession`). Uzaktaki koltuğu beklerken sıra süresi durmaz kararı aynen
+  geçerli. GUT 274/274; simülasyonda bitmeyen 0. Tablette denenmedi.
+  Denemede bulunan ikinci durum: mavinin bağlantısı kopunca sıra sarı bota geçtiği hâlde oyun,
+  mavinin 20 sn'si dolana kadar durdu (host her olayda uzaktaki eşin olayı bitirmesini bekliyordu).
+  Karar değişti (kullanıcı): uzaktaki eşin olayı bitirmesi beklenmez, diğer oyuncular ve botlar
+  oynamaya devam eder; sıra kopan oyuncuya gelirse bekleme süresinin kalanı kadar beklenir, sonra
+  koltuğu bot alır (`HostSession._mark_away` eşin bekletmesini bırakır, `_on_event` uzaktaki
+  koltuğu beklemez). GUT 275/275. Tablette denenmedi.
+  Dal incelemesinden iki düzeltme (protokol sürümü 4 → 5): bağlanıp sessizlik sınırı
+  (`silence_limit_ms`) içinde HELLO göndermeyen eşin bağlantısı kesilir, yoksa aynı ağdaki bir
+  cihaz bağlantı yerlerini doldurup katılmayı ve geri dönmeyi engelleyebilirdi. Olaylar sıra
+  numarasıyla gider, EVENT_DONE numarayı geri getirir; sesi kesilip dönen eşin eski olaylar için
+  gönderdiği bildirim güncel olayın beklemesini erken bitirmez. Yeniden katılma anahtarı ağda
+  şifresiz gider (aynı ağda dinleyen biri koltuğu alabilir); bilgi olarak not edildi, düzeltilmedi.
+  GUT 278/278. Tablette denenmedi.

@@ -88,6 +88,11 @@
 		"room_code_digits": 4,
 		"max_wrong_codes": 10,
 		"connect_timeout_ms": 5000,
+		"peer_timeout_ms": 20000,
+		"heartbeat_interval_ms": 1000,
+		"silence_limit_ms": 3000,
+		"rejoin_wait_sec": 20,
+		"rejoin_interval_ms": 1000,
 		"turn_time_sec": 20,
 		"turn_warning_sec": 5
 	},

@@ -141,6 +141,17 @@ var room_code_digits := 0
 var max_wrong_codes := 0
 ## Hosta bu kadar sürede bağlanılamazsa bağlantı düşer (milisaniye).
 var connect_timeout_ms := 0
+## Bağlı eşten bu kadar süre paket gelmezse bağlantı kopmuş sayılır (milisaniye); uygulama kısa
+## süre arka plana alınınca bağlantı düşmesin diye uzundur.
+var peer_timeout_ms := 0
+## Bağlı eşlere bu aralıkla yoklama mesajı gönderilir (milisaniye).
+var heartbeat_interval_ms := 0
+## Eşten bu kadar süre mesaj gelmezse eş uzakta sayılır (milisaniye).
+var silence_limit_ms := 0
+## Ağ oyununda bağlantısı kopan oyuncu bu kadar beklenir; dönmezse koltuğunu bot alır (saniye).
+var rejoin_wait_time := 0.0
+## Bağlantısı kopan istemci hosta bu aralıkla yeniden bağlanmayı dener (milisaniye).
+var rejoin_interval_ms := 0
 ## Ağ oyununda insan oyuncunun bir sırada hamlesini seçme süresi; dolunca hamleyi bot oynar
 ## (saniye).
 var turn_time_limit := 0.0
@@ -277,5 +288,10 @@ func _read_network(network: Dictionary) -> void:
 	room_code_digits = int(network["room_code_digits"])
 	max_wrong_codes = int(network["max_wrong_codes"])
 	connect_timeout_ms = int(network["connect_timeout_ms"])
+	peer_timeout_ms = int(network["peer_timeout_ms"])
+	heartbeat_interval_ms = int(network["heartbeat_interval_ms"])
+	silence_limit_ms = int(network["silence_limit_ms"])
+	rejoin_wait_time = float(network["rejoin_wait_sec"])
+	rejoin_interval_ms = int(network["rejoin_interval_ms"])
 	turn_time_limit = float(network["turn_time_sec"])
 	turn_warning_time = float(network["turn_warning_sec"])

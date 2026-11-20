@@ -1,7 +1,9 @@
 class_name ENetTransport
 extends MatchTransport
-## Yerel ağdaki gerçek taşıyıcı (ENet, UDP). Host yalnızca verilen özel ağ adresinde dinler ve en
-## fazla oyuncu sayısının bir eksiği kadar istemci kabul eder. Gelen paket güvenilmezdir: sınırdan
+## Yerel ağdaki gerçek taşıyıcı (ENet, UDP). Host yalnızca verilen özel ağ adresinde dinler ve
+## oyuncu sayısının bir eksiğinin iki katı kadar bağlantı kabul eder: yeniden bağlanan oyuncunun
+## eski bağlantısı düşmeden yenisi de sığar. Bağlanan eşten peer_timeout_ms boyunca yanıt
+## alınamazsa bağlantı düşer. Gelen paket güvenilmezdir: sınırdan
 ## büyüğü çözülmeden, eş başına saniyedeki sınırı aşanlar okunmadan atılır (bağlantı kesilmez).
 ## Paket nesne çözme kapalıyken okunur; sözlük olmayan atılır. Paketler her karede okunur. Host
 ## bağlantıyı kesince istemci taşıyıcısı kendini kapatır.
@@ -10,10 +12,6 @@ extends MatchTransport
 ## ile kapatınca gelmez.
 signal closed
 
-## Bağlantı yokken eş numarası.
-const NO_PEER := 0
-## ENet zaman aşımında sıfır, olağan değeri seçer.
-const DEFAULT_TIMEOUT := 0
 const MSEC_PER_SEC := 1000
 
 var _settings: GameSettings
@@ -25,9 +23,10 @@ var _window_starts: Dictionary[int, int] = {}
 var _window_counts: Dictionary[int, int] = {}
 ## Bu karede bağlantısı kopan eşler; kopmadan önce gelen paketleri okunduktan sonra bildirilir.
 var _gone: Array[int] = []
-## Kapatılan istemci bağlantısı: kuyruktaki mesajlar hosta ulaşıp bağlantı düzgünce kesilene kadar
-## (en fazla connect_timeout_ms) yoklanır, sinyal yayılmaz. Anında kesmede ENet, aynı anda gelen
-## son paketleri hostta siler (ör. oyundan çıkan istemcinin LEAVE mesajı).
+## Kapatılan bağlantı: kuyruktaki mesajlar karşıya ulaşıp her eşin bağlantısı düzgünce kesilene
+## kadar (en fazla connect_timeout_ms) yoklanır, sinyal yayılmaz. Anında kesmede ENet, aynı anda
+## gelen son paketleri karşı tarafta siler (ör. oyundan çıkan istemcinin LEAVE mesajı, odayı kapatan
+## hostun CLOSED mesajı).
 var _draining: ENetMultiplayerPeer
 var _drain_deadline := 0
 
@@ -41,9 +40,10 @@ func _init(settings: GameSettings) -> void:
 func host(bind_address: String) -> bool:
 	if _peer != null or not LocalAddress.is_allowed(bind_address):
 		return false
+	_stop_draining()
 	var peer := ENetMultiplayerPeer.new()
 	peer.set_bind_ip(bind_address)
-	if peer.create_server(_settings.network_port, _settings.max_players - 1) != OK:
+	if peer.create_server(_settings.network_port, (_settings.max_players - 1) * 2) != OK:
 		return false
 	_attach(peer)
 	return true
@@ -51,7 +51,7 @@ func host(bind_address: String) -> bool:
 
 ## Hosta bağlanmaya başlar; adres izinli değilse ya da bağlantı kurulamazsa false. Bağlantı
 ## kurulunca peer_connected(HOST_PEER) gelir. connect_timeout_ms içinde bağlanılamazsa bağlantı
-## düşer; bağlanınca ENet'in olağan zaman aşımına dönülür.
+## düşer.
 func join(address: String) -> bool:
 	if _peer != null or not LocalAddress.is_allowed(address):
 		return false
@@ -64,24 +64,25 @@ func join(address: String) -> bool:
 	return true
 
 
-## Bağlantıyı kapatır; kuyruktaki mesajlar önce gönderilir. Taşıyıcı yeniden kurulabilir.
+## Bağlantıyı kapatır; kuyruktaki mesajlar önce gönderilir. Taşıyıcı yeniden kurulabilir. Yeniden
+## kurulan host, önceki bağlantının boşalmasını beklemez.
 func close() -> void:
 	if _peer == null:
 		return
-	if own_peer() != MatchTransport.HOST_PEER and _peers.has(MatchTransport.HOST_PEER):
-		_drain()
-	else:
-		_peer.host.flush()
+	if _peers.is_empty():
 		_peer.close()
+	else:
+		_drain()
 	_release()
 
 
-## İstemci bağlantısını kuyruk boşaldıktan sonra kesilecek şekilde bırakır.
+## Bağlantıları kuyruk boşaldıktan sonra kesilecek şekilde bırakır.
 func _drain() -> void:
 	_stop_draining()
 	_peer.peer_connected.disconnect(_on_peer_connected)
 	_peer.peer_disconnected.disconnect(_on_peer_disconnected)
-	_peer.get_peer(MatchTransport.HOST_PEER).peer_disconnect_later()
+	for peer: ENetPacketPeer in _peer.host.get_peers():
+		peer.peer_disconnect_later()
 	_draining = _peer
 	_drain_deadline = Time.get_ticks_msec() + _settings.connect_timeout_ms
 
@@ -90,9 +91,19 @@ func _poll_draining() -> void:
 	if _draining == null:
 		return
 	_draining.poll()
-	var done := _draining.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED
-	if done or Time.get_ticks_msec() >= _drain_deadline:
+	if _is_drained(_draining) or Time.get_ticks_msec() >= _drain_deadline:
 		_stop_draining()
+
+
+## İstemci hostla bağlantısı kesilince, host her eşinin bağlantısı kesilince boşalmış sayılır.
+static func _is_drained(peer: ENetMultiplayerPeer) -> bool:
+	if peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED or peer.host == null:
+		return true
+	return peer.host.get_peers().all(_is_disconnected)
+
+
+static func _is_disconnected(peer: ENetPacketPeer) -> bool:
+	return peer.get_state() == ENetPacketPeer.STATE_DISCONNECTED
 
 
 func _stop_draining() -> void:
@@ -117,11 +128,6 @@ func kick(peer_id: int) -> void:
 		return
 	_forget(peer_id)
 	_peer.get_peer(peer_id).peer_disconnect_later()
-
-
-func refuse_new_peers() -> void:
-	if _peer != null:
-		_peer.refuse_new_connections = true
 
 
 func own_peer() -> int:
@@ -176,8 +182,8 @@ func _within_rate(peer_id: int) -> bool:
 
 
 func _on_peer_connected(peer_id: int) -> void:
-	if peer_id == MatchTransport.HOST_PEER:
-		_peer.get_peer(peer_id).set_timeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, DEFAULT_TIMEOUT)
+	var timeout := _settings.peer_timeout_ms
+	_peer.get_peer(peer_id).set_timeout(timeout, timeout, timeout)
 	_peers.append(peer_id)
 	peer_connected.emit(peer_id)
 

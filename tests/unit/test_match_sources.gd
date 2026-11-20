@@ -154,13 +154,29 @@ func test_client_source_stops_awaiting_when_turn_time_ends() -> void:
 	assert_eq(_source.turn_time_left(), MatchReferee.NO_TURN_TIMER)
 
 
+func test_client_source_freezes_turn_time_while_connection_lost() -> void:
+	await _reach_client_turn()
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
+	_room.session.turn_timer_started.emit(_client_seat, SHORT_TURN_TIME)
+
+	_room.connection_changed.emit(true)
+	await wait_seconds(SHORT_TURN_TIME * 2)
+
+	assert_true(_source.is_awaiting_intent())
+	assert_gt(_source.turn_time_left(), 0.0)
+	_room.connection_changed.emit(false)
+	await wait_seconds(SHORT_TURN_TIME * 2)
+	assert_false(_source.is_awaiting_intent())
+
+
 func test_lost_room_ends_client_source() -> void:
 	await _start_match()
 	watch_signals(_source)
 
-	_room.lost.emit(true)
+	_room.lost.emit(GuestRoom.Loss.HOST_CLOSED)
 
-	assert_signal_emitted(_source, "ended")
+	assert_signal_emitted_with_parameters(_source, "ended", [true])
 	assert_false(_source.is_live())
 
 

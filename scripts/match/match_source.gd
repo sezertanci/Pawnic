@@ -11,8 +11,11 @@ signal event_emitted(event: MatchEvent)
 signal intent_rejected
 ## Görünüm baştan değişti (istemciye görünümün tamamı yeniden geldi); ekran baştan çizer.
 signal view_reset
-## Oyun bu cihazın dışında sona erdi (host oyunu kapattı ya da bağlantı koptu).
-signal ended
+## Oyun bu cihazın dışında sona erdi: by_host true ise host oyunu kapattı, değilse hosta artık
+## ulaşılamıyor.
+signal ended(by_host: bool)
+## Ağ oyununda hostla bağlantı koptu (lost true) ya da düzeldi.
+signal connection_changed(lost: bool)
 
 
 ## Oyunun bu cihazda görünen hâli; her olaydan önce güncellenir.
@@ -49,6 +52,12 @@ func is_awaiting_intent() -> bool:
 ## MatchReferee.NO_TURN_TIMER.
 func turn_time_left() -> float:
 	return MatchReferee.NO_TURN_TIMER
+
+
+## Ağ oyununda koltuğun oyuncusu bağlantısı koptuğu için bekleniyorsa, koltuğu bot alana kadar
+## kalan saniye (süre dolduysa 0); oyuncu bağlıysa ya da oyun yerelse SeatPresence.PRESENT.
+func seat_wait(_seat: int) -> float:
+	return SeatPresence.PRESENT
 
 
 ## Oyuncu oyundan çıkıyor.

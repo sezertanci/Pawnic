@@ -13,6 +13,7 @@ signal event_emitted(event: MatchEvent)
 ## Ekran ve bütün bekletmeler olayı bitirdi (ya da hakem durdu).
 signal acknowledged
 ## İnsan oyuncunun sıra süresi başladı: seconds saniye içinde niyet gelmezse hamleyi bot oynar.
+## Cihaz durup (uygulama arka plandaydı) devam edince kalan süreyle yeniden yayılır.
 signal turn_timer_started(seat: int, seconds: float)
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
@@ -100,8 +101,8 @@ func release() -> void:
 		_settle()
 
 
-## Koltuğu kalıcı olarak bota verir (ağ oyununda çıkan oyuncu); sıra o koltuktaysa ve niyeti
-## bekleniyorsa hamleyi hemen bot oynar.
+## Koltuğu bota verir (ağ oyununda çıkan ya da bağlantısı kopan oyuncu); sıra o koltuktaysa ve
+## niyeti bekleniyorsa hamleyi hemen bot oynar.
 func hand_to_bot(seat: int) -> void:
 	var index := game.seats.find(seat)
 	if index == GameMatch.NO_INDEX or game.bots[index]:
@@ -110,6 +111,14 @@ func hand_to_bot(seat: int) -> void:
 	if _awaiting_intent and game.current == index:
 		_stop_awaiting()
 		_play_bot_turn()
+
+
+## Bota verilen koltuğu oyuncuya geri verir (bağlantısı kopan oyuncu döndü). Süren bot hamlesi
+## biter; oyuncu sonraki sırasında oynar.
+func take_back(seat: int) -> void:
+	var index := game.seats.find(seat)
+	if index != GameMatch.NO_INDEX:
+		game.bots[index] = false
 
 
 ## Sıradaki insan oyuncunun niyeti bekleniyorsa true.
@@ -144,8 +153,18 @@ func submit(intent: MatchIntent) -> bool:
 func _process(delta: float) -> void:
 	if _clock_running:
 		game.elapsed += delta
-	if _turn_time_left != NO_TURN_TIMER:
+	if _turn_time_left == NO_TURN_TIMER:
+		return
+	if _is_device_pause(delta):
+		turn_timer_started.emit(game.current_seat(), _turn_time_left)
+	else:
 		_count_turn_time(delta)
+
+
+## Sessizlik sınırından uzun kare, cihazın durduğunu gösterir; o süre sıra süresinden düşülmez,
+## çünkü kimse hamle yapamadı.
+func _is_device_pause(delta: float) -> bool:
+	return delta * ClientSource.MSEC_PER_SECOND > game.settings.silence_limit_ms
 
 
 func _is_hand_card(card_index: int) -> bool:

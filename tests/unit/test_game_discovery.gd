@@ -74,7 +74,7 @@ func test_bad_announcements_are_ignored() -> void:
 		var_to_bytes(MatchMessage.announce(0, 1)),
 		var_to_bytes(MatchMessage.announce(_settings.network_port, _settings.max_players + 1)),
 		var_to_bytes(MatchMessage.announce(_settings.network_port, 0)),
-		var_to_bytes(MatchMessage.welcome()),
+		var_to_bytes(MatchMessage.welcome("")),
 		var_to_bytes([1, 2, 3]),
 		var_to_bytes({"x": "y".repeat(_settings.max_message_bytes)}),
 	]

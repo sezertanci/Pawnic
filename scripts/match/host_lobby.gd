@@ -4,8 +4,8 @@ extends RefCounted
 ## oda koduyla el sıkışınca sıradaki boş yere oturur, ilk boş rengi alır ve sonra boş bir renge
 ## geçebilir. Her değişiklikte lobi her oyuncuya kendi görünümüyle gönderilir. Yanlış kodla gelen
 ## eş reddedilir; toplam max_wrong_codes yanlış denemede yeni oda kodu üretilir. Başlatınca
-## oyuncular katılma sırasıyla koltuk alır, boş koltuklara Orta bot oturur ve yeni bağlantı
-## alınmaz.
+## oyuncular katılma sırasıyla koltuk alır, boş koltuklara Orta bot oturur ve yeni oyuncu alınmaz
+## (bağlantısı kopan oyuncu yeniden katılma anahtarıyla döner).
 
 ## Lobi değişti (oyuncu, renk ya da ayar).
 signal changed
@@ -94,7 +94,6 @@ func start() -> GameMatch:
 	if _started:
 		return null
 	_started = true
-	_transport.refuse_new_peers()
 	var players: Array[int] = [MatchTransport.HOST_PEER]
 	players.append_array(_members)
 	var bot_flags: Array[bool] = []

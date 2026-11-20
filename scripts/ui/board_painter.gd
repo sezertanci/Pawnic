@@ -30,23 +30,34 @@ static func face_rect(rect: Rect2) -> Rect2:
 
 
 ## Verilen renkteki (kaplamadaki renk sırası) taş görselini, ayağı verilen merkeze basacak
-## biçimde çizer.
-static func draw_pawn(canvas: CanvasItem, center: Vector2, radius: float, color: int) -> void:
+## biçimde ve modulate ile renklendirerek (ör. soluk) çizer.
+static func draw_pawn(
+	canvas: CanvasItem, center: Vector2, radius: float, color: int, modulate := Color.WHITE
+) -> void:
 	var texture := Skins.current.pawn_textures[color]
+	canvas.draw_texture_rect(texture, pawn_rect(center, radius, texture), false, modulate)
+
+
+## Ayağı center'a basan taş görselinin kapladığı dikdörtgen.
+static func pawn_rect(center: Vector2, radius: float, texture: Texture2D) -> Rect2:
 	var width := radius * PAWN_WIDTH_RATIO
 	var size := Vector2(width, width * aspect(texture))
-	var origin := center - Vector2(size.x / 2.0, size.y * PAWN_FOOT)
-	canvas.draw_texture_rect(texture, Rect2(origin, size), false)
+	return Rect2(center - Vector2(size.x / 2.0, size.y * PAWN_FOOT), size)
 
 
 ## Taşı, ayağındaki yere yatık halkanın arka yarısı taşın arkasında, ön yarısı önünde
 ## kalacak biçimde çizer. draw_ring halkanın açı aralığını (PulseWave.BACK_ARC ya da
 ## FRONT_ARC) alıp o parçayı çizer.
 static func draw_pawn_in_ring(
-	canvas: CanvasItem, center: Vector2, radius: float, color: int, draw_ring: Callable
+	canvas: CanvasItem,
+	center: Vector2,
+	radius: float,
+	color: int,
+	draw_ring: Callable,
+	modulate := Color.WHITE
 ) -> void:
 	draw_ring.call(PulseWave.BACK_ARC)
-	draw_pawn(canvas, center, radius, color)
+	draw_pawn(canvas, center, radius, color, modulate)
 	draw_ring.call(PulseWave.FRONT_ARC)
 
 

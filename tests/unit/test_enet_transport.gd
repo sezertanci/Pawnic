@@ -91,8 +91,8 @@ func test_address_outside_local_network_is_refused() -> void:
 	assert_eq(client.own_peer(), ENetTransport.NO_PEER)
 
 
-func test_host_accepts_one_less_than_max_players() -> void:
-	var allowed := _settings.max_players - 1
+func test_host_accepts_twice_one_less_than_max_players() -> void:
+	var allowed := (_settings.max_players - 1) * 2
 	for _index: int in range(allowed):
 		await _connect()
 	var extra := ENetTransport.new(_settings)
@@ -142,19 +142,6 @@ func test_messages_from_kicked_peer_are_dropped() -> void:
 	client.send(MatchTransport.HOST_PEER, {KEY_TEXT: "hâlâ burada"})
 	await wait_seconds(SETTLE)
 
-	assert_eq(_host_inbox, [])
-
-
-func test_new_peers_are_refused_after_lock() -> void:
-	_host.refuse_new_peers()
-	var late := ENetTransport.new(_settings)
-	_clients.append(late)
-
-	late.join(LocalAddress.LOOPBACK)
-	late.send(MatchTransport.HOST_PEER, {KEY_TEXT: "geç kaldım"})
-	await wait_seconds(SETTLE)
-
-	assert_eq(_host_peers, [])
 	assert_eq(_host_inbox, [])
 
 

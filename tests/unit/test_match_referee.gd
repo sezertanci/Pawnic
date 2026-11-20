@@ -226,6 +226,23 @@ func test_submit_stops_turn_timer() -> void:
 	assert_eq(_referee.turn_time_left(), MatchReferee.NO_TURN_TIMER)
 
 
+func test_device_pause_does_not_use_turn_time() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	var game := _new_game(HUMANS)
+	_start(game)
+	var started: Array = []
+	_referee.turn_timer_started.connect(
+		func(seat: int, seconds: float) -> void: started.append([seat, seconds])
+	)
+	var pause := game.settings.silence_limit_ms * 2.0 / ClientSource.MSEC_PER_SECOND
+
+	_referee._process(pause)
+
+	assert_true(_referee.is_awaiting_intent())
+	assert_eq(started, [[game.current_seat(), _referee.turn_time_left()]])
+	assert_gt(_referee.turn_time_left(), TURN_TIME - pause)
+
+
 func test_local_match_has_no_turn_timer() -> void:
 	_start(_new_game(HUMANS))
 

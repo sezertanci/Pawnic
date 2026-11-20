@@ -88,7 +88,7 @@ func _on_start_pressed() -> void:
 	_room.session.speed_level = GameSpeed.current()
 	_room.session.share_match()
 	var own_seat := game.seats[HostLobby.HOST_INDEX]
-	started.emit(RefereeSource.new(_referee, own_seat, _room.lobby.code))
+	started.emit(RefereeSource.new(_referee, own_seat, _room.lobby.code, _room.session))
 
 
 func _show_code(room_code: String) -> void:

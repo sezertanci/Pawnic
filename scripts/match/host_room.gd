@@ -36,7 +36,9 @@ func start_match() -> GameMatch:
 	return game
 
 
+## Odayı kapatır; katılan oyunculara önce odanın kapandığı bildirilir.
 func close() -> void:
+	session.close()
 	_announcer.stop()
 	_transport.close()
 
