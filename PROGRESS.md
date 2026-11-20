@@ -428,7 +428,9 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   CHANGE_WIFI_MULTICAST_STATE; bazı telefonlarda yayın için `MulticastLock` gerekir (Godot almaz,
   küçük eklenti gerekebilir; QR/IP ile katılma bunu atlatır).
 - Yeni Android sürümlerindeki yerel ağ erişimi izni hedef API'ye göre kontrol edilecek.
-- Gizlilik politikası ve Veri güvenliği formu yerel ağ kullanımına göre gözden geçirilecek.
+- Gizlilik politikası yerel ağ oyununa göre güncellendi (2026-11-20, "Yerel ağda oyun" bölümü,
+  tr/en); sezertanci.github.io reposuna kullanıcı gönderir. Veri güvenliği formu değişmedi: oyun
+  verisi yalnızca oyundaki cihazlar arasında gider, geliştiriciye ya da üçüncü tarafa gitmez.
 
 **Test**
 - Mesaj ve hakem mantığı sahte taşıyıcıyla birim testte; `tools/simulate.gd` ağ katmanından geçen
@@ -614,3 +616,5 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-20 (10):** Telefonda ağ oyunu denemesi için 6 (1.5.0): Gradle'lı APK ve AAB ön
   ayarlarına ağ izinleri eklendi (önce yalnızca hızlı APK'da vardı; Play sürümünde ağ oyunu
   çalışmazdı), üç ön ayarda sürüm yükseltildi.
+- **2026-11-20 (11):** `store/pawnic/privacy.html`'e "Yerel ağda oyun" bölümü (tr/en) eklendi;
+  mağaza metinlerine (tr-TR, en-US) Wi-Fi oyunu bölümü ve 1.5.0 sürüm notu eklendi.

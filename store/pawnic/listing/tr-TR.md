@@ -22,6 +22,10 @@ AYNI TELEFONDA 2–4 KİŞİ
 • Arkadaşlarınla ya da ailenle tek telefonda oyna, sıra gelen oyuncuya telefonu ver.
 • Oyuncu başına taş sayısını sen seç.
 
+AYNI Wi-Fi'DA HERKES KENDİ TELEFONUNDA
+• Bir kişi oyunu kurar, aynı Wi-Fi ağındaki arkadaşları oyunu bulup oda koduyla katılır.
+• Herkes kendi telefonunda oynar; tahta her telefonda kendi rengin altta kalacak şekilde döner.
+
 BOTLARA KARŞI TEK BAŞINA
 • Kolay, Orta, Zor ve Çok Zor olmak üzere dört bot seviyesi.
 • Botlar hile yapmaz; senin göremediğin kartları onlar da göremez.
@@ -34,6 +38,10 @@ RAHAT OYNA
 • Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca, Portekizce ve Endonezce oynanır.
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
+
+## Sürüm notu (1.5.0)
+
+- Yeni: Aynı Wi-Fi ağındaki arkadaşlarınla oyna. Bir kişi oyunu kurar, diğerleri oda koduyla katılır.
 
 ## Sürüm notu (1.2.0)
 

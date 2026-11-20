@@ -22,6 +22,10 @@ CARDS INSTEAD OF DICE
 • Play with friends or family on a single phone and pass it to whoever's turn it is.
 • Choose how many pawns each player has.
 
+EVERYONE ON THEIR OWN PHONE OVER Wi-Fi
+• One player hosts, and friends on the same Wi-Fi network find the game and join with the room code.
+• Everyone plays on their own phone; the board turns so your color is always at the bottom.
+
 SOLO AGAINST BOTS
 • Four bot levels: Easy, Medium, Hard and Very Hard.
 • Bots don't cheat; they can't see the cards you can't see.
@@ -34,6 +38,10 @@ PLAY AT YOUR PACE
 • Available in English, Turkish, German, Spanish, French, Italian, Portuguese and Indonesian.
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
+
+## Sürüm notu (1.5.0)
+
+- New: Play with friends on the same Wi-Fi network. One player hosts, others join with the room code.
 
 ## Sürüm notu (1.2.0)
 
