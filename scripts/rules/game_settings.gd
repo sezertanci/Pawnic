@@ -15,10 +15,15 @@ const KEY_CARD_COUNT := "count"
 const KEY_EFFECTS := "effects"
 const KEY_UI := "ui"
 const KEY_ADS := "ads"
+## Tahta bölümünde tahta dosyasının yolunun anahtarı.
+const KEY_LAYOUT := "layout"
 const REQUIRED_KEYS: Array[String] = [
 	KEY_BOARD, KEY_RULES, KEY_BOT, KEY_ANIMATION, KEY_CARDS, KEY_DECK, KEY_EFFECTS, KEY_UI, KEY_ADS
 ]
 
+## Ayar ve tahta dosyalarının içeriğinden alınan özet; ağ oyununda iki cihazın aynı kurallarla
+## oynadığı bununla denetlenir.
+var digest := ""
 var board_layout: BoardLayout
 var hand_size := 0
 var exit_value := 0
@@ -128,6 +133,11 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_ads(root[KEY_ADS])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
+	var board_path: String = root[KEY_BOARD][KEY_LAYOUT]
+	settings.digest = (
+		(FileAccess.get_file_as_string(path) + FileAccess.get_file_as_string(board_path))
+		. sha256_text()
+	)
 	return settings
 
 
@@ -140,7 +150,7 @@ func deck_size() -> int:
 
 
 func _read_board(board: Dictionary) -> void:
-	board_layout = BoardLayout.load_from(board["layout"])
+	board_layout = BoardLayout.load_from(board[KEY_LAYOUT])
 
 
 func _read_rules(rules: Dictionary) -> void:

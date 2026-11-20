@@ -226,8 +226,21 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   host yalnızca kendi ekranını bekler; geride kalan istemci olayları sıraya alıp oynatır.
   Testler `test_match_messages.gd`, `test_match_view.gd` (iki ve dört kişilik tam oyunda her sıra
   başında bütün kopyalar host'taki oyunla karşılaştırılır) ve `test_fake_transport.gd`'de.
-  Host bağdaştırıcısı (eş → koltuk eşlemesi, niyeti hakeme verme, REJECTED gönderme, olayları her
-  eşe kendi görünümüyle yollama), el sıkışma ve protokol sürümü Aşama 2'ye kaldı.
+- Host/istemci oturumu ve el sıkışma (2026-11-20, ağsız, yerel oyuna dokunulmadı): `HostSession`
+  taşıyıcıyla hakemi bağlar. Eş HELLO (protokol sürümü `MatchMessage.PROTOCOL_VERSION` ve ayar
+  özeti `GameSettings.digest` = tuning.json + tahta dosyasının SHA-256'sı) gönderir; uyuşmazsa
+  REFUSED (`VERSION_MISMATCH`, "Oyunu güncelleyin"), uyuşursa WELCOME gider. Eş ancak WELCOME'dan
+  sonra `seat_peer()` ile koltuğa oturtulur (lobi bunu çağıracak). Niyetteki koltuk alanı yok
+  sayılır, eşin koltuğu yazılır; hakem reddederse REJECTED gider. Olaylar her eşe kendi
+  görünümüyle, `share_match()` oyun başında görünümün tamamını gönderir, SNAPSHOT_REQUEST'e
+  görünümle cevap verilir. `ClientSession` yalnızca HOST_PEER'den gelen mesajı okur, WELCOME'dan
+  önce oyun mesajlarını yok sayar, olayı kopyaya uygular; uyuşmazsa görünümü yeniden ister ve o
+  gelene kadar olayları atar. Kopyadaki geçen süre yalnızca sıra başında hostla eşitlenir.
+  Testler `test_match_sessions.gd`'de (el sıkışma, koltuk, başka koltuk adına niyet, yabancı eş,
+  uyuşmayan olay, sahte taşıyıcıyla tam oyun).
+  Sonraya kalanlar: oda kodu (lobiyle), en fazla 3 istemci ve oyun başlayınca yeni bağlantı reddi
+  (lobiyle), mesaj boyut/sıklık sınırı (gerçek taşıyıcıyla), oyun ekranının istemcide
+  `MatchView`'dan çizmesi.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi

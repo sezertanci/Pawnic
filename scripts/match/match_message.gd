@@ -14,10 +14,27 @@ enum Type {
 	REJECTED,
 	## İstemciden hosta: kopya olayla uyuşmadı, görünümün tamamı isteniyor. İçerik boştur.
 	SNAPSHOT_REQUEST,
+	## İstemciden hosta, bağlanınca: protokol sürümü ve ayar özeti.
+	HELLO,
+	## Hosttan istemciye: el sıkışma kabul edildi. İçerik boştur.
+	WELCOME,
+	## Hosttan istemciye: el sıkışma reddedildi; içerik nedendir (Refusal).
+	REFUSED,
 }
 
+## El sıkışmanın reddedilme nedeni.
+enum Refusal {
+	## Protokol sürümü ya da ayar özeti farklı; oyuncunun oyunu güncellemesi gerekir.
+	VERSION_MISMATCH,
+}
+
+## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
+const PROTOCOL_VERSION := 1
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
+const KEY_PROTOCOL := "protocol"
+const KEY_DIGEST := "digest"
+const KEY_REASON := "reason"
 
 
 static func make(type: Type, data: Dictionary) -> Dictionary:
@@ -42,6 +59,27 @@ static func rejected(player_intent: MatchIntent) -> Dictionary:
 
 static func snapshot_request() -> Dictionary:
 	return make(Type.SNAPSHOT_REQUEST, {})
+
+
+static func hello(settings: GameSettings) -> Dictionary:
+	return make(Type.HELLO, {KEY_PROTOCOL: PROTOCOL_VERSION, KEY_DIGEST: settings.digest})
+
+
+static func welcome() -> Dictionary:
+	return make(Type.WELCOME, {})
+
+
+static func refused(reason: Refusal) -> Dictionary:
+	return make(Type.REFUSED, {KEY_REASON: reason})
+
+
+## HELLO içeriği bu cihazla aynı protokol sürümünü ve ayar özetini taşıyorsa true.
+static func is_compatible(data: Dictionary, settings: GameSettings) -> bool:
+	return (
+		MessageData.read_int(data, KEY_PROTOCOL) == PROTOCOL_VERSION
+		and data.get(KEY_DIGEST) is String
+		and data[KEY_DIGEST] == settings.digest
+	)
 
 
 ## Mesajın türü; zarf bozuksa MessageData.INVALID.
