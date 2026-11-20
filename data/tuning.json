@@ -81,7 +81,10 @@
 	"network": {
 		"port": 24680,
 		"max_message_bytes": 16384,
-		"max_messages_per_sec": 20
+		"max_messages_per_sec": 20,
+		"discovery_port": 24681,
+		"announce_interval_ms": 1000,
+		"announce_expiry_ms": 3000
 	},
 	"ui": {
 		"button_width": 520,

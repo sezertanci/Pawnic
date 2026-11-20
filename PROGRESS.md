@@ -250,6 +250,16 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   192.168.x), `wifi_address()` (Wi-Fi'deki, yoksa ilk özel IPv4); host ve istemci yalnızca özel
   ağ adresini ya da aynı cihazı (127.0.0.1, yalnızca deneme için) kabul eder. Testler
   `test_enet_transport.gd` (aynı cihazda iki uç) ve `test_local_address.gd`'de.
+- Oyun bulma yayını (2026-11-20, ekran yok): `GameAnnouncer` hostun özel ağ adresinden
+  255.255.255.255:24681'e saniyede bir ANNOUNCE yayını gönderir (protokol sürümü, oyun portu,
+  oyuncu sayısı; oda kodu ve kişisel bilgi yok). `GameFinder` 24681'i her arayüzde dinler (yayın
+  her arayüze gelebilir; soket yalnızca okur) ve `FoundGame` listesini tutar, değişince
+  `games_changed` yayar. Özel ağ dışından gelen, 16 KB'tan büyük, bozuk, başka protokol
+  sürümündeki ya da port/oyuncu sayısı geçersiz yayın atılır; 3 saniye yayını gelmeyen oyun
+  listeden düşer. Süreler `tuning.json`'da (`discovery_port`, `announce_interval_ms`,
+  `announce_expiry_ms`). Testler `test_game_discovery.gd`'de (aynı cihazda).
+  Sonraya kalanlar: gerçek Wi-Fi'da (tablet + bilgisayar) deneme; Android'de `MulticastLock` ve
+  izinler (Aşama 4).
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi

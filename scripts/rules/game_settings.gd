@@ -129,6 +129,12 @@ var network_port := 0
 var max_message_bytes := 0
 ## Bir eşten saniyede okunan en fazla mesaj; fazlası atılır.
 var max_messages_per_sec := 0
+## Oyun bulma yayınının UDP portu (oyun portundan ayrı).
+var discovery_port := 0
+## Hostun "burada oyun var" yayınları arasındaki süre (milisaniye).
+var announce_interval_ms := 0
+## Bu kadar süre yayını gelmeyen oyun bulunanlar listesinden çıkar (milisaniye).
+var announce_expiry_ms := 0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -254,3 +260,6 @@ func _read_network(network: Dictionary) -> void:
 	network_port = int(network["port"])
 	max_message_bytes = int(network["max_message_bytes"])
 	max_messages_per_sec = int(network["max_messages_per_sec"])
+	discovery_port = int(network["discovery_port"])
+	announce_interval_ms = int(network["announce_interval_ms"])
+	announce_expiry_ms = int(network["announce_expiry_ms"])

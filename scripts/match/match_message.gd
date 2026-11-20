@@ -20,6 +20,9 @@ enum Type {
 	WELCOME,
 	## Hosttan istemciye: el sıkışma reddedildi; içerik nedendir (Refusal).
 	REFUSED,
+	## Hosttan yerel ağa (oyun bulma yayını): protokol sürümü, oyun portu ve oyuncu sayısı. Kişisel
+	## bilgi taşımaz.
+	ANNOUNCE,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -35,6 +38,8 @@ const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
 const KEY_DIGEST := "digest"
 const KEY_REASON := "reason"
+const KEY_PORT := "port"
+const KEY_PLAYERS := "players"
 
 
 static func make(type: Type, data: Dictionary) -> Dictionary:
@@ -71,6 +76,12 @@ static func welcome() -> Dictionary:
 
 static func refused(reason: Refusal) -> Dictionary:
 	return make(Type.REFUSED, {KEY_REASON: reason})
+
+
+static func announce(port: int, players: int) -> Dictionary:
+	return make(
+		Type.ANNOUNCE, {KEY_PROTOCOL: PROTOCOL_VERSION, KEY_PORT: port, KEY_PLAYERS: players}
+	)
 
 
 ## HELLO içeriği bu cihazla aynı protokol sürümünü ve ayar özetini taşıyorsa true.
