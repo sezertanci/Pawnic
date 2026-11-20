@@ -87,7 +87,9 @@
 		"announce_expiry_ms": 3000,
 		"room_code_digits": 4,
 		"max_wrong_codes": 10,
-		"connect_timeout_ms": 5000
+		"connect_timeout_ms": 5000,
+		"turn_time_sec": 20,
+		"turn_warning_sec": 5
 	},
 	"ui": {
 		"button_width": 520,

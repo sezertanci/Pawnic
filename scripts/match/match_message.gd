@@ -32,6 +32,8 @@ enum Type {
 	## İstemciden hosta: ekran son olayı bitirdi; host bütün ekranlar bitirince sıradakini yayar.
 	## İçerik boştur.
 	EVENT_DONE,
+	## Hosttan istemciye: sıradaki insan oyuncunun sıra süresi başladı; koltuk ve saniye.
+	TURN_TIMER,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -50,7 +52,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 2
+const PROTOCOL_VERSION := 3
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
@@ -64,6 +66,9 @@ const KEY_COLOR := "color"
 const KEY_SPEED := "speed"
 ## Görünümle birlikte giden bayrak: host, görünümün sahibinin niyetini bekliyor.
 const KEY_AWAITING := "awaiting"
+## Görünümle birlikte giden, sıradaki oyuncunun sıra süresinden kalan (saniye).
+const KEY_TURN_TIME := "turn_time"
+const KEY_SECONDS := "seconds"
 
 
 static func make(type: Type, data: Dictionary) -> Dictionary:
@@ -79,12 +84,22 @@ static func event(match_event: MatchEvent, viewer_seat: int) -> Dictionary:
 
 
 ## Görünüm, hostun oyun hızıyla ve hostun bu oyuncunun niyetini bekleyip beklemediğiyle birlikte
-## gider; istemci animasyonları bu hızla oynatır.
-static func snapshot(view: MatchView, speed_level: int, awaiting := false) -> Dictionary:
+## gider; istemci animasyonları bu hızla oynatır. Sıra süresi işliyorsa kalanı da gider.
+static func snapshot(
+	view: MatchView,
+	speed_level: int,
+	awaiting := false,
+	turn_time := MatchReferee.NO_TURN_TIMER,
+) -> Dictionary:
 	var data := view.to_dict()
 	data[KEY_SPEED] = speed_level
 	data[KEY_AWAITING] = awaiting
+	data[KEY_TURN_TIME] = turn_time
 	return make(Type.SNAPSHOT, data)
+
+
+static func turn_timer(seat: int, seconds: float) -> Dictionary:
+	return make(Type.TURN_TIMER, {MessageData.KEY_SEAT: seat, KEY_SECONDS: seconds})
 
 
 static func rejected(player_intent: MatchIntent) -> Dictionary:

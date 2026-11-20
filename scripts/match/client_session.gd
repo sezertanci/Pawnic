@@ -17,6 +17,8 @@ signal event_received(event: MatchEvent)
 signal intent_rejected(intent: MatchIntent)
 ## Lobinin hâli değişti (oyuncu, renk ya da ayar).
 signal lobby_changed(info: LobbyInfo)
+## Sıradaki insan oyuncunun sıra süresi başladı.
+signal turn_timer_started(seat: int, seconds: float)
 
 ## İstemcinin kopyası; ilk görünüm gelene kadar null.
 var view: MatchView
@@ -24,6 +26,9 @@ var view: MatchView
 var speed_level: int = GameSpeed.Level.NORMAL
 ## Son görünüm geldiğinde host bu oyuncunun niyetini bekliyorsa true.
 var host_awaiting := false
+## Son görünüm geldiğinde sıradaki oyuncunun sıra süresinden kalan (saniye); süre işlemiyorsa
+## MatchReferee.NO_TURN_TIMER.
+var host_turn_time := MatchReferee.NO_TURN_TIMER
 ## Lobinin son hâli; ilk lobi mesajı gelene kadar null.
 var lobby: LobbyInfo
 
@@ -87,6 +92,8 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 		_reset(data)
 	elif type == MatchMessage.Type.EVENT:
 		_apply(data)
+	elif type == MatchMessage.Type.TURN_TIMER:
+		_start_turn_timer(data)
 	elif type == MatchMessage.Type.REJECTED:
 		var intent := MatchIntent.from_dict(data)
 		if intent != null:
@@ -101,19 +108,40 @@ func _update_lobby(data: Dictionary) -> void:
 		lobby_changed.emit(lobby)
 
 
-## Bozuk görünüm (hız ve bekleme bayrağı dahil) yok sayılır; kopya değişmez.
+## Bozuk görünüm (hız, bekleme bayrağı ve sıra süresi dahil) yok sayılır; kopya değişmez.
 func _reset(data: Dictionary) -> void:
 	var received := MatchView.from_dict(_settings, data)
 	var levels := _settings.speed_levels.size()
 	var level := MessageData.read_index(data, MatchMessage.KEY_SPEED, 0, levels)
 	var awaiting: Variant = data.get(MatchMessage.KEY_AWAITING)
+	var turn_time: Variant = data.get(MatchMessage.KEY_TURN_TIME)
 	if received == null or level == MessageData.INVALID or not awaiting is bool:
+		return
+	if not _is_turn_time(turn_time) and not _is_no_turn_time(turn_time):
 		return
 	view = received
 	speed_level = level
 	host_awaiting = awaiting
+	host_turn_time = turn_time
 	_awaiting_snapshot = false
 	view_reset.emit(view)
+
+
+## Bozuk ya da ayarlardaki süreden uzun süre yok sayılır.
+func _start_turn_timer(data: Dictionary) -> void:
+	var seat := MessageData.read_int(data, MessageData.KEY_SEAT)
+	var seconds: Variant = data.get(MatchMessage.KEY_SECONDS)
+	if view == null or seat == MessageData.INVALID or not _is_turn_time(seconds):
+		return
+	turn_timer_started.emit(seat, seconds)
+
+
+func _is_turn_time(value: Variant) -> bool:
+	return MessageData.is_number(value) and value > 0.0 and value <= _settings.turn_time_limit
+
+
+func _is_no_turn_time(value: Variant) -> bool:
+	return MessageData.is_number(value) and value == MatchReferee.NO_TURN_TIMER
 
 
 func _apply(data: Dictionary) -> void:

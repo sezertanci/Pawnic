@@ -318,7 +318,8 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   sekmesine dönülür; sonuç ekranında Tekrar oyna gizlenir, ana menü düğmesi "Yeni oyun" olur.
   Ortak onay katmanı `ConfirmOverlay` (`scenes/components/`). Testler `test_match_sources.gd`
   ve `test_confirm_overlay.gd`'de.
-  Sıradakiler: parça 2 (20 sn sıra süresi), parça 3 (oyun sırasında kopma ve geri dönme).
+  Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Sıradaki: parça 3 (oyun sırasında kopma
+  ve geri dönme).
   Sonraya kalanlar: ağ oyununda Tekrar oyna, duraklatma ve ortak oyun içi reklam.
 
 **Kararlar (2026-11-20)**
@@ -626,3 +627,18 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-21:** Kurulum ekranındaki mod sekmeleri yazısız, yalnızca simgeli oldu (beyaz SVG,
   temada yazı rengiyle boyanır): tek avatar, Wi-Fi (ortada), üçlü avatar. Kullanılmayan
   `MODE_SINGLE`, `MODE_MULTI`, `MODE_NETWORK` çevirileri silindi; açıklama satırı yerinde.
+- **2026-11-21 (2):** Ağ oyunu parça 2, sıra süresi. `tuning.json` → `network.turn_time_sec` (20)
+  ve `turn_warning_sec` (5). Hakem (`MatchReferee.turn_time_limit`, yalnızca hostta kurulur;
+  yerel oyunda 0, süre yok) insan oyuncunun niyetini beklemeye başlayınca süreyi başlatır ve
+  `turn_timer_started` yayar; süre dolunca o hamleyi Orta bot oynar (normal bot gecikmesiyle),
+  koltuk insanda kalır, geç gelen niyet reddedilir. Host süreyi eşlere `TURN_TIMER` mesajıyla
+  bildirir, görünüm (snapshot) kalan süreyi taşır; `PROTOCOL_VERSION` 3 oldu (eski sürümlerle
+  bağlanmaz). İstemci süreyi kendi saatiyle sayar (ağ gecikmesi kadar geç biter, kabul edildi),
+  süre dolunca seçimi kapatır. Ekran: elin üstünde ince çubuk (`TurnTimerBar`), herkes o an
+  sırası olan insanın süresini görür, renk sıradakinin rengi; son 5 sn temanın `warning_color`
+  kırmızısı ve her saniye `tick` sesi (`tools/make_sounds.py`). Yeni testler hakem, oturum,
+  kaynak ve mesaj testlerinde. gdlint ve gdformat temiz; GUT 255/255; simülasyonda bitmeyen 0.
+  Tablet denemesinden sonra (kullanıcı isteği): çubuğun solunda kalan saniye yazar (yalnızca
+  sayı). Kırmızı oyuncuyla karışmasın diye son 5 sn çubuk rengi değişmez; çubuk her saniye
+  kırmızı ışık yayıp söner (zemin stilinin gölgesi, temada `glow_size`), sayı kırmızı olur.
+  Çubuk ve sayı tahtanın genişliğine hizalanır (`BoardView.grid_rect()`); geniş ekranda taşmaz.

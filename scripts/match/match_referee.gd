@@ -5,19 +5,26 @@ extends Node
 ## ekranın olayı çizip acknowledge() çağırmasını bekler. Ağ oyununda eşlerin ekranları da
 ## beklenir: olayı dinleyen her bekletme (hold) bırakılana (release) kadar sıradaki olay yayılmaz.
 ## Kayıt verildiyse her sıranın başında oyun kaydedilir, oyun bitince kayıt silinir (ağ oyununda
-## kayıt yoktur).
+## kayıt yoktur). Sıra süresi verildiyse (ağ oyunu) insan oyuncunun niyeti beklenmeye başlayınca
+## süre işler; süre dolarsa o hamleyi bot oynar, koltuk oyuncuda kalır.
 
 ## Bir olay yayıldı; dinleyen, olayı bitirince acknowledge() çağırır.
 signal event_emitted(event: MatchEvent)
 ## Ekran ve bütün bekletmeler olayı bitirdi (ya da hakem durdu).
 signal acknowledged
+## İnsan oyuncunun sıra süresi başladı: seconds saniye içinde niyet gelmezse hamleyi bot oynar.
+signal turn_timer_started(seat: int, seconds: float)
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
+## Sıra süresi işlemiyorken kalan süre yerine verilir.
+const NO_TURN_TIMER := -1.0
 
 ## Yarım kalan oyunun yazıldığı kayıt; null ise oyun kaydedilmez.
 var store: SaveStoreScript
 ## false ise oyun içi geçiş reklamı zamanı hiç gelmez (ağ oyunu).
 var in_game_ads := true
+## İnsan oyuncunun bir sırada niyetini verme süresi (saniye); 0 ise süre yoktur (yerel oyun).
+var turn_time_limit := 0.0
 ## Yönetilen oyun; durunca null.
 var game: GameMatch
 
@@ -35,6 +42,8 @@ var _holds := 0
 var _awaiting_intent := false
 ## Olayı yayılmış bitiren oyuncu sayısı.
 var _announced := 0
+## Sıra süresinden kalan (saniye); süre işlemiyorsa NO_TURN_TIMER.
+var _turn_time_left := NO_TURN_TIMER
 
 
 ## Oyunu devralır; ilk sıra begin() ile başlar (ekran arada başlangıç kurasını gösterebilir).
@@ -58,7 +67,7 @@ func begin() -> void:
 func stop() -> void:
 	game = null
 	_clock_running = false
-	_awaiting_intent = false
+	_stop_awaiting()
 	_screen_busy = false
 	_holds = 0
 	_settle()
@@ -99,13 +108,18 @@ func hand_to_bot(seat: int) -> void:
 		return
 	game.bots[index] = true
 	if _awaiting_intent and game.current == index:
-		_awaiting_intent = false
+		_stop_awaiting()
 		_play_bot_turn()
 
 
 ## Sıradaki insan oyuncunun niyeti bekleniyorsa true.
 func is_awaiting_intent() -> bool:
 	return _awaiting_intent
+
+
+## Sıra süresinden kalan (saniye); süre işlemiyorsa NO_TURN_TIMER.
+func turn_time_left() -> float:
+	return _turn_time_left
 
 
 ## Niyeti doğrular ve geçerliyse uygular; geçersizse (sıra onun değil, hamle yasal değil) false.
@@ -116,13 +130,13 @@ func submit(intent: MatchIntent) -> bool:
 	if intent.kind == MatchIntent.Kind.DISCARD:
 		if not legal.is_empty() or not _is_hand_card(intent.card_index):
 			return false
-		_awaiting_intent = false
+		_stop_awaiting()
 		_carry_out(intent.card_index, null)
 		return true
 	var index := legal.find_custom(func(move: Move) -> bool: return move.equals(intent.move))
 	if index == GameMatch.NO_INDEX:
 		return false
-	_awaiting_intent = false
+	_stop_awaiting()
 	_carry_out(legal[index].card_index, legal[index])
 	return true
 
@@ -130,6 +144,8 @@ func submit(intent: MatchIntent) -> bool:
 func _process(delta: float) -> void:
 	if _clock_running:
 		game.elapsed += delta
+	if _turn_time_left != NO_TURN_TIMER:
+		_count_turn_time(delta)
 
 
 func _is_hand_card(card_index: int) -> bool:
@@ -183,7 +199,28 @@ func _start_turn() -> void:
 	if game.is_bot_turn():
 		_play_bot_turn()
 	else:
-		_awaiting_intent = true
+		_await_intent()
+
+
+## İnsan oyuncunun niyeti beklenir; sıra süresi varsa işlemeye başlar.
+func _await_intent() -> void:
+	_awaiting_intent = true
+	if turn_time_limit > 0.0:
+		_turn_time_left = turn_time_limit
+		turn_timer_started.emit(game.current_seat(), turn_time_limit)
+
+
+func _stop_awaiting() -> void:
+	_awaiting_intent = false
+	_turn_time_left = NO_TURN_TIMER
+
+
+## Sıra süresi dolunca niyet artık kabul edilmez ve bu hamleyi bot oynar; koltuk oyuncuda kalır.
+func _count_turn_time(delta: float) -> void:
+	_turn_time_left -= delta
+	if _turn_time_left <= 0.0:
+		_stop_awaiting()
+		_play_bot_turn()
 
 
 ## Oyun reklamdan önce kaydedilir ki uygulama reklamda kapanırsa aynı yerden dönülsün ve reklam

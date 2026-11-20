@@ -16,6 +16,9 @@ const FRAMES := 3
 const EXIT_VALUE := 0
 ## Taşlar başlangıçtayken geri kartıyla oynanacak hamle yoktur.
 const BACK_VALUE := 3
+## Testlerdeki sıra süresi (saniye); kısa olanı testin içinde dolar.
+const TURN_TIME := 20.0
+const SHORT_TURN_TIME := 0.1
 
 var _store: SaveStoreScript
 var _referee: MatchReferee
@@ -182,6 +185,52 @@ func test_bot_plays_its_turn_by_itself() -> void:
 	assert_true(_referee.is_awaiting_intent())
 	assert_eq(game.current, 1)
 	assert_true(_kinds().has(MatchEvent.Kind.CARD_REVEALED))
+
+
+func test_turn_timer_starts_when_intent_is_awaited() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	var started: Array = []
+	_referee.turn_timer_started.connect(
+		func(seat: int, seconds: float) -> void: started.append([seat, seconds])
+	)
+	var game := _new_game(HUMANS)
+
+	_start(game)
+
+	assert_eq(started, [[game.current_seat(), TURN_TIME]])
+	assert_eq(_referee.turn_time_left(), TURN_TIME)
+
+
+func test_expired_turn_is_played_by_bot_and_seat_stays_human() -> void:
+	_referee.turn_time_limit = SHORT_TURN_TIME
+	var game := _new_game(HUMANS)
+	_start(game)
+
+	await wait_until(func() -> bool: return game.current == 1, BOT_TIMEOUT)
+
+	assert_eq(game.current, 1)
+	assert_true(_kinds().has(MatchEvent.Kind.CARD_REVEALED))
+	assert_eq(game.bots, [false, false])
+
+
+func test_submit_stops_turn_timer() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	_auto_ack = false
+	var game := _new_game(HUMANS)
+	_give_exit_cards(game)
+	_start(game)
+	_referee.acknowledge()
+
+	_referee.submit(MatchIntent.play(game.current_seat(), game.legal_moves()[0]))
+
+	assert_eq(_referee.turn_time_left(), MatchReferee.NO_TURN_TIMER)
+
+
+func test_local_match_has_no_turn_timer() -> void:
+	_start(_new_game(HUMANS))
+
+	assert_true(_referee.is_awaiting_intent())
+	assert_eq(_referee.turn_time_left(), MatchReferee.NO_TURN_TIMER)
 
 
 func _new_game(bot_flags: Array[bool]) -> GameMatch:

@@ -211,10 +211,21 @@ func _cell_size() -> float:
 	return minf(size.x / grid.x, size.y / grid.y)
 
 
+## Çizilen tahtanın bu düğüm içindeki yeri ve boyutu (piksel); tahta yoksa boş dikdörtgen.
+func grid_rect() -> Rect2:
+	if board == null:
+		return Rect2()
+	return Rect2(_grid_origin(), _grid_pixels())
+
+
 ## Döndürülmüş tahtanın sol üst köşesi (piksel); tahta alanın ortasına yerleşir.
 func _grid_origin() -> Vector2:
-	var grid := BoardTurn.grid(Vector2(board.layout.grid_size), _turns) * _cell_size()
-	return (size - grid) / 2.0
+	return (size - _grid_pixels()) / 2.0
+
+
+## Döndürülmüş tahtanın piksel boyutu.
+func _grid_pixels() -> Vector2:
+	return BoardTurn.grid(Vector2(board.layout.grid_size), _turns) * _cell_size()
 
 
 ## Hücre cinsinden bir noktanın ekrandaki yeri (döndürme dahil).

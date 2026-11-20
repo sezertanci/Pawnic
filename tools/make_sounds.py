@@ -25,6 +25,7 @@ MAX_SAMPLE = 32767
 MELODIES = {
     'tap': [(1047, 0, 0.06)],
     'step': [(392, 0, 0.08)],
+    'tick': [(1760, 0, 0.05)],
 }
 
 # Işınlanma: frekans başlangıçtan bitişe üstel olarak yükselir, üstüne hızlı bir titreşim biner.

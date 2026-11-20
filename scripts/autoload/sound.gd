@@ -9,6 +9,8 @@ const STEP := &"step"
 const TELEPORT := &"teleport"
 const DRAW := &"draw"
 const SHUFFLE := &"shuffle"
+## Ağ oyununda sıra süresinin son saniyeleri.
+const TICK := &"tick"
 const SOUNDS_DIR := "res://assets/sounds/"
 const SOUND_EXTENSION := ".wav"
 ## Aynı sesin üst üste binebilecek en çok kopyası (art arda zıplamalar için).
@@ -20,7 +22,7 @@ var _players: Dictionary[StringName, AudioStreamPlayer] = {}
 
 
 func _ready() -> void:
-	for sound: StringName in [TAP, STEP, TELEPORT, DRAW, SHUFFLE]:
+	for sound: StringName in [TAP, STEP, TELEPORT, DRAW, SHUFFLE, TICK]:
 		var player := AudioStreamPlayer.new()
 		player.stream = load(SOUNDS_DIR + sound + SOUND_EXTENSION)
 		player.max_polyphony = POLYPHONY

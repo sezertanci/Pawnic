@@ -141,6 +141,11 @@ var room_code_digits := 0
 var max_wrong_codes := 0
 ## Hosta bu kadar sürede bağlanılamazsa bağlantı düşer (milisaniye).
 var connect_timeout_ms := 0
+## Ağ oyununda insan oyuncunun bir sırada hamlesini seçme süresi; dolunca hamleyi bot oynar
+## (saniye).
+var turn_time_limit := 0.0
+## Sıra süresinin son bu kadar saniyesinde süre çubuğu uyarı rengine döner ve tik sesi çalar.
+var turn_warning_time := 0.0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -272,3 +277,5 @@ func _read_network(network: Dictionary) -> void:
 	room_code_digits = int(network["room_code_digits"])
 	max_wrong_codes = int(network["max_wrong_codes"])
 	connect_timeout_ms = int(network["connect_timeout_ms"])
+	turn_time_limit = float(network["turn_time_sec"])
+	turn_warning_time = float(network["turn_warning_sec"])

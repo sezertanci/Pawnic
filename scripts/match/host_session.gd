@@ -5,9 +5,9 @@ extends RefCounted
 ## oyuna katılır. Niyetteki koltuk alanına güvenilmez; koltuk, eşin oturtulduğu koltuktur. Olaylar
 ## eşlere hemen gider ve hakem, hostun ekranıyla birlikte oturan her eşin olayı bitirmesini
 ## (EVENT_DONE) bekler; böylece animasyonlar her cihazda birlikte başlar. Görünümü yeniden istenen,
-## çıkan ya da bağlantısı kopan eş beklenmez. Reddedilen eşe
-## REFUSED gönderilip bağlantısı kesilir. Oyundan çıkan (LEAVE) eşin koltuğunu kalıcı olarak bot
-## alır; eşe artık olay gitmez.
+## çıkan ya da bağlantısı kopan eş beklenmez. Reddedilen eşe REFUSED gönderilip bağlantısı kesilir.
+## Oyundan çıkan (LEAVE) eşin koltuğunu kalıcı olarak bot alır; eşe artık olay gitmez. Sıra süresi
+## başlayınca bağlı her eşe bildirilir; süreyi herkes görür.
 
 ## Eş el sıkışmadan geçti.
 signal peer_welcomed(peer_id: int)
@@ -38,6 +38,7 @@ func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSetti
 	_transport.message_received.connect(_on_message)
 	_transport.peer_disconnected.connect(_on_peer_disconnected)
 	_referee.event_emitted.connect(_on_event)
+	_referee.turn_timer_started.connect(_on_turn_timer_started)
 
 
 ## Eşi koltuğa oturtur; eş el sıkışmadan geçmemişse ya da koltuk ya da eş zaten eşlenmişse false.
@@ -112,7 +113,8 @@ func _send_snapshot(peer_id: int) -> void:
 		return
 	var view := MatchView.of(_referee.game, seat)
 	var awaiting := _referee.is_awaiting_intent() and _referee.game.current_seat() == seat
-	_transport.send(peer_id, MatchMessage.snapshot(view, speed_level, awaiting))
+	var turn_time := _referee.turn_time_left()
+	_transport.send(peer_id, MatchMessage.snapshot(view, speed_level, awaiting, turn_time))
 
 
 ## Eş oyundan çıktı: koltuğu bota geçer, eş oyundan düşer.
@@ -134,6 +136,12 @@ func _on_event(event: MatchEvent) -> void:
 		if event.kind != MatchEvent.Kind.MATCH_OVER and not _offline.has(peer_id):
 			_pending.append(peer_id)
 			_referee.hold()
+
+
+func _on_turn_timer_started(seat: int, seconds: float) -> void:
+	for peer_id: int in _seats:
+		if not _offline.has(peer_id):
+			_transport.send(peer_id, MatchMessage.turn_timer(seat, seconds))
 
 
 ## Eş son olayı bitirdi ya da artık beklenmiyor; bekletmesi bırakılır.

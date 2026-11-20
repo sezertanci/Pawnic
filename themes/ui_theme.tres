@@ -515,6 +515,20 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 corner_detail = 16
 
+[sub_resource type="StyleBoxFlat" id="timer_background"]
+bg_color = Color(0, 0, 0, 0.22)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="timer_fill"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [resource]
 default_font_size = 30
 MarginContainer/constants/margin_left = 24
@@ -849,3 +863,8 @@ MenuRoundOrangeButton/styles/pressed = SubResource("menu_orange_round_pressed")
 MenuRoundOrangeButton/styles/hover_pressed = SubResource("menu_orange_round_pressed")
 MenuRoundOrangeButton/styles/disabled = SubResource("menu_orange_round")
 MenuRoundOrangeButton/styles/focus = SubResource("card_focus")
+TurnTimerBar/base_type = &"ProgressBar"
+TurnTimerBar/colors/warning_color = Color(0.88, 0.29, 0.29, 1)
+TurnTimerBar/constants/glow_size = 10
+TurnTimerBar/styles/background = SubResource("timer_background")
+TurnTimerBar/styles/fill = SubResource("timer_fill")

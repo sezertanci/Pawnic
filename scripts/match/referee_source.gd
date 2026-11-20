@@ -51,6 +51,10 @@ func is_awaiting_intent() -> bool:
 	return is_live() and _referee.is_awaiting_intent()
 
 
+func turn_time_left() -> float:
+	return _referee.turn_time_left() if is_live() else MatchReferee.NO_TURN_TIMER
+
+
 func leave() -> void:
 	if is_live():
 		_referee.leave()

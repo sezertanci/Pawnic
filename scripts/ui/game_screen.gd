@@ -63,6 +63,7 @@ var _pawns_before: Array[Vector2] = []
 @onready var _board_view: BoardView = %BoardView
 @onready var _joker_box: HBoxContainer = %JokerBox
 @onready var _hand_view: HandView = %HandView
+@onready var _turn_timer: TurnTimerBar = %TurnTimer
 @onready var _win_overlay: WinOverlay = %WinOverlay
 @onready var _starter_draw: StarterDraw = %StarterDraw
 @onready var _confirm: ConfirmOverlay = %ConfirmOverlay
@@ -168,8 +169,33 @@ func _draw_starter() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _source != null and int(_source.elapsed()) != _clock_second:
+	if _source == null:
+		return
+	if int(_source.elapsed()) != _clock_second:
 		_show_clock()
+	_show_turn_timer()
+
+
+## Sıradaki insan oyuncunun sıra süresi (ağ oyunu) elin üstündeki çubukta, oyuncunun renginde
+## görünür. Süre bitince bu cihazdaki oyuncunun yarım kalan seçimi iptal olur; hamleyi bot oynar.
+func _show_turn_timer() -> void:
+	var left := _source.turn_time_left()
+	if left != MatchReferee.NO_TURN_TIMER:
+		var settings := _view.settings
+		var color := _seat_color(_view.current_seat())
+		var board := _board_view.grid_rect()
+		_turn_timer.fit_between(board.position.x, board.end.x)
+		_turn_timer.show_time(left, settings.turn_time_limit, settings.turn_warning_time, color)
+	elif _turn_timer.visible:
+		_turn_timer.stop()
+		_cancel_selection()
+
+
+func _cancel_selection() -> void:
+	if _awaiting_human:
+		_awaiting_human = false
+		_clear_selection()
+		_show_idle_hand()
 
 
 func _show_clock() -> void:
@@ -263,7 +289,7 @@ func _on_event(event: MatchEvent) -> void:
 			Ads.show_interstitial()
 			await Ads.interstitial_closed
 		MatchEvent.Kind.TURN_STARTED:
-			_on_turn_started(event)
+			await _on_turn_started(event)
 		MatchEvent.Kind.CARD_REVEALED:
 			await _reveal_card(event)
 		MatchEvent.Kind.MOVE_PLAYED:
@@ -279,6 +305,8 @@ func _on_event(event: MatchEvent) -> void:
 		_source.acknowledge(event)
 
 
+## Olay, oyuncunun eli hazır olunca (çekilen kart ele inince) bitmiş sayılır; ağ oyununda sıra
+## süresi ancak o zaman başlar. Aynı cihazda sıra devri beklenmez.
 func _on_turn_started(event: MatchEvent) -> void:
 	_awaiting_human = false
 	_clear_selection()
@@ -290,7 +318,7 @@ func _on_turn_started(event: MatchEvent) -> void:
 	if _source.shares_device():
 		_show_handoff(event.seat, event.drew)
 	else:
-		_begin_human_turn(event.drew)
+		await _begin_human_turn(event.drew)
 
 
 ## Kaynak niyeti reddetti: seçim kalkar; oyuncunun niyeti hâlâ bekleniyorsa seçim yeniden açılır,

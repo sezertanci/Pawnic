@@ -17,6 +17,8 @@ const MAX_EVENTS := 20
 const ROOM_CODE := "4568"
 ## Yerel ağ dışındaki adres: katılma bağlantı kurmadan reddedilir, verilen kod yine de saklanır.
 const OUTSIDE_ADDRESS := "8.8.8.8"
+## İstemcide test içinde dolan sıra süresi (saniye).
+const SHORT_TURN_TIME := 0.1
 
 var _referee: MatchReferee
 var _game: GameMatch
@@ -125,6 +127,31 @@ func test_client_source_reports_rejection_of_its_intent() -> void:
 
 	assert_signal_emitted(_source, "intent_rejected")
 	assert_true(_source.is_awaiting_intent())
+
+
+func test_client_source_counts_turn_time_from_host() -> void:
+	var limit := _game.settings.turn_time_limit
+	_referee.turn_time_limit = limit
+	await _reach_client_turn()
+
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
+
+	assert_gt(_source.turn_time_left(), 0.0)
+	assert_lte(_source.turn_time_left(), limit)
+
+
+func test_client_source_stops_awaiting_when_turn_time_ends() -> void:
+	await _reach_client_turn()
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
+
+	_room.session.turn_timer_started.emit(_client_seat, SHORT_TURN_TIME)
+	assert_true(_source.is_awaiting_intent())
+	await wait_seconds(SHORT_TURN_TIME * 2)
+
+	assert_false(_source.is_awaiting_intent())
+	assert_eq(_source.turn_time_left(), MatchReferee.NO_TURN_TIMER)
 
 
 func test_lost_room_ends_client_source() -> void:

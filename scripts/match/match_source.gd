@@ -45,6 +45,12 @@ func is_awaiting_intent() -> bool:
 	return false
 
 
+## Sıradaki oyuncunun sıra süresinden kalan (saniye); süre işlemiyorsa
+## MatchReferee.NO_TURN_TIMER.
+func turn_time_left() -> float:
+	return MatchReferee.NO_TURN_TIMER
+
+
 ## Oyuncu oyundan çıkıyor.
 func leave() -> void:
 	pass

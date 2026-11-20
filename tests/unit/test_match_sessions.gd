@@ -189,6 +189,41 @@ func test_view_request_ends_wait_for_client() -> void:
 	assert_true(_referee.is_awaiting_intent())
 
 
+func test_turn_timer_reaches_client() -> void:
+	var limit := _game.settings.turn_time_limit
+	_referee.turn_time_limit = limit
+	watch_signals(_client)
+
+	await _start_match()
+
+	assert_signal_emitted_with_parameters(_client, "turn_timer_started", [_host_seat, limit])
+
+
+func test_view_request_carries_turn_time_left() -> void:
+	var limit := _game.settings.turn_time_limit
+	_referee.turn_time_limit = limit
+	await _start_match()
+	var client_transport: FakeTransport = _network[CLIENT_PEER].get_ref()
+
+	client_transport.send(MatchTransport.HOST_PEER, MatchMessage.snapshot_request())
+	await wait_frames(FRAMES)
+
+	assert_gt(_client.host_turn_time, 0.0)
+	assert_lte(_client.host_turn_time, limit)
+
+
+func test_turn_timer_longer_than_limit_is_ignored() -> void:
+	await _start_match()
+	watch_signals(_client)
+	var host_transport: FakeTransport = _network[MatchTransport.HOST_PEER].get_ref()
+	var seconds := _game.settings.turn_time_limit + 1.0
+
+	host_transport.send(CLIENT_PEER, MatchMessage.turn_timer(_host_seat, seconds))
+	await wait_frames(FRAMES)
+
+	assert_signal_not_emitted(_client, "turn_timer_started")
+
+
 func test_disconnected_client_is_not_waited_for() -> void:
 	_client_finishes = false
 	await _start_match()

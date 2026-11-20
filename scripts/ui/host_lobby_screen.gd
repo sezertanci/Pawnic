@@ -41,6 +41,7 @@ func open() -> void:
 	close_room()
 	_referee = MatchReferee.new()
 	_referee.in_game_ads = false
+	_referee.turn_time_limit = Tuning.settings.turn_time_limit
 	add_child(_referee)
 	_room = HostRoom.new(Tuning.settings, _referee, _rng)
 	var opened := _room.open(LocalAddress.wifi_address())

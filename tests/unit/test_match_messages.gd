@@ -11,6 +11,7 @@ const PATH: Array[int] = [3, 4, 5]
 const ROUND := 3
 const ELAPSED := 12.5
 const BAD_KIND := 99
+const TURN_SECONDS := 12.5
 
 
 func test_move_round_trip_keeps_fields() -> void:
@@ -114,6 +115,16 @@ func test_message_envelope_keeps_type_and_data() -> void:
 
 	assert_eq(MatchMessage.type_of(message), MatchMessage.Type.INTENT)
 	assert_eq(MatchMessage.data_of(message), intent.to_dict())
+
+
+func test_turn_timer_message_keeps_seat_and_seconds() -> void:
+	var message := MatchMessage.turn_timer(SEAT, TURN_SECONDS)
+
+	var data := MatchMessage.data_of(message)
+
+	assert_eq(MatchMessage.type_of(message), MatchMessage.Type.TURN_TIMER)
+	assert_eq(data[MessageData.KEY_SEAT], SEAT)
+	assert_eq(data[MatchMessage.KEY_SECONDS], TURN_SECONDS)
 
 
 func test_broken_envelope_has_invalid_type() -> void:
