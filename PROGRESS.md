@@ -147,6 +147,11 @@
   4 (1.3.0) satın alma (BILLING) izniyle derlendi ve dahili test kanalı için Play'e verildi;
   `remove_ads` ürünü bu sürümden sonra açılabilir. Yerel `build/` klasörüne `.gdignore` kondu (deneme
   görüntüleri pakete giriyordu); klasör depoda olmadığı için yeni makinede yeniden konmalı.
+  6 (1.5.0) ağ oyununu telefonlarda denemek için hazırlandı (2026-11-20): üç ön ayarda ağ
+  izinleri (`INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`,
+  `CHANGE_WIFI_MULTICAST_STATE`) açık. Bu sürümde sıra süresi ve kopmada bot yok (parça 2 ve 3);
+  kopan oyuncu oyunu takar. Android çoklu yayın kilidi (`MulticastLock`) yok; bazı telefonlarda
+  oyun bulma çalışmayabilir, bu sürümde denenecek.
 - Play: `android.hardware.screen.portrait` uyarısı (dikey yön bu özelliği dolaylı zorunlu yapıyor)
   4 (1.3.0) yüklenirken "çözmeyi planlıyorum" ile yoksayıldı. `addons/portrait_feature` dışa
   aktarma eklentisi (2026-11-19) özelliği manifeste `android:required="false"` ile yazar; sonraki
@@ -606,3 +611,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `test_started_match_is_no_longer_announced`, `test_sources_report_room_code`. gdlint ve gdformat
   temiz; GUT 245/245 (ağ testleri açık oyun pencereleri portları tuttuğu için kaydırılmış portla
   doğrulandı).
+- **2026-11-20 (10):** Telefonda ağ oyunu denemesi için 6 (1.5.0): Gradle'lı APK ve AAB ön
+  ayarlarına ağ izinleri eklendi (önce yalnızca hızlı APK'da vardı; Play sürümünde ağ oyunu
+  çalışmazdı), üç ön ayarda sürüm yükseltildi.
