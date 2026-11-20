@@ -23,6 +23,9 @@ const GAME_ENDED_KEY := "GAME_ENDED"
 const LEAVE_KEY := "LEAVE"
 const CANCEL_KEY := "CANCEL"
 const OK_KEY := "OK"
+const ROOM_INFO_KEY := "ROOM_INFO"
+const ROLE_HOST_KEY := "ROLE_HOST"
+const ROLE_GUEST_KEY := "ROLE_GUEST"
 
 ## Yerel oyunun hakemi.
 var _referee := MatchReferee.new()
@@ -53,6 +56,7 @@ var _pawns_before: Array[Vector2] = []
 @onready var _level_slash: Label = %LevelSlash
 @onready var _bot_level: Label = %BotLevel
 @onready var _turn_dots: TurnDots = %TurnDots
+@onready var _room_info: Label = %RoomInfo
 @onready var _deck_pile: PileView = %DeckPile
 @onready var _discard_pile: PileView = %DiscardPile
 @onready var _cards: CardAnimator = %CardLayer
@@ -142,6 +146,7 @@ func _is_stale(generation: int) -> bool:
 ## oyununda hostunki).
 func _set_up_table() -> void:
 	_show_bot_level()
+	_show_room_info()
 	_board_view.bottom_seat = _view.viewer_seat if _source.is_networked() else BoardLayout.NO_SEAT
 	_board_view.board = _view.board
 	_board_view.seat_colors = _view.colors
@@ -184,6 +189,18 @@ func _show_bot_level() -> void:
 
 
 ## Geçen süreyi dakika:saniye (bir saati geçince saat:dakika:saniye) olarak yazar.
+## Ağ oyununda başlığın altında oda kodu, kurucunun rengi ve bu cihazın rolü yazar.
+func _show_room_info() -> void:
+	_room_info.visible = _source.is_networked()
+	if not _room_info.visible:
+		return
+	var host_color := _view.colors[_view.seats[HostLobby.HOST_INDEX]]
+	var role := ROLE_HOST_KEY if _source.is_host() else ROLE_GUEST_KEY
+	_room_info.text = (
+		tr(ROOM_INFO_KEY) % [_source.room_code(), Skins.current.seat_name(host_color), tr(role)]
+	)
+
+
 static func format_clock(seconds: float) -> String:
 	var minutes := floori(seconds / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE
 	var rest := int(seconds) % SECONDS_PER_MINUTE
@@ -416,18 +433,30 @@ func _send_intent(intent: MatchIntent) -> void:
 
 
 ## Açılan kart atılanlara uçar: bu cihazdaki oyuncunun kartı elden kalkar, başkasının kartı
-## açılır. Kartın değeri jokerde seçilen sayıdır.
+## açılır. Kartın değeri jokerde seçilen sayıdır. Kart inince atılanların üstünde o kart kalır;
+## ağ oyununda hamle olayı hosttan biraz sonra gelebilir, o arada eski kart görünmemelidir.
+## Ağ oyununda başka bir insanın kartı desteden bekletmesiz uçar: kartı oynayanın ekranıyla aynı
+## sürede biter ve hamle her cihazda birlikte başlar.
 func _reveal_card(event: MatchEvent) -> void:
 	var color := _seat_color(event.seat)
 	if event.seat != _view.viewer_seat:
 		_refresh_table()
-		await _cards.reveal_card(event.card, color, event.value)
+		if _is_remote_human(event.seat):
+			await _cards.discard_card(_deck_pile.card_rect(), event.card, color, event.value)
+		else:
+			await _cards.reveal_card(event.card, color, event.value)
 	else:
 		var rect := _hand_view.card_rect(event.card_index)
 		_clear_selection()
 		_hand_view.hold(event.card_index)
 		await _cards.discard_card(rect, event.card, color, event.value)
+	_discard_pile.set_top(event.card, _view.settings, color, event.value)
 	_pawns_before = _board_view.pawn_centers()
+
+
+## Koltukta ağ üzerinden oynayan bir insan oyuncu varsa true (bot değil).
+func _is_remote_human(seat: int) -> bool:
+	return _source.is_networked() and not _view.bots[_view.seats.find(seat)]
 
 
 ## Hamle uygulandı: seçim ve vurgular kalkar, taşlar eski yerlerinden yürür. Animasyon sürerken

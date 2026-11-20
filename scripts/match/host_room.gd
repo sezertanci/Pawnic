@@ -1,8 +1,8 @@
 class_name HostRoom
 extends RefCounted
 ## Ağ oyununda hostun odası: ENet taşıyıcısını, oturumu, lobiyi ve oyun bulma yayınını birlikte
-## kurar ve kapatır. Yayındaki oyuncu sayısı lobi değiştikçe güncellenir. Her oda bir kez açılır;
-## yeniden açmak için yeni oda kurulur.
+## kurar ve kapatır. Yayındaki oyuncu sayısı lobi değiştikçe güncellenir; oyun başlayınca yayın
+## durur (başlamış oyuna katılınamaz). Her oda bir kez açılır; yeniden açmak için yeni oda kurulur.
 
 var session: HostSession
 var lobby: HostLobby
@@ -26,6 +26,14 @@ func open(address: String, target: String = GameAnnouncer.BROADCAST) -> bool:
 		return true
 	close()
 	return false
+
+
+## Lobideki oyunu başlatır ve yayını durdurur; oyun zaten başladıysa null (HostLobby.start()).
+func start_match() -> GameMatch:
+	var game := lobby.start()
+	if game != null:
+		_announcer.stop()
+	return game
 
 
 func close() -> void:

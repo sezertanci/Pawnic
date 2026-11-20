@@ -560,3 +560,49 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-20 (3):** Ağ oyunu başlıyor (parça 1/3: Başla, istemcide oyun ekranı, çıkış onayı).
   GUT 238/238, gdlint ve gdformat temiz, simülasyonda bitmeyen oyun yok. Not: bilgisayarda açık
   Godot pencereleri 24680/24681 portlarını tutarsa oyun bulma testleri başarısız olur.
+- **2026-11-20 (4):** Düzeltme: ağ oyununda istemci kendi kartını atınca atılanların üstünde bir
+  süre önceki kart görünüyordu (üst kart ancak hosttan gelen hamle olayıyla yazılıyordu). Artık
+  açılan kart inince üst kart hemen o karta geçiyor.
+  Karar (kullanıcı seçti): ağ oyununda ekranlar birlikte ilerler. Hakem her olayda hostun ekranıyla
+  birlikte oturan her eşin olayı bitirmesini bekler (istemci `EVENT_DONE` gönderir, protokol
+  sürümü 2). Önceden host yalnızca kendi ekranını beklediği için başkasının kartı (açılış + 1,1 sn
+  bekletme) kendi kartından uzun sürünce istemci her host hamlesinde ~2 sn geride kalıyordu.
+  Görünümü yeniden isteyen, çıkan ya da bağlantısı kopan eş beklenmez (kopmada 20 sn bekleme
+  parça 3'te). GUT 242/242, gdlint ve gdformat temiz, simülasyonda bitmeyen oyun yok.
+- **2026-11-20 (5):** Düzeltme: ağ oyununda bir oyuncu kartını oynayınca diğer ekranlarda kart
+  desteden açılıp 1,1 sn bekletiliyordu; hakem herkesi beklediği için taşın yürümesi her cihazda
+  ~2 sn gecikiyordu. Artık başka bir insanın kartı desteden yüz yukarı, bekletmesiz ve kartı
+  oynayanın ekranıyla aynı sürede atılanlara uçar; hamle her cihazda hemen ve birlikte başlar. Bot
+  kartları her ekranda açılış + bekletmeyle kalır (süre her yerde eşit). GUT 242/242, gdlint ve
+  gdformat temiz, simülasyonda bitmeyen oyun yok. PC'de ve tablette henüz denenmedi.
+- **2026-11-20 (6):** Düzeltme: Gradle'sız "Android APK (hızlı)" ön ayarında ağ izni yoktu (Gradle'lı
+  derlemede izinleri AdMob ve satın alma eklentileri ekliyor); tablette soket açılamıyor ve "Wi-Fi
+  bağlantısı bulunamadı" görünüyordu. Hızlı ön ayara `internet`, `access_network_state`,
+  `access_wifi_state` ve `change_wifi_multicast_state` izinleri eklendi; tablette izinlerin verildiği
+  doğrulandı.
+- **2026-11-20 (7):** Arayüz (kullanıcı istedi): iki düğmeli onay katmanı geri dönülmez işi
+  onaylattığı için onay düğmesi kırmızı (`MenuPlainRedButton`), Vazgeç yeşil (`MenuPlainGreenButton`)
+  oldu; tek düğmeli katmanda (Tamam) onay yeşil kalır. Vazgeç'teki boş simge yuvarlağı da kalktı.
+  Kırmızı görsel turuncu düz düğmenin tonu kaydırılarak üretildi (`tools/shift_button_hue.py`,
+  komut README'de). Bulunan oyunlar listesinde "Oyuncu" yerine "Katılan Sayısı" yazıyor (8 dil).
+  gdlint ve gdformat temiz; GUT 235/242, kalan 7 test PC'de açık oyun pencereleri oyun bulma
+  portlarını tuttuğu için düştü.
+- **2026-11-20 (8):** Hata (kullanıcı bildirdi): ağ oyununda Çık ile çıkan istemcinin koltuğunu
+  bot almıyor, sayaç sürüyordu. Neden: istemci LEAVE gönderip bağlantıyı anında kesiyordu; ENet
+  kopma komutu aynı anda gelince eşin bekleyen paketlerini hostta siliyor, LEAVE kayboluyordu.
+  Düzeltme: `ENetTransport.close()` istemcide bağlantıyı `peer_disconnect_later` ile kuyruk
+  boşaldıktan sonra keser (en fazla `connect_timeout_ms` yoklanır); kopma da o karenin paketleri
+  okunduktan sonra bildirilir. Yeni test: `test_message_sent_before_close_arrives`. Pencereyi
+  kapatmak LEAVE göndermez, kopma sayılır; kopan oyuncunun koltuğu 20 sn sonra bota geçmesi
+  parça 3'te yapılacak. gdlint ve gdformat temiz; GUT 243/243.
+- **2026-11-20 (9):** Hata (kullanıcı bildirdi): oyuna katılan pencere oyun sürerken oyun bulma
+  portunu tutuyor, aynı cihazdaki başka pencere oyun bulamıyordu; kurucu da oyun başladıktan sonra
+  yayına devam ediyor, başlamış oyun listede görünüyordu. Düzeltme: katılma ekranı oyun başlayınca
+  aramayı durdurur (`JoinScreen._stop_search()`); `HostRoom.start_match()` lobiyi başlatıp yayını
+  durdurur. İstek: oyun ekranında başlığın altında ince bir oda satırı ("Oda 4568 · Kurucu: Yeşil ·
+  Sen: Katılımcı"); yalnızca ağ oyununda görünür. `MatchSource.room_code()` eklendi (yerelde boş);
+  kurucunun rengi `seats[HostLobby.HOST_INDEX]` koltuğundan okunur. Yeni çeviri anahtarları
+  `ROOM_INFO`, `ROLE_HOST`, `ROLE_GUEST` (8 dil). Yeni testler:
+  `test_started_match_is_no_longer_announced`, `test_sources_report_room_code`. gdlint ve gdformat
+  temiz; GUT 245/245 (ağ testleri açık oyun pencereleri portları tuttuğu için kaydırılmış portla
+  doğrulandı).

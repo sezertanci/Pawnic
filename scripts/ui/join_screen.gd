@@ -62,13 +62,20 @@ func open() -> void:
 ## Aramayı ve bağlantıyı kapatır; ağ oyunu bitince de çağrılır.
 func close() -> void:
 	_source = null
+	var was_open := _room != null or _finder != null
 	if _room != null:
 		_room.close()
 		_room = null
+	_stop_search()
+	if was_open:
+		DisplayServer.screen_set_keep_on(false)
+
+
+## Oyun bulma portu bırakılır; oyun başlayınca aranmaz, aynı cihazdaki başka pencere arayabilir.
+func _stop_search() -> void:
 	if _finder != null:
 		_finder.stop()
 		_finder = null
-		DisplayServer.screen_set_keep_on(false)
 
 
 func _set_stage(stage: Stage) -> void:
@@ -134,6 +141,7 @@ func _on_lobby_changed(info: LobbyInfo) -> void:
 
 func _on_match_started(source: ClientSource) -> void:
 	if source == _source:
+		_stop_search()
 		started.emit(source)
 
 

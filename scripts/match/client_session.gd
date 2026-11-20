@@ -57,6 +57,12 @@ func send_intent(intent: MatchIntent) -> void:
 		_transport.send(MatchTransport.HOST_PEER, MatchMessage.intent(intent))
 
 
+## Hosta ekranın son olayı bitirdiğini bildirir; host bütün ekranları bekler.
+func finish_event() -> void:
+	if _welcomed:
+		_transport.send(MatchTransport.HOST_PEER, MatchMessage.event_done())
+
+
 ## Hosta oyundan çıktığını bildirir; koltuğunu bot alır.
 func leave() -> void:
 	if _welcomed:

@@ -80,13 +80,14 @@ func _refresh() -> void:
 
 ## Ağ oyununda oyun kaydedilmez ve oyun içi reklam çıkmaz; hız hostunkidir.
 func _on_start_pressed() -> void:
-	var game := _room.lobby.start()
+	var game := _room.start_match()
 	if game == null:
 		return
 	_referee.start(game)
 	_room.session.speed_level = GameSpeed.current()
 	_room.session.share_match()
-	started.emit(RefereeSource.new(_referee, game.seats[0]))
+	var own_seat := game.seats[HostLobby.HOST_INDEX]
+	started.emit(RefereeSource.new(_referee, own_seat, _room.lobby.code))
 
 
 func _show_code(room_code: String) -> void:

@@ -1,10 +1,14 @@
 class_name ConfirmOverlay
 extends Button
 ## Onay katmanı: bir ileti ve bir ya da iki düğme. İptal düğmesi varsa katmanın dışına dokunmak da
-## iptal sayılır; yoksa katman yalnızca onay düğmesiyle kapanır.
+## iptal sayılır; yoksa katman yalnızca onay düğmesiyle kapanır. İki düğmeli katman geri dönülmez
+## bir işi onaylatır: onay düğmesi kırmızı, iptal yeşildir. Tek düğmeli katmanda onay yeşildir.
 
 signal confirmed
 signal cancelled
+
+const DANGER_STYLE := &"MenuPlainRedButton"
+const SAFE_STYLE := &"MenuPlainGreenButton"
 
 @onready var _message: Label = %Message
 @onready var _confirm_button: Button = %ConfirmButton
@@ -24,6 +28,7 @@ func ask(message_key: String, confirm_key: String, cancel_key := "") -> void:
 	_confirm_button.text = tr(confirm_key)
 	_cancel_button.text = tr(cancel_key)
 	_cancel_button.visible = not cancel_key.is_empty()
+	_confirm_button.theme_type_variation = DANGER_STYLE if _cancel_button.visible else SAFE_STYLE
 	show()
 
 

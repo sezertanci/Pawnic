@@ -29,6 +29,9 @@ enum Type {
 	COLOR_CHOICE,
 	## İstemciden hosta: oyuncu oyundan çıktı; koltuğunu kalıcı olarak bot alır. İçerik boştur.
 	LEAVE,
+	## İstemciden hosta: ekran son olayı bitirdi; host bütün ekranlar bitirince sıradakini yayar.
+	## İçerik boştur.
+	EVENT_DONE,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -47,7 +50,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 1
+const PROTOCOL_VERSION := 2
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
@@ -90,6 +93,10 @@ static func rejected(player_intent: MatchIntent) -> Dictionary:
 
 static func leave() -> Dictionary:
 	return make(Type.LEAVE, {})
+
+
+static func event_done() -> Dictionary:
+	return make(Type.EVENT_DONE, {})
 
 
 static func snapshot_request() -> Dictionary:

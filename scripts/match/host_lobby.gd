@@ -15,6 +15,8 @@ signal code_changed(room_code: String)
 ## Oyun başlarken boş koltuklara oturan botların seviyesi.
 const BOT_LEVEL := Bot.Level.MEDIUM
 const DECIMAL_BASE := 10
+## Host oyunun sıra düzeninde ilk yerdedir (game.seats içindeki sırası).
+const HOST_INDEX := 0
 
 ## Katılmak için gereken oda kodu; room_code_digits basamaklı rakam.
 var code := ""

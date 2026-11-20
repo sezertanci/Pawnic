@@ -3,8 +3,9 @@ extends MatchSource
 ## Ağ oyununda istemcinin oyun kaynağı: hosttan gelen olayları sıraya alır ve ekran bir olayı
 ## bitirmeden sıradakini vermez. Ekranın gördüğü kopya oturumun kopyasından ayrıdır; olay ekrana
 ## verilmeden hemen önce ona uygulanır, böylece ekran olayı yerel oyundaki gibi uygulanmış
-## görünümle çizer. Görünümün tamamı yeniden gelirse sıradaki olaylar atılır (yeni görünüm onları
-## içerir). Saat, hostun sıra başlarında bildirdiği süreden ileri sayar.
+## görünümle çizer. Ekran olayı bitirince hosta bildirilir; host her olayda bütün ekranları
+## bekler. Görünümün tamamı yeniden gelirse sıradaki olaylar atılır (yeni görünüm onları içerir).
+## Saat, hostun sıra başlarında bildirdiği süreden ileri sayar.
 
 const MSEC_PER_SECOND := 1000.0
 
@@ -56,6 +57,7 @@ func acknowledge(event: MatchEvent) -> void:
 	if event != _shown:
 		return
 	_shown = null
+	_session.finish_event()
 	_pump()
 
 
@@ -91,6 +93,10 @@ func is_live() -> bool:
 
 func is_networked() -> bool:
 	return true
+
+
+func room_code() -> String:
+	return _room.code()
 
 
 func bot_level() -> Bot.Level:

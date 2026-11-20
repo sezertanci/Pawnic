@@ -2,12 +2,14 @@ class_name MatchReferee
 extends Node
 ## Oyunun hakemi: sıra akışını yürütür, botları oynatır, oyuncunun niyetini doğrulayıp uygular
 ## ve oyun süresini sayar. Arayüzü bilmez; olan her şeyi olay (MatchEvent) olarak yayar ve
-## ekranın olayı çizip acknowledge() çağırmasını bekler. Kayıt verildiyse her sıranın başında oyun
-## kaydedilir, oyun bitince kayıt silinir (ağ oyununda kayıt yoktur).
+## ekranın olayı çizip acknowledge() çağırmasını bekler. Ağ oyununda eşlerin ekranları da
+## beklenir: olayı dinleyen her bekletme (hold) bırakılana (release) kadar sıradaki olay yayılmaz.
+## Kayıt verildiyse her sıranın başında oyun kaydedilir, oyun bitince kayıt silinir (ağ oyununda
+## kayıt yoktur).
 
 ## Bir olay yayıldı; dinleyen, olayı bitirince acknowledge() çağırır.
 signal event_emitted(event: MatchEvent)
-## Ekran olayı bitirdi (ya da hakem durdu).
+## Ekran ve bütün bekletmeler olayı bitirdi (ya da hakem durdu).
 signal acknowledged
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
@@ -25,6 +27,10 @@ var _bot: Bot
 var _clock_running := false
 ## Yayılan olayın bitirilmesi bekleniyorsa true.
 var _waiting_ack := false
+## Ekranın son olayı bitirmesi bekleniyorsa true.
+var _screen_busy := false
+## Son olayı ekranla birlikte bitirmesi beklenen başka taraf sayısı (ağ oyununda eşler).
+var _holds := 0
 ## Sıradaki insan oyuncunun niyeti bekleniyorsa true.
 var _awaiting_intent := false
 ## Olayı yayılmış bitiren oyuncu sayısı.
@@ -53,7 +59,9 @@ func stop() -> void:
 	game = null
 	_clock_running = false
 	_awaiting_intent = false
-	acknowledge()
+	_screen_busy = false
+	_holds = 0
+	_settle()
 
 
 ## Oyuncu oyundan çıkıyor: sıra başındaki kayıt durur, yalnızca geçen süre güncellenir.
@@ -65,12 +73,22 @@ func leave() -> void:
 	stop()
 
 
-## Ekran son olayı bitirdi; hakem akışa devam eder.
+## Ekran son olayı bitirdi; bekletme kalmadıysa hakem akışa devam eder.
 func acknowledge() -> void:
-	if not _waiting_ack:
-		return
-	_waiting_ack = false
-	acknowledged.emit()
+	_screen_busy = false
+	_settle()
+
+
+## Son olayı bir taraf daha bitirmeli; event_emitted dinleyicisinde çağrılır.
+func hold() -> void:
+	_holds += 1
+
+
+## Bekletmelerden biri olayı bitirdi (ya da artık beklenmiyor).
+func release() -> void:
+	if _holds > 0:
+		_holds -= 1
+		_settle()
 
 
 ## Koltuğu kalıcı olarak bota verir (ağ oyununda çıkan oyuncu); sıra o koltuktaysa ve niyeti
@@ -118,14 +136,23 @@ func _is_hand_card(card_index: int) -> bool:
 	return card_index >= 0 and card_index < game.current_hand().size()
 
 
-## Olayı yayar ve bitirilmesini bekler; beklerken oyun değiştiyse (hakem durdu) false döner.
+## Olayı yayar ve ekranla bütün bekletmelerin bitirmesini bekler; beklerken oyun değiştiyse
+## (hakem durdu) false döner. Dinleyiciler olayı yayılırken bitirirse beklenmez.
 func _emit(event: MatchEvent) -> bool:
 	var current := game
-	_waiting_ack = true
+	_screen_busy = true
+	_holds = 0
 	event_emitted.emit(event)
-	if _waiting_ack:
+	if _screen_busy or _holds > 0:
+		_waiting_ack = true
 		await acknowledged
 	return current == game and current != null
+
+
+func _settle() -> void:
+	if _waiting_ack and not _screen_busy and _holds == 0:
+		_waiting_ack = false
+		acknowledged.emit()
 
 
 func _save() -> void:

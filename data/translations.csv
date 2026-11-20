@@ -104,12 +104,15 @@ HOST_GAME,Oyun Kur,Host Game,Spiel Erstellen,Crear Partida,Créer Une Partie,Cre
 JOIN_GAME,Katıl,Join,Beitreten,Unirse,Rejoindre,Unisciti,Entrar,Gabung
 ROOM_CODE,Oda Kodu,Room Code,Raumcode,Código De Sala,Code De Salle,Codice Stanza,Código Da Sala,Kode Ruang
 ROOM_CODE_HINT,Katılacak oyunculara bu kodu söyle.,Tell this code to the players who will join.,"Sag diesen Code den Spielern, die beitreten.",Dile este código a los jugadores que se unan.,Donne ce code aux joueurs qui veulent rejoindre.,Comunica questo codice ai giocatori che si uniscono.,Diga este código aos jogadores que vão entrar.,Beri tahu kode ini kepada pemain yang akan bergabung.
+ROOM_INFO,Oda %s · Kurucu: %s · Sen: %s,Room %s · Host: %s · You: %s,Raum %s · Gastgeber: %s · Du: %s,Sala %s · Anfitrión: %s · Tú: %s,Salle %s · Hôte : %s · Toi : %s,Stanza %s · Host: %s · Tu: %s,Sala %s · Anfitrião: %s · Você: %s,Ruang %s · Tuan rumah: %s · Kamu: %s
+ROLE_HOST,Kurucu,Host,Gastgeber,Anfitrión,Hôte,Host,Anfitrião,Tuan rumah
+ROLE_GUEST,Katılımcı,Player,Mitspieler,Participante,Participant,Partecipante,Participante,Peserta
 LOBBY_PLAYERS,Oyuncular,Players,Spieler,Jugadores,Joueurs,Giocatori,Jogadores,Pemain
 SEAT_YOU,Sen,You,Du,Tú,Toi,Tu,Você,Kamu
 SEAT_HOST,Kurucu,Host,Gastgeber,Anfitrión,Hôte,Host,Anfitrião,Tuan Rumah
 SEAT_BOT,Bot,Bot,Bot,Bot,Bot,Bot,Bot,Bot
 FOUND_GAMES,Bulunan Oyunlar,Games Found,Gefundene Spiele,Partidas Encontradas,Parties Trouvées,Partite Trovate,Jogos Encontrados,Permainan Ditemukan
-FOUND_GAME,Oyun %d · Oyuncu: %d,Game %d · Players: %d,Spiel %d · Spieler: %d,Partida %d · Jugadores: %d,Partie %d · Joueurs : %d,Partita %d · Giocatori: %d,Jogo %d · Jogadores: %d,Permainan %d · Pemain: %d
+FOUND_GAME,Oyun %d · Katılan Sayısı: %d,Game %d · Joined: %d,Spiel %d · Beigetreten: %d,Partida %d · Unidos: %d,Partie %d · Inscrits : %d,Partita %d · Partecipanti: %d,Jogo %d · Participantes: %d,Permainan %d · Bergabung: %d
 SEARCHING_GAMES,Aynı Wi-Fi'daki oyunlar aranıyor…,Looking for games on the same Wi-Fi…,Spiele im selben WLAN werden gesucht…,Buscando partidas en la misma Wi-Fi…,Recherche de parties sur le même Wi-Fi…,Ricerca di partite sulla stessa Wi-Fi…,Procurando jogos no mesmo Wi-Fi…,Mencari permainan di Wi-Fi yang sama…
 ENTER_ROOM_CODE,Oda kodunu gir,Enter the room code,Raumcode eingeben,Introduce el código de sala,Saisis le code de salle,Inserisci il codice stanza,Digite o código da sala,Masukkan kode ruang
 CONNECTING,Bağlanılıyor…,Connecting…,Verbindung wird hergestellt…,Conectando…,Connexion…,Connessione…,Conectando…,Menghubungkan…

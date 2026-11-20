@@ -10,13 +10,16 @@ var _referee: MatchReferee
 var _game: GameMatch
 ## Ağ oyununda hostun koltuğu; yerel oyunda NO_SEAT.
 var _own_seat: int
+## Ağ oyununda odanın kodu; yerel oyunda boş.
+var _room_code: String
 
 
 ## Hakemin start()'ından sonra kurulur.
-func _init(referee: MatchReferee, own_seat := BoardLayout.NO_SEAT) -> void:
+func _init(referee: MatchReferee, own_seat := BoardLayout.NO_SEAT, room_code := "") -> void:
 	_referee = referee
 	_game = referee.game
 	_own_seat = own_seat
+	_room_code = room_code
 	_referee.event_emitted.connect(_on_event)
 
 
@@ -68,6 +71,10 @@ func is_networked() -> bool:
 
 func is_host() -> bool:
 	return is_networked()
+
+
+func room_code() -> String:
+	return _room_code
 
 
 func shares_device() -> bool:

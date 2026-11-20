@@ -1,7 +1,8 @@
 extends GutTest
 ## Oyun kaynakları: hakemden beslenen kaynağın bayatlaması ve hostun görünümü; istemci kaynağının
 ## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
-## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi. Ağ sahte taşıyıcıyla kurulur.
+## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; kaynakların oda kodu. Ağ sahte taşıyıcıyla
+## kurulur.
 
 const SEED := 11
 const PAWNS := 4
@@ -13,6 +14,9 @@ const FRAMES := 4
 const MISSING_PAWN := 99
 ## İstemcinin sırasına kadar gelebilecek en fazla olay; aşılırsa döngü durur.
 const MAX_EVENTS := 20
+const ROOM_CODE := "4568"
+## Yerel ağ dışındaki adres: katılma bağlantı kurmadan reddedilir, verilen kod yine de saklanır.
+const OUTSIDE_ADDRESS := "8.8.8.8"
 
 var _referee: MatchReferee
 var _game: GameMatch
@@ -67,6 +71,18 @@ func test_host_source_views_own_seat() -> void:
 	assert_eq(source.view().viewer_seat, _client_seat)
 
 
+func test_sources_report_room_code() -> void:
+	_referee.start(_game)
+	var host_source := RefereeSource.new(_referee, _host_seat, ROOM_CODE)
+	var local_source := RefereeSource.new(_referee)
+
+	_room.join(OUTSIDE_ADDRESS, ROOM_CODE)
+
+	assert_eq(host_source.room_code(), ROOM_CODE)
+	assert_eq(_source.room_code(), ROOM_CODE)
+	assert_eq(local_source.room_code(), "")
+
+
 func test_referee_source_reports_rejected_intent() -> void:
 	_referee.start(_game)
 	var source := RefereeSource.new(_referee, _host_seat)
@@ -89,12 +105,10 @@ func test_client_source_waits_for_view_before_events() -> void:
 
 func test_client_source_holds_events_until_acknowledged() -> void:
 	await _start_match()
-	_source.begin()
-	_referee.submit(_host_turn())
-	await wait_frames(FRAMES)
-	assert_eq(_shown.size(), 1)
+	await _play_host_turn()
+	assert_eq(_shown.size(), 2)
 
-	_acknowledge_until_client_turn()
+	await _acknowledge_until_client_turn()
 
 	assert_eq(_shown.back().kind, MatchEvent.Kind.TURN_STARTED)
 	assert_eq(_shown.back().seat, _client_seat)
@@ -150,10 +164,18 @@ func _start_match() -> void:
 ## Host hamlesini oynar ve istemci gelen bütün olayları bitirir; sıra istemcidedir.
 func _reach_client_turn() -> void:
 	await _start_match()
+	await _play_host_turn()
+	await _acknowledge_until_client_turn()
+
+
+## İstemci hostun sıra başını bitirir (host onu bekler), sonra host hamlesini oynar; istemci
+## kartın açılmasını görür.
+func _play_host_turn() -> void:
 	_source.begin()
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
 	_referee.submit(_host_turn())
 	await wait_frames(FRAMES)
-	_acknowledge_until_client_turn()
 
 
 ## Hostun sırasındaki ilk yasal hamle; yoksa ilk kartın atılması.
@@ -164,7 +186,7 @@ func _host_turn() -> MatchIntent:
 	return MatchIntent.play(_host_seat, legal[0])
 
 
-## Ekran gösterilen olayı bitirir; her bitirmede sıradaki tek olay gelir.
+## Ekran gösterilen olayı bitirir; host bunu bekler ve her bitirmede sıradaki tek olay gelir.
 func _acknowledge_until_client_turn() -> void:
 	for _step: int in range(MAX_EVENTS):
 		var last := _shown.back() as MatchEvent
@@ -172,6 +194,7 @@ func _acknowledge_until_client_turn() -> void:
 			return
 		var count := _shown.size()
 		_source.acknowledge(last)
+		await wait_frames(FRAMES)
 		assert_eq(_shown.size(), count + 1)
 
 

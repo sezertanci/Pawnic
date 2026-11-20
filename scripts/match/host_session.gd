@@ -2,8 +2,10 @@ class_name HostSession
 extends RefCounted
 ## Ağ oyununda hostun bağdaştırıcısı: taşıyıcıdan gelen mesajları hakeme (MatchReferee), hakemin
 ## olaylarını eşlere taşır. Eş ancak el sıkışmadan (HELLO → WELCOME) geçip bir koltuğa oturtulunca
-## oyuna katılır. Niyetteki koltuk alanına güvenilmez; koltuk, eşin oturtulduğu koltuktur. Host
-## yalnızca kendi ekranının bitirmesini bekler; olaylar eşlere beklemeden gider. Reddedilen eşe
+## oyuna katılır. Niyetteki koltuk alanına güvenilmez; koltuk, eşin oturtulduğu koltuktur. Olaylar
+## eşlere hemen gider ve hakem, hostun ekranıyla birlikte oturan her eşin olayı bitirmesini
+## (EVENT_DONE) bekler; böylece animasyonlar her cihazda birlikte başlar. Görünümü yeniden istenen,
+## çıkan ya da bağlantısı kopan eş beklenmez. Reddedilen eşe
 ## REFUSED gönderilip bağlantısı kesilir. Oyundan çıkan (LEAVE) eşin koltuğunu kalıcı olarak bot
 ## alır; eşe artık olay gitmez.
 
@@ -23,6 +25,10 @@ var _settings: GameSettings
 var _welcomed: Array[int] = []
 ## Oturtulan eşler: eş numarası → koltuk.
 var _seats: Dictionary[int, int] = {}
+## Son olayı henüz bitirmemiş eşler; her biri hakemde bir bekletmedir.
+var _pending: Array[int] = []
+## Bağlantısı kopan eşler; olayları beklenmez.
+var _offline: Array[int] = []
 
 
 func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSettings) -> void:
@@ -30,6 +36,7 @@ func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSetti
 	_transport = transport
 	_settings = settings
 	_transport.message_received.connect(_on_message)
+	_transport.peer_disconnected.connect(_on_peer_disconnected)
 	_referee.event_emitted.connect(_on_event)
 
 
@@ -62,6 +69,9 @@ func _on_message(peer_id: int, message: Dictionary) -> void:
 			_take_intent(peer_id, data)
 		MatchMessage.Type.SNAPSHOT_REQUEST:
 			_send_snapshot(peer_id)
+			_settle(peer_id)
+		MatchMessage.Type.EVENT_DONE:
+			_settle(peer_id)
 		MatchMessage.Type.LEAVE:
 			_release_seat(peer_id)
 
@@ -111,10 +121,29 @@ func _release_seat(peer_id: int) -> void:
 	if seat == BoardLayout.NO_SEAT:
 		return
 	_seats.erase(peer_id)
+	_settle(peer_id)
 	if _referee.game != null:
 		_referee.hand_to_bot(seat)
 
 
+## Oyun sonu olayı beklenmez (hakem de beklemez).
 func _on_event(event: MatchEvent) -> void:
+	_pending.clear()
 	for peer_id: int in _seats:
 		_transport.send(peer_id, MatchMessage.event(event, _seats[peer_id]))
+		if event.kind != MatchEvent.Kind.MATCH_OVER and not _offline.has(peer_id):
+			_pending.append(peer_id)
+			_referee.hold()
+
+
+## Eş son olayı bitirdi ya da artık beklenmiyor; bekletmesi bırakılır.
+func _settle(peer_id: int) -> void:
+	if _pending.has(peer_id):
+		_pending.erase(peer_id)
+		_referee.release()
+
+
+func _on_peer_disconnected(peer_id: int) -> void:
+	if not _offline.has(peer_id):
+		_offline.append(peer_id)
+	_settle(peer_id)

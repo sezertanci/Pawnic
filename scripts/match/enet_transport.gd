@@ -23,6 +23,13 @@ var _peers: Array[int] = []
 ## Eş başına sıklık penceresi: pencerenin başladığı an (ms) ve penceredeki mesaj sayısı.
 var _window_starts: Dictionary[int, int] = {}
 var _window_counts: Dictionary[int, int] = {}
+## Bu karede bağlantısı kopan eşler; kopmadan önce gelen paketleri okunduktan sonra bildirilir.
+var _gone: Array[int] = []
+## Kapatılan istemci bağlantısı: kuyruktaki mesajlar hosta ulaşıp bağlantı düzgünce kesilene kadar
+## (en fazla connect_timeout_ms) yoklanır, sinyal yayılmaz. Anında kesmede ENet, aynı anda gelen
+## son paketleri hostta siler (ör. oyundan çıkan istemcinin LEAVE mesajı).
+var _draining: ENetMultiplayerPeer
+var _drain_deadline := 0
 
 
 func _init(settings: GameSettings) -> void:
@@ -61,15 +68,44 @@ func join(address: String) -> bool:
 func close() -> void:
 	if _peer == null:
 		return
-	_peer.host.flush()
-	_peer.close()
+	if own_peer() != MatchTransport.HOST_PEER and _peers.has(MatchTransport.HOST_PEER):
+		_drain()
+	else:
+		_peer.host.flush()
+		_peer.close()
 	_release()
+
+
+## İstemci bağlantısını kuyruk boşaldıktan sonra kesilecek şekilde bırakır.
+func _drain() -> void:
+	_stop_draining()
+	_peer.peer_connected.disconnect(_on_peer_connected)
+	_peer.peer_disconnected.disconnect(_on_peer_disconnected)
+	_peer.get_peer(MatchTransport.HOST_PEER).peer_disconnect_later()
+	_draining = _peer
+	_drain_deadline = Time.get_ticks_msec() + _settings.connect_timeout_ms
+
+
+func _poll_draining() -> void:
+	if _draining == null:
+		return
+	_draining.poll()
+	var done := _draining.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED
+	if done or Time.get_ticks_msec() >= _drain_deadline:
+		_stop_draining()
+
+
+func _stop_draining() -> void:
+	if _draining != null:
+		_draining.close()
+		_draining = null
 
 
 ## Bağlantı kapandı (kendimiz ya da host kesti); taşıyıcı yeniden kurulabilir.
 func _release() -> void:
 	_peer = null
 	_peers.clear()
+	_gone.clear()
 	_window_starts.clear()
 	_window_counts.clear()
 
@@ -106,6 +142,7 @@ func _attach(peer: ENetMultiplayerPeer) -> void:
 
 
 func _poll() -> void:
+	_poll_draining()
 	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_DISCONNECTED:
 		_release()
 		closed.emit()
@@ -115,6 +152,7 @@ func _poll() -> void:
 	while _peer != null and _peer.get_available_packet_count() > 0:
 		var peer_id := _peer.get_packet_peer()
 		_receive(peer_id, _peer.get_packet())
+	_report_gone()
 
 
 func _receive(peer_id: int, bytes: PackedByteArray) -> void:
@@ -144,9 +182,18 @@ func _on_peer_connected(peer_id: int) -> void:
 	peer_connected.emit(peer_id)
 
 
+## ENet kopmayı poll() içinde, eşin son paketleri okunmadan bildirir; kopma, paketler okunana
+## kadar bekletilir (ör. oyundan çıkan istemcinin LEAVE mesajı kaybolmasın).
 func _on_peer_disconnected(peer_id: int) -> void:
-	_forget(peer_id)
-	peer_disconnected.emit(peer_id)
+	_gone.append(peer_id)
+
+
+func _report_gone() -> void:
+	var gone := _gone.duplicate()
+	_gone.clear()
+	for peer_id: int in gone:
+		_forget(peer_id)
+		peer_disconnected.emit(peer_id)
 
 
 func _forget(peer_id: int) -> void:

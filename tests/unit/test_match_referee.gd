@@ -1,6 +1,7 @@
 extends GutTest
-## Hakemin (MatchReferee) sıra akışı: olayların sırası, ekranın bitirmesinin beklenmesi, niyetlerin
-## doğrulanması, kayıt ve saat. Gerçek kayıt dosyasına dokunmamak için ayrı bir yol kullanılır.
+## Hakemin (MatchReferee) sıra akışı: olayların sırası, ekranın ve bekletmelerin beklenmesi,
+## niyetlerin doğrulanması, kayıt ve saat. Gerçek kayıt dosyasına dokunmamak için ayrı bir yol
+## kullanılır.
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 const TEST_PATH := "user://test_referee_save.json"
@@ -57,6 +58,16 @@ func test_flow_waits_until_event_is_acknowledged() -> void:
 	assert_false(_referee.is_awaiting_intent())
 
 	_referee.acknowledge()
+
+	assert_true(_referee.is_awaiting_intent())
+
+
+func test_flow_waits_until_every_hold_is_released() -> void:
+	_referee.event_emitted.connect(func(_event: MatchEvent) -> void: _referee.hold())
+	_start(_new_game(HUMANS))
+	assert_false(_referee.is_awaiting_intent())
+
+	_referee.release()
 
 	assert_true(_referee.is_awaiting_intent())
 

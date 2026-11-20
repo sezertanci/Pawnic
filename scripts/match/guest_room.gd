@@ -31,6 +31,11 @@ func join(address: String, room_code: String) -> bool:
 	return _transport.join(address)
 
 
+## Katılırken verilen oda kodu.
+func code() -> String:
+	return _code
+
+
 func close() -> void:
 	_transport.close()
 

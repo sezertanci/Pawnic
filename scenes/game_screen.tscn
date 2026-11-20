@@ -81,6 +81,13 @@ layout_mode = 2
 size_flags_vertical = 4
 script = ExtResource("4")
 
+[node name="RoomInfo" type="Label" parent="Margin/Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 1
+
 [node name="Piles" type="HBoxContainer" parent="Margin/Box"]
 layout_mode = 2
 theme_override_constants/separation = 24

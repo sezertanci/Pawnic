@@ -1,6 +1,7 @@
 extends GutTest
 ## Host ve istemci oturumu sahte taşıyıcı üzerinden: el sıkışma, koltuğa oturtma, niyetin
-## eşin koltuğu adına verilmesi, uyuşmayan olayda görünümün yeniden istenmesi ve tam bir oyun.
+## eşin koltuğu adına verilmesi, uyuşmayan olayda görünümün yeniden istenmesi, hostun istemcinin
+## olayı bitirmesini beklemesi ve tam bir oyun.
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 const TEST_PATH := "user://test_match_sessions_save.json"
@@ -30,6 +31,8 @@ var _resets := 0
 var _mismatches: Array[String] = []
 var _over := false
 var _intent_sent := false
+## true iken istemcinin ekranı her olayı hemen bitirir.
+var _client_finishes := true
 
 
 func before_each() -> void:
@@ -43,6 +46,7 @@ func before_each() -> void:
 	_resets = 0
 	_over = false
 	_intent_sent = false
+	_client_finishes = true
 	_referee = MatchReferee.new()
 	_referee.store = _store
 	_referee.event_emitted.connect(_on_host_event)
@@ -163,6 +167,39 @@ func test_mismatched_event_requests_view_again() -> void:
 	assert_eq(_client.view.to_dict(), _host_view())
 
 
+func test_host_waits_until_client_finishes_event() -> void:
+	_client_finishes = false
+	await _start_match()
+	assert_false(_referee.is_awaiting_intent())
+
+	_client.finish_event()
+	await wait_frames(FRAMES)
+
+	assert_true(_referee.is_awaiting_intent())
+
+
+func test_view_request_ends_wait_for_client() -> void:
+	_client_finishes = false
+	await _start_match()
+	var client_transport: FakeTransport = _network[CLIENT_PEER].get_ref()
+
+	client_transport.send(MatchTransport.HOST_PEER, MatchMessage.snapshot_request())
+	await wait_frames(FRAMES)
+
+	assert_true(_referee.is_awaiting_intent())
+
+
+func test_disconnected_client_is_not_waited_for() -> void:
+	_client_finishes = false
+	await _start_match()
+	var client_transport: FakeTransport = _network[CLIENT_PEER].get_ref()
+
+	client_transport.disconnect_peer()
+	await wait_frames(FRAMES)
+
+	assert_true(_referee.is_awaiting_intent())
+
+
 func test_client_view_follows_whole_match() -> void:
 	await _join()
 	var rng := RandomNumberGenerator.new()
@@ -211,9 +248,11 @@ func _on_host_event(event: MatchEvent) -> void:
 	_referee.acknowledge()
 
 
-## İstemcinin sırası başladığında host onun niyetini beklediği için oyun durur; kopya o an
-## hosttaki oyunla karşılaştırılır.
+## İstemcinin ekranı olayı (istenirse) hemen bitirir. İstemcinin sırası başladığında host onun
+## niyetini beklediği için oyun durur; kopya o an hosttaki oyunla karşılaştırılır.
 func _on_client_event(event: MatchEvent) -> void:
+	if _client_finishes:
+		_client.finish_event()
 	if event.kind != MatchEvent.Kind.TURN_STARTED or event.seat != _client_seat:
 		return
 	if _client.view.to_dict() != _host_view():

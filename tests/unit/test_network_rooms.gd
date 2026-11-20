@@ -1,6 +1,7 @@
 extends GutTest
 ## Ağ odaları aynı cihazda (127.0.0.1) gerçek ENet ile: doğru kodla katılma ve lobinin gelmesi,
-## yanlış kodun reddi, hostun kapanması, ulaşılamayan host ve yayındaki oyuncu sayısı.
+## yanlış kodun reddi, hostun kapanması, ulaşılamayan host, yayındaki oyuncu sayısı ve oyun
+## başlayınca yayının durması.
 
 ## Bağlantı ve mesaj için beklenen en fazla süre (saniye).
 const TIMEOUT := 3.0
@@ -9,6 +10,7 @@ const TIMEOUT := 3.0
 const UNREACHABLE_TIMEOUT := 3.0
 const SHORT_CONNECT_TIMEOUT_MS := 1000
 const WRONG_CODE := "x"
+const MSEC_PER_SEC := 1000.0
 
 var _settings: GameSettings
 var _referee: MatchReferee
@@ -93,6 +95,23 @@ func test_announced_player_count_follows_lobby() -> void:
 	)
 
 	assert_eq(_finder.games()[0].players, 2)
+
+
+func test_started_match_is_no_longer_announced() -> void:
+	assert_true(_finder.start())
+	_host.open(LocalAddress.LOOPBACK, LocalAddress.LOOPBACK)
+	var guest := _new_guest()
+	guest.join(LocalAddress.LOOPBACK, _host.lobby.code)
+	await wait_until(
+		func() -> bool: return _finder.games().size() == 1 and _finder.games()[0].players == 2,
+		TIMEOUT
+	)
+
+	assert_not_null(_host.start_match())
+	var expiry := _settings.announce_expiry_ms / MSEC_PER_SEC
+	await wait_until(func() -> bool: return _finder.games().is_empty(), expiry + TIMEOUT)
+
+	assert_eq(_finder.games(), [])
 
 
 func _new_guest() -> GuestRoom:

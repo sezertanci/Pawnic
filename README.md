@@ -22,6 +22,9 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
 - Biçim ve lint: `gdformat scripts tools tests` ve `gdlint scripts tools tests`
 - Simgesiz yeşil menü düğmesi (`assets/images/button_green_plain.png`, Tamam düğmelerinde):
   `python tools/make_plain_button.py assets/images/button_green.png assets/images/button_green_plain.png` (Pillow gerekir)
+- Simgesiz kırmızı menü düğmesi (`assets/images/button_red_plain.png`, geri dönülmez işi onaylayan
+  düğmelerde): `python tools/shift_button_hue.py assets/images/button_orange_plain.png
+  assets/images/button_red_plain.png -28` (Pillow gerekir)
 - Ses efektleri (`assets/sounds/`): `python tools/make_sounds.py assets/sounds` (yalnızca Python standart kütüphanesi)
 - İkonlar (`assets/icon/`): `python tools/make_icon.py assets/images assets/icon` (Pillow gerekir).
   Önceki yazılı ikon `assets/icon/text/` altında saklanır:

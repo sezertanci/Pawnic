@@ -122,6 +122,19 @@ func test_message_sent_before_kick_arrives() -> void:
 	assert_eq(client.own_peer(), ENetTransport.NO_PEER)
 
 
+func test_message_sent_before_close_arrives() -> void:
+	var client := await _connect()
+	var peer_id := client.own_peer()
+	watch_signals(_host)
+
+	client.send(MatchTransport.HOST_PEER, {KEY_TEXT: "çıkıyorum"})
+	client.close()
+	await wait_for_signal(_host.peer_disconnected, TIMEOUT)
+
+	assert_eq(_host_inbox, [{KEY_TEXT: "çıkıyorum"}])
+	assert_signal_emitted_with_parameters(_host, "peer_disconnected", [peer_id])
+
+
 func test_messages_from_kicked_peer_are_dropped() -> void:
 	var client := await _connect()
 

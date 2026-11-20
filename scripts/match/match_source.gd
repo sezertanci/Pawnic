@@ -70,6 +70,11 @@ func is_host() -> bool:
 	return false
 
 
+## Ağ oyununun oda kodu; yerel oyunda boş.
+func room_code() -> String:
+	return ""
+
+
 ## Birden çok insan aynı cihazda sırayla oynuyorsa true (eller sıra devrinde gizlenir).
 func shares_device() -> bool:
 	return false
