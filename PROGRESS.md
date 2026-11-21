@@ -841,3 +841,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `game_screen.gd`'deki ödül akışının ayrı sınıfa alınması, `MSEC_PER_SECOND`'un ortak yere
   taşınması, `GameMatch.from_dict`'in bölünmesi, testlerdeki sahipsiz düğüm ve çıkış sızıntısı
   uyarıları.
+- **2026-11-22 (21):** Sürüm 8 (1.7.0): üç ön ayarda sürüm yükseltildi; mağaza metinlerine (tr-TR,
+  en-US) 1.7.0 sürüm notu eklendi (ödüllü reklamla "Kart Seç", ağ oyununda kayan kopyanın
+  düzeltilmesi). AAB Play'e, Gradle'lı APK tablete.

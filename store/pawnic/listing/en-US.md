@@ -46,6 +46,12 @@ PLAY AT YOUR PACE
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.7.0)
+
+- New: "Pick Card". On your turn, watch a short ad, pick one of 3 suggested cards from the deck and swap it with a card in your hand.
+- Fixed extra cards showing in your hand and moves lagging after leaving and returning to a Wi-Fi game.
+- Bug fixes.
+
 ## Sürüm notu (1.6.0)
 
 - Wi-Fi games now have a 20-second turn timer; when time runs out, a move is made automatically.

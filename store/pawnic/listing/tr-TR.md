@@ -46,6 +46,12 @@ RAHAT OYNAYIN
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.7.0)
+
+- Yeni: "Kart Seç". Sıranız gelince kısa bir reklam izleyin, desteden önerilen 3 karttan birini seçip elinizdeki bir kartla değiştirin.
+- Wi-Fi oyununda uygulamadan çıkıp dönünce elde fazla kart görünmesi ve hamlenin gecikmesi düzeltildi.
+- Hata düzeltmeleri.
+
 ## Sürüm notu (1.6.0)
 
 - Wi-Fi oyununda 20 saniyelik sıra süresi; süre dolunca hamle kendiliğinden yapılır.
