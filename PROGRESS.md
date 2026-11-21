@@ -745,3 +745,9 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   planda sürer; oyun bulununca uyarı kalkar, liste yeniden boşalırsa süre baştan sayılır. Yeniden
   Ara "aranıyor…" yazısını gösterip süreyi yeniden başlatır. Yeni metinler `SEARCH_NOT_FOUND`,
   `SEARCH_AGAIN` 8 dilde. GUT 302/302. Tablette denenmedi.
+- **2026-11-21 (8):** Kurulum, katılma ve kurucu lobisi ekranlarında panel üste sabitlendi.
+  Önceden `TopSpace` ve `BottomSpace` birlikte genişlediği için panel dikeyde ortalanıyor, sekme
+  değişince (paneller farklı yükseklikte) sekmeler yukarı aşağı kayıyordu. `TopSpace` artık
+  genişlemiyor; panel başlığın hemen altında başlıyor, alt düğmeler yine en altta. Ölçüm (800x1280):
+  üç sekmede panel y=192. Oyuncu sayısı değişince kayma bilgisayarda görülmedi; panelin üstü sabit
+  olduğu için boy değişse bile sekmeler ve sayaçlar yerinde kalır. GUT 302/302. Tablette denenmedi.
