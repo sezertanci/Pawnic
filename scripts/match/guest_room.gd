@@ -3,9 +3,9 @@ extends RefCounted
 ## Ağ oyununda katılan oyuncunun odası: hosta bağlanır, bağlantı kurulunca oda koduyla el sıkışır.
 ## Host reddederse bağlantı kapatılır ve nedeni bildirilir. Oyun başladıktan sonra bağlantı koparsa
 ## aynı hosta rejoin_interval_ms aralıkla, yeniden katılma anahtarıyla bağlanmaya çalışılır; deneme
-## oda kapatılana, host odayı kapattığını bildirene ya da hostun oyunu artık tanımadığı anlaşılana
-## kadar sürer. Bağlantının kopuk olduğu (yeniden bağlanılıyor ya da hostun sesi kesildi) ve
-## düzeldiği bildirilir.
+## oda kapatılana, host odayı kapattığını bildirene, hostun oyunu artık tanımadığı anlaşılana ya da
+## bağlantı host_lost_sec boyunca kopuk kalana kadar sürer. Bağlantının kopuk olduğu (yeniden
+## bağlanılıyor ya da hostun sesi kesildi) ve düzeldiği bildirilir.
 
 ## Host el sıkışmayı reddetti (MatchMessage.Refusal); bağlantı kapatıldı.
 signal refused(reason: int)
@@ -20,7 +20,8 @@ enum Loss {
 	CONNECT_FAILED,
 	## Host odayı kapattı.
 	HOST_CLOSED,
-	## Host oyunu artık tanımıyor (yeni oda açtı ya da oyun bitti).
+	## Host oyunu artık tanımıyor (yeni oda açtı ya da oyun bitti) ya da hosta uzun süre
+	## ulaşılamadı.
 	HOST_LOST,
 }
 
@@ -35,6 +36,8 @@ var _welcomed := false
 var _reconnecting := false
 ## Son bildirilen bağlantı durumu: true ise kopuk.
 var _connection_lost := false
+## Bağlantı her koptuğunda ve oda kapandığında artar; eski vazgeçme sayacı bununla geçersizleşir.
+var _loss_generation := 0
 
 
 func _init(settings: GameSettings) -> void:
@@ -64,6 +67,7 @@ func code() -> String:
 ## Odayı kapatır; yeniden bağlanma denemesi durur.
 func close() -> void:
 	_reconnecting = false
+	_loss_generation += 1
 	_transport.close()
 
 
@@ -126,4 +130,20 @@ func _report_connection() -> void:
 	var connection_lost := _reconnecting or session.is_host_silent()
 	if connection_lost != _connection_lost:
 		_connection_lost = connection_lost
+		_loss_generation += 1
+		if connection_lost:
+			_give_up_later()
 		connection_changed.emit(connection_lost)
+
+
+## Bağlantı host_lost_sec boyunca kopuk kalırsa oda kapanır ve host kaybedilmiş sayılır.
+func _give_up_later() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var timer := tree.create_timer(_settings.host_lost_wait_time)
+	timer.timeout.connect(_give_up.bind(_loss_generation))
+
+
+func _give_up(generation: int) -> void:
+	if generation == _loss_generation:
+		close()
+		lost.emit(Loss.HOST_LOST)

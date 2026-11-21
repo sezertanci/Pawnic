@@ -1,7 +1,7 @@
 extends GutTest
 ## Ağ odaları aynı cihazda (127.0.0.1) gerçek ENet ile: doğru kodla katılma ve lobinin gelmesi,
-## yanlış kodun reddi, hostun kapanması, ulaşılamayan host, yayındaki oyuncu sayısı ve oyun
-## başlayınca yayının durması.
+## yanlış kodun reddi, hostun kapanması, oyun sırasında haber vermeden kaybolan host, ulaşılamayan
+## host, yayındaki oyuncu sayısı ve oyun başlayınca yayının durması.
 
 ## Bağlantı ve mesaj için beklenen en fazla süre (saniye).
 const TIMEOUT := 3.0
@@ -9,6 +9,8 @@ const TIMEOUT := 3.0
 ## aşımı kısaltılır.
 const UNREACHABLE_TIMEOUT := 3.0
 const SHORT_CONNECT_TIMEOUT_MS := 1000
+## Hosta ulaşılamayınca vazgeçme süresi testte kısaltılır (saniye).
+const SHORT_HOST_LOST_SEC := 1.0
 const WRONG_CODE := "x"
 const MSEC_PER_SEC := 1000.0
 
@@ -70,6 +72,23 @@ func test_closing_host_loses_welcomed_guest() -> void:
 	await wait_for_signal(guest.lost, TIMEOUT)
 
 	assert_signal_emitted_with_parameters(guest, "lost", [GuestRoom.Loss.HOST_CLOSED])
+
+
+func test_vanished_host_is_lost_after_wait() -> void:
+	_settings.host_lost_wait_time = SHORT_HOST_LOST_SEC
+	_settings.connect_timeout_ms = SHORT_CONNECT_TIMEOUT_MS
+	_host.open(LocalAddress.LOOPBACK, LocalAddress.LOOPBACK)
+	var guest := _new_guest()
+	watch_signals(guest)
+	guest.join(LocalAddress.LOOPBACK, _host.lobby.code)
+	await wait_until(func() -> bool: return guest.session.lobby != null, TIMEOUT)
+	_host.start_match()
+	await wait_until(func() -> bool: return guest.session.view != null, TIMEOUT)
+
+	_host._transport.close()
+	await wait_for_signal(guest.lost, TIMEOUT + SHORT_HOST_LOST_SEC)
+
+	assert_signal_emitted_with_parameters(guest, "lost", [GuestRoom.Loss.HOST_LOST])
 
 
 func test_unreachable_host_is_lost_unwelcomed() -> void:

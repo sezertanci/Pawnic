@@ -160,6 +160,9 @@ var silence_limit_ms := 0
 var rejoin_wait_time := 0.0
 ## Bağlantısı kopan istemci hosta bu aralıkla yeniden bağlanmayı dener (milisaniye).
 var rejoin_interval_ms := 0
+## Ağ oyununda hosta bu kadar süre ulaşılamazsa istemci yeniden bağlanmaktan vazgeçer ve oyun
+## biter (saniye).
+var host_lost_wait_time := 0.0
 ## Ağ oyununda insan oyuncunun bir sırada hamlesini seçme süresi; dolunca hamleyi bot oynar
 ## (saniye).
 var turn_time_limit := 0.0
@@ -304,5 +307,6 @@ func _read_network(network: Dictionary) -> void:
 	silence_limit_ms = int(network["silence_limit_ms"])
 	rejoin_wait_time = float(network["rejoin_wait_sec"])
 	rejoin_interval_ms = int(network["rejoin_interval_ms"])
+	host_lost_wait_time = float(network["host_lost_sec"])
 	turn_time_limit = float(network["turn_time_sec"])
 	turn_warning_time = float(network["turn_warning_sec"])

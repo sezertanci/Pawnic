@@ -124,10 +124,14 @@ func share_match() -> void:
 		_send_snapshot(peer_id)
 
 
-## Eşlere odanın kapandığını bildirir; bağlantıyı taşıyıcının sahibi kapatır.
+## Eşlere odanın kapandığını bildirir ve kare döngüsünden çıkar; kapanan oturum, ardından
+## serbest bırakılan hakeme dokunmaz. Bağlantıyı taşıyıcının sahibi kapatır.
 func close() -> void:
 	for peer_id: int in _welcomed:
 		_transport.send(peer_id, MatchMessage.closed())
+	var frames: Signal = Engine.get_main_loop().process_frame
+	if frames.is_connected(_on_frame):
+		frames.disconnect(_on_frame)
 
 
 func _on_message(peer_id: int, message: Dictionary) -> void:

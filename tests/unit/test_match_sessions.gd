@@ -114,6 +114,14 @@ func test_seat_cannot_be_given_twice() -> void:
 	assert_eq(_host.seat_of(CLIENT_PEER), _client_seat)
 
 
+func test_closed_session_leaves_frame_loop() -> void:
+	var frames: Signal = Engine.get_main_loop().process_frame
+
+	_host.close()
+
+	assert_false(frames.is_connected(_host._on_frame))
+
+
 func test_shared_match_holds_client_view() -> void:
 	await _join()
 	_referee.start(_game)

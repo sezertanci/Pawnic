@@ -96,6 +96,7 @@
 		"silence_limit_ms": 3000,
 		"rejoin_wait_sec": 20,
 		"rejoin_interval_ms": 1000,
+		"host_lost_sec": 30,
 		"turn_time_sec": 20,
 		"turn_warning_sec": 5
 	},
