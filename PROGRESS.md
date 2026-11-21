@@ -196,7 +196,8 @@
   (devam edilen oyunda değil) oynar; sürerken el boştur ve saat durur. Tablette denenmedi.
 
 ## Yol haritası: aynı ağda çok oyunculu (taslak, 2026-11-20)
-Uygulamaya 2026-11-20'de `feature/lan-multiplayer` dalında başlandı; "Sunucu ve ağ yok" kararı
+Uygulamaya 2026-11-20'de `feature/lan-multiplayer` dalında başlandı, 2026-11-21'de `main`'e
+birleştirildi (QR ve elle IP ile katılma yapılmadı); "Sunucu ve ağ yok" kararı
 "sunucu yok, yerel ağ var" olarak güncellendi. Sunucu gerekmez; bir cihaz oyunu kurar (host),
 diğerleri katılır. İş sırası kolaydan zora: tahtanın döndürülerek çizilmesi, sıra akışının ayrı
 sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aşama 2–4.
