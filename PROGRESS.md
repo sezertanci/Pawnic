@@ -764,3 +764,21 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   sayısı artık başlayana bağlı değil (`starter_spin_rounds * oyuncu + 1`); kuranın süresi sonucu
   ele vermez: 2 oyuncuda yaklaşık 1,6 sn, 4 oyuncuda 2,9 sn (bekleme hariç). Test
   `test_starter_draw.gd`. GUT 306/306. Tablette denenmedi.
+- **2026-11-21 (11):** "Nasıl Oynanır" ekranı açılır gruplara bölündü (`RuleList`, `RuleGroup`,
+  `GroupChevron`): Oyunun Amacı ve Sıra, Taşlar ve Tahta, Kartlar, Oyun Kurulumu, Wi-Fi Oyunu ve
+  Uyarılar. Ekran açılınca bütün gruplar kapalıdır; dokunulan grup açılır, diğeri kapanır, açık
+  gruba yeniden dokununca kapanır; açılan grup listenin üstüne kaydırılır. Demodan dönüşte açık
+  grup korunur. Kural metinleri şimdiki kurallara göre güncellendi (çıkış, yakalama, kalkan, ev
+  yolu, geri/geri gönder/yer değiştir kartları); kalkan, ileri ve çıkış kartı satırları eklendi.
+  Kurulum grubunda her mod için simgeli bir satır, Wi-Fi grubunda oyunda görünen uyarılar kırmızı
+  başlık olarak ve altında ne yapılacağı yazılır; süre ve oyuncu sayısı ayarlardan okunur
+  (`FormattedLabel`). Kalkan çizimi `ShieldMark` olarak ortaklaştı (tahta ve kural simgesi).
+  Test `test_rule_list.gd`. GUT 311/311. Tablette denenmedi.
+- **2026-11-21 (12):** Karar: Türkçe metinlerde oyuncuya "siz" diye hitap edilir (kullanıcı
+  isteği). Kural metinleri, demo, kurulum anlatımı, Wi-Fi uyarıları, oyun içi uyarılar, kart
+  açıklamaları ve etiketler ("Renginiz", "Siz") çevrildi; 42 satır. Kısa düğme yazıları
+  ("Başla", "Katıl", "Çık") olduğu gibi kaldı. Diğer dillerdeki samimi hitap değişmedi. Kural
+  proje `CLAUDE.md` dosyasına yazıldı.
+- **2026-11-21 (13):** Modlar her yerde Botlara Karşı, Aynı Wi-Fi'da, Aynı Telefonda sırasıyla
+  anlatılır (Wi-Fi oyunu öne çıksın diye; kurulum ekranındaki sekmelerle aynı sıra). Nasıl Oynanır
+  ekranının Oyun Kurulumu grubu bu sıraya getirildi.

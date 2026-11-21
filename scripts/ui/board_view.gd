@@ -26,17 +26,6 @@ const HIGHLIGHT_WIDTH := 4.0
 const CENTER := BoardTurn.CELL_CENTER
 ## Gölge elipsinin dikey basıklığı.
 const SHADOW_FLATTEN := 0.45
-## Kalkan sembolünün köşeleri (yarıçapa oranla, merkez sıfırda).
-const SHIELD_POINTS: Array[Vector2] = [
-	Vector2(-0.8, -0.8),
-	Vector2(0.0, -1.0),
-	Vector2(0.8, -0.8),
-	Vector2(0.75, 0.15),
-	Vector2(0.4, 0.65),
-	Vector2(0.0, 1.0),
-	Vector2(-0.4, 0.65),
-	Vector2(-0.75, 0.15),
-]
 ## Karedeki sembollerin (kalkan, ev) yarı genişliği ve yarı yüksekliği (yarıçapa oranla).
 const MARK_HALF := Vector2(0.8, 1.0)
 ## Kısayol evinin yarı boyu: gövdesi kalkan kadar geniş görünsün diye kalkandan geniş tutulur.
@@ -339,18 +328,10 @@ func _shortcut_seat(square: int, active: Array[int]) -> int:
 func _draw_mark(square: int, rect: Rect2) -> void:
 	var speed := board.layout.speed[square]
 	if board.layout.safe[square]:
-		_draw_shield(rect.get_center(), _cell_size() * MARK_RATIO)
+		ShieldMark.draw_mark(self, rect.get_center(), _cell_size() * MARK_RATIO)
 	elif speed != 0:
 		var grow := rect.size.x * (NUMBER_SCALE - 1.0) / 2.0
 		BigNumber.draw_speed(self, rect.grow_individual(grow, 0.0, grow, 0.0), speed)
-
-
-func _draw_shield(center: Vector2, radius: float) -> void:
-	var points := PackedVector2Array()
-	for point: Vector2 in SHIELD_POINTS:
-		points.append(center + point * radius)
-	var skin := Skins.current
-	SmoothDraw.outlined(self, points, skin.shield_color, skin.outline_color, LINE_WIDTH)
 
 
 ## Yan yana olmayan kareleri birleştiren bağlantılar çizgiyle gösterilir.

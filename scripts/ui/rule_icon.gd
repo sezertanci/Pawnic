@@ -1,10 +1,11 @@
 class_name RuleIcon
 extends Control
 ## "Nasıl oynanır" ekranında bir kuralın yanındaki küçük simge: açık renkli yuvarlak bir kutu ve
-## içinde kurala özel çizim. Kartlardaki semboller (çıkış, geri yolla, ev, yıldız), atma işareti
-## ve tahtadaki dönen sıra okunun yayları yeniden kullanılır; renkler arayüz temasından okunur.
+## içinde kurala özel çizim. Kartlardaki semboller (çıkış, geri yolla, ev, yıldız), atma
+## işareti, tahtadaki kalkan ve dönen sıra okunun yayları yeniden kullanılır; renkler arayüz
+## temasından okunur.
 
-enum Icon { DIRECTION, CARDS, EXIT, CAPTURE, BOOST, HOME, DISCARD, WIN }
+enum Icon { DIRECTION, CARDS, EXIT, CAPTURE, SHIELD, BOOST, HOME, DISCARD, WIN }
 
 const STYLE := &"RuleIcon"
 const PANEL := &"panel"
@@ -25,8 +26,8 @@ const MINI_CARD_SCALE := 0.35
 const EDGE_COUNT := 4
 ## Hız kuralı simgesinde yan yana çizilen örnek kare değerleri: biri ileri, biri geri.
 const BOOST_SPEEDS: Array[int] = [4, -2]
-## Atma işaretinin yarıçapı (kutuya oranla).
-const DISCARD_RADIUS := 0.3
+## Atma işaretinin ve kalkanın yarıçapı (kutuya oranla).
+const MARK_RADIUS := 0.3
 ## Yön simgesi: tahtadaki dönen ok gibi saat yönünde dört oklu yay, ileri kartı renginde.
 ## Yarıçap, çizgi kalınlığı ve ok başının yarı genişliği kutuya oranla.
 const DIRECTION_RADIUS := 0.3
@@ -57,7 +58,9 @@ func _draw() -> void:
 		Icon.BOOST:
 			_draw_speeds()
 		Icon.DISCARD:
-			DiscardMark.draw_mark(self, size / 2.0, size.x * DISCARD_RADIUS)
+			DiscardMark.draw_mark(self, size / 2.0, size.x * MARK_RADIUS)
+		Icon.SHIELD:
+			ShieldMark.draw_mark(self, size / 2.0, size.x * MARK_RADIUS)
 		Icon.DIRECTION:
 			_draw_direction()
 

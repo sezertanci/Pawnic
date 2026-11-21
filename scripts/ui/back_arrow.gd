@@ -31,12 +31,15 @@ func _draw() -> void:
 	var head := side * HEAD_RATIO
 	var color := _button.get_theme_color(ThemeKeys.FONT_COLOR)
 	var width := side * LINE_RATIO
-	_draw_round_line(tail, tip, color, width)
-	_draw_round_line(tip, tip + Vector2(head, -head), color, width)
-	_draw_round_line(tip, tip + Vector2(head, head), color, width)
+	draw_round_line(self, tail, tip, color, width)
+	draw_round_line(self, tip, tip + Vector2(head, -head), color, width)
+	draw_round_line(self, tip, tip + Vector2(head, head), color, width)
 
 
-func _draw_round_line(from: Vector2, to: Vector2, color: Color, width: float) -> void:
-	draw_line(from, to, color, width, true)
-	draw_circle(from, width / 2.0, color)
-	draw_circle(to, width / 2.0, color)
+## Uçları yuvarlak kalın çizgi (grup başlığındaki ok da kullanır).
+static func draw_round_line(
+	canvas: CanvasItem, from: Vector2, to: Vector2, color: Color, width: float
+) -> void:
+	canvas.draw_line(from, to, color, width, true)
+	canvas.draw_circle(from, width / 2.0, color)
+	canvas.draw_circle(to, width / 2.0, color)

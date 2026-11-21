@@ -40,6 +40,9 @@ Oyun prototip değildir; Play'de yayımlanacak bir ürünün temelidir.
   varsaymaz. Biçim README'de anlatılır.
 - Oyuncuya görünen metinler `data/translations.csv` içinde 8 dilde (tr, en, de, es, fr, it, pt, id)
   tutulur, kodda `tr()` ile çağrılır. Yeni anahtar eklenince 8 dil birden doldurulur.
+- Türkçe metinlerde oyuncuya ikinci çoğul kişiyle ("siz") hitap edilir: "Oyunu güncelleyin",
+  "Sıranız gelince". Kısa düğme yazıları kısa kalır ("Başla", "Katıl", "Çık"). Diğer dillerde
+  oyunlarda yaygın olan samimi hitap (du, tu, tú) korunur.
 - Renkler kodda durmaz; tahta görünümü `BoardSkin` kaynaklarından (`themes/skins/`), arayüz
   `themes/ui_theme.tres` temasından gelir.
 - Kural motoru (`BoardState`, `GameMatch`, `MovePicker`) arayüzden bağımsızdır; bot ve testler

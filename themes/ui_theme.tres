@@ -205,6 +205,10 @@ shadow_size = 12
 shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="rule_icon"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
 bg_color = Color(0.93, 0.89, 0.8, 1)
 border_width_bottom = 4
 border_color = Color(0.8, 0.75, 0.64, 1)
@@ -212,6 +216,32 @@ corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="rule_group"]
+content_margin_left = 28.0
+content_margin_top = 18.0
+content_margin_right = 72.0
+content_margin_bottom = 24.0
+bg_color = Color(0.93, 0.89, 0.8, 1)
+border_width_bottom = 6
+border_color = Color(0.8, 0.75, 0.64, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="rule_group_pressed"]
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 72.0
+content_margin_bottom = 20.0
+bg_color = Color(0.9, 0.85, 0.75, 1)
+border_width_bottom = 2
+border_color = Color(0.8, 0.75, 0.64, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxTexture" id="menu_green"]
 content_margin_left = 100.0
@@ -671,12 +701,26 @@ RulesPanel/base_type = &"PanelContainer"
 RulesPanel/styles/panel = SubResource("rules_panel")
 RulesHeading/base_type = &"HeadingLabel"
 RulesHeading/colors/font_color = Color(0.12, 0.13, 0.17, 1)
-RulesSubheading/base_type = &"RulesHeading"
-RulesSubheading/font_sizes/font_size = 32
 RuleLabel/base_type = &"Label"
 RuleLabel/colors/font_color = Color(0.12, 0.13, 0.17, 1)
 RuleLabel/font_sizes/font_size = 25
+RuleIcon/base_type = &"PanelContainer"
 RuleIcon/styles/panel = SubResource("rule_icon")
+RuleGroupButton/base_type = &"Button"
+RuleGroupButton/colors/font_color = Color(0.12, 0.13, 0.17, 1)
+RuleGroupButton/colors/font_hover_color = Color(0.12, 0.13, 0.17, 1)
+RuleGroupButton/colors/font_pressed_color = Color(0.12, 0.13, 0.17, 1)
+RuleGroupButton/colors/font_hover_pressed_color = Color(0.12, 0.13, 0.17, 1)
+RuleGroupButton/colors/font_focus_color = Color(0.12, 0.13, 0.17, 1)
+RuleGroupButton/font_sizes/font_size = 30
+RuleGroupButton/styles/normal = SubResource("rule_group")
+RuleGroupButton/styles/hover = SubResource("rule_group")
+RuleGroupButton/styles/pressed = SubResource("rule_group_pressed")
+RuleGroupButton/styles/hover_pressed = SubResource("rule_group_pressed")
+RuleGroupButton/styles/focus = SubResource("card_focus")
+RuleWarning/base_type = &"Label"
+RuleWarning/colors/font_color = Color(0.72, 0.2, 0.18, 1)
+RuleWarning/font_sizes/font_size = 25
 MenuGreenButton/base_type = &"Button"
 MenuGreenButton/font_sizes/font_size = 36
 MenuGreenButton/constants/outline_size = 10

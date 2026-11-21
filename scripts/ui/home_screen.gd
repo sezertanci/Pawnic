@@ -9,12 +9,13 @@ signal demo_requested
 
 @onready var _resume_button: Button = %ResumeButton
 @onready var _rules: Button = %RulesOverlay
+@onready var _rule_list: RuleList = %RuleList
 
 
 func _ready() -> void:
 	_resume_button.pressed.connect(resume_requested.emit)
 	(%NewGameButton as Button).pressed.connect(new_game_requested.emit)
-	(%HowToPlayButton as Button).pressed.connect(_rules.show)
+	(%HowToPlayButton as Button).pressed.connect(_on_how_to_play_pressed)
 	_rules.pressed.connect(_rules.hide)
 	(%OkButton as Button).pressed.connect(_rules.hide)
 	(%DemoButton as Button).pressed.connect(_on_demo_pressed)
@@ -22,7 +23,13 @@ func _ready() -> void:
 	(%SettingsButton as Button).pressed.connect((%SettingsOverlay as Button).show)
 
 
-## Demo kapanınca "Nasıl oynanır" katmanına dönülür.
+## "Nasıl oynanır" her açılışta bütün grupları kapalı gösterir.
+func _on_how_to_play_pressed() -> void:
+	_rule_list.collapse_all()
+	_rules.show()
+
+
+## Demo kapanınca "Nasıl oynanır" katmanına açık grup korunarak dönülür.
 func show_rules() -> void:
 	_rules.show()
 
