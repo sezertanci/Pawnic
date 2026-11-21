@@ -16,7 +16,9 @@ CARDS INSTEAD OF DICE
 • Draw a card on your turn and play one from your hand.
 • Move ahead with forward cards, or spoil your rivals' plans with back cards.
 • Turn the game around in one move with special cards such as Swap, Send Back, Shortcut and Joker.
-• Land on a rival pawn to send it back to start; watch out for safe squares and speed squares.
+• Land on a rival pawn to send it back to start; pawns on shield squares are safe.
+• Speed squares push your pawn a few squares forward or back.
+• A draw decides who goes first.
 
 2–4 PLAYERS ON ONE PHONE
 • Play with friends or family on a single phone and pass it to whoever's turn it is.
@@ -24,10 +26,15 @@ CARDS INSTEAD OF DICE
 
 EVERYONE ON THEIR OWN PHONE OVER Wi-Fi
 • One player hosts, and friends on the same Wi-Fi network find the game and join with the room code.
+• Everyone picks their own color in the lobby; empty seats can be filled with bots.
 • Everyone plays on their own phone; the board turns so your color is always at the bottom.
+• Every turn has a time limit; when time runs out, a move is made automatically.
+• Pause the game, and play again in the same room when it ends.
+• Players who lose connection can rejoin; a bot plays for them in the meantime.
 
 SOLO AGAINST BOTS
 • Four bot levels: Easy, Medium, Hard and Very Hard.
+• Choose the color you play.
 • Bots don't cheat; they can't see the cards you can't see.
 
 PLAY AT YOUR PACE

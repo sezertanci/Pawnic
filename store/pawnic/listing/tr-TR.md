@@ -6,33 +6,40 @@ Pawnic
 
 ## Kısa açıklama (en fazla 80 karakter)
 
-Zar yok, kart var! Arkadaşlarınla ya da botlara karşı stratejik yarış tahtası.
+Zar yok, kart var! Arkadaşlarınızla ya da botlara karşı stratejik yarış tahtası.
 
 ## Tam açıklama (en fazla 4000 karakter)
 
-Pawnic, taşlarını eve ilk getirmeye çalıştığın bir yarış tahtası oyunu. Ama zar yok: elindeki kartlardan hangisini hangi taşla oynayacağına sen karar verirsin. Şansa değil, hamlene güvenirsin.
+Pawnic, taşlarınızı eve ilk getirmeye çalıştığınız bir yarış tahtası oyunu. Ama zar yok: elinizdeki kartlardan hangisini hangi taşla oynayacağınıza siz karar verirsiniz. Şansa değil, hamlenize güvenirsiniz.
 
 ZAR YERİNE KART
-• Sıran gelince bir kart çekersin, elindeki kartlardan birini oynarsın.
-• İleri kartlarıyla taşını ilerlet, geri kartlarıyla rakibin planını boz.
-• Yer Değiştir, Geri Yolla, Kısayol ve Joker gibi özel kartlarla oyunu bir hamlede çevir.
-• Rakip taşın üstüne gelirsen onu başlangıca yollarsın; güvenli kareler ve hız kareleri de var.
+• Sıranız gelince bir kart çekersiniz, elinizdeki kartlardan birini oynarsınız.
+• İleri kartlarıyla taşınızı ilerletin, geri kartlarıyla rakibin planını bozun.
+• Yer Değiştir, Geri Yolla, Kısayol ve Joker gibi özel kartlarla oyunu bir hamlede çevirin.
+• Rakip taşın üstüne gelirseniz onu başlangıca yollarsınız; kalkanlı karelerdeki taşlar ise korunur.
+• Hız kareleri taşınızı birkaç kare ileri ya da geri atar.
+• Kimin başlayacağını kura belirler.
 
 AYNI TELEFONDA 2–4 KİŞİ
-• Arkadaşlarınla ya da ailenle tek telefonda oyna, sıra gelen oyuncuya telefonu ver.
-• Oyuncu başına taş sayısını sen seç.
+• Arkadaşlarınızla ya da ailenizle tek telefonda oynayın, sıra gelen oyuncuya telefonu verin.
+• Oyuncu başına taş sayısını siz seçin.
 
 AYNI Wi-Fi'DA HERKES KENDİ TELEFONUNDA
 • Bir kişi oyunu kurar, aynı Wi-Fi ağındaki arkadaşları oyunu bulup oda koduyla katılır.
-• Herkes kendi telefonunda oynar; tahta her telefonda kendi rengin altta kalacak şekilde döner.
+• Herkes lobide kendi rengini seçer; boş kalan yerlere bot konabilir.
+• Herkes kendi telefonunda oynar; tahta her telefonda kendi renginiz altta kalacak şekilde döner.
+• Her sıranın bir süresi vardır; süre dolarsa hamle kendiliğinden yapılır.
+• Oyunu duraklatabilir, bitince aynı odada yeniden oynayabilirsiniz.
+• Bağlantısı kopan oyuncu oyuna geri dönebilir; o sırada yerine bot oynar.
 
-BOTLARA KARŞI TEK BAŞINA
+BOTLARA KARŞI TEK BAŞINIZA
 • Kolay, Orta, Zor ve Çok Zor olmak üzere dört bot seviyesi.
-• Botlar hile yapmaz; senin göremediğin kartları onlar da göremez.
+• Hangi renkle oynayacağınızı siz seçersiniz.
+• Botlar hile yapmaz; sizin göremediğiniz kartları onlar da göremez.
 
-RAHAT OYNA
-• Yarım kalan oyun kaydedilir, kaldığın yerden devam edersin.
-• Oyun hızını Yavaş, Normal ya da Hızlı olarak ayarla.
+RAHAT OYNAYIN
+• Yarım kalan oyun kaydedilir, kaldığınız yerden devam edersiniz.
+• Oyun hızını Yavaş, Normal ya da Hızlı olarak ayarlayın.
 • "Nasıl Oynanır" bölümü kuralları kısa bir gösterimle anlatır.
 • İnternet gerekmez, hesap açmak gerekmez.
 • Türkçe, İngilizce, Almanca, İspanyolca, Fransızca, İtalyanca, Portekizce ve Endonezce oynanır.

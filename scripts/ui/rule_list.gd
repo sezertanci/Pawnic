@@ -192,13 +192,13 @@ func _make_card_icon(card_type: Card.Type, settings: GameSettings) -> CenterCont
 	box.mouse_filter = MOUSE_FILTER_IGNORE
 	var face := CardFace.new()
 	face.custom_minimum_size = CardFace.fit_size(ICON_SIZE.x, ICON_SIZE.y)
-	face.show_card(_sample_card(card_type, settings), settings)
+	face.show_card(sample_card(card_type, settings), settings)
 	box.add_child(face)
 	return box
 
 
 ## Destedeki card_type türünden ilk kart; destede yoksa değersiz bir kart.
-static func _sample_card(card_type: Card.Type, settings: GameSettings) -> Card:
+static func sample_card(card_type: Card.Type, settings: GameSettings) -> Card:
 	for entry: Dictionary in settings.deck:
 		var card := Card.from_dict(entry)
 		if card != null and card.type == card_type:

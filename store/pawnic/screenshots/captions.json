@@ -1,0 +1,22 @@
+{
+  "tr-TR": {
+    "01-home": "Kartla oynanan taş yarışı",
+    "02-setup": "Botlara karşı oynayın, zorluğu seçin",
+    "03-board": "Her kart farklı bir hamle",
+    "04-capture": "Rakibi başa gönderin, kalkanda korunun",
+    "05-rules": "Kurallar kısa ve açık",
+    "06-lobby": "Aynı Wi-Fi'da arkadaşlarınızla oynayın",
+    "07-timed": "Süre dolmadan hamlenizi yapın",
+    "08-result": "İlk bitiren kazanır"
+  },
+  "en-US": {
+    "01-home": "A pawn race played with cards",
+    "02-setup": "Play bots at your level",
+    "03-board": "Every card is a different move",
+    "04-capture": "Send rivals back, stay safe on shields",
+    "05-rules": "Simple rules, clearly explained",
+    "06-lobby": "Play with friends on the same Wi-Fi",
+    "07-timed": "Make your move before time runs out",
+    "08-result": "First to finish wins"
+  }
+}

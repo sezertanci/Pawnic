@@ -31,10 +31,18 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
   `python tools/make_icon.py assets/images assets/icon/text --design text`.
   Açılış ekranının görseli (`assets/icon/frame/icon.png`):
   `python tools/make_icon.py assets/images assets/icon/frame --design frame --size 1024`
-- Play Store öne çıkan görseli (`store/pawnic/feature-1024x500.png`, Pillow gerekir). Önce kartlar
-  çizilir (pencereli çalışır, `--headless` olmaz), sonra görsel birleştirilir:
+- Play Store öne çıkan görseli (`store/pawnic/feature-1024x500-<tr-TR|en-US>.png`, dil başına
+  sloganlı, Pillow gerekir). Tahta `store/pawnic/feature-board.png` dosyasından alınır. Önce kartlar
+  çizilir (pencereli çalışır, `--headless` olmaz), sonra görseller birleştirilir:
   `godot --path . -s tools/render_cards.gd -- build/feature_cards` ve
-  `python tools/make_feature_graphic.py build/feature_cards store/pawnic/feature-1024x500.png`
+  `python tools/make_feature_graphic.py build/feature_cards store/pawnic`
+- Play Store ekran görüntüleri (`store/pawnic/screenshots/`, 2 dil × 3 cihaz × 8 ekran, Pillow
+  gerekir). Önce her dil ve cihaz için ham görüntüler alınır (pencereli çalışır, ağ ekranları için
+  bilgisayarda yerel ağ adresi olmalıdır); cihaz boyutları telefon `1080x1920`, 7 inç tablet
+  `1200x1920`, 10 inç tablet `1600x2560`:
+  `godot --path . -s tools/store_screenshots.gd -- build/store_raw/<tr|en>/<phone|tablet-7|tablet-10> <tr|en> <genişlik>x<yükseklik>`.
+  Sonra üstlerine `captions.json` içindeki tanıtım başlıkları bindirilir:
+  `python tools/make_store_screenshots.py build/store_raw store/pawnic/screenshots`
 
 ## Android derlemesi
 Derlemeler Gradle ile alınır. `android/build` klasörü depoda tutulmaz; ilk kez derlemeden önce
@@ -56,8 +64,11 @@ Play'e yeni AAB yüklenmeden önce `export_presets.cfg` içindeki üç presette 
 ## Play Store
 Mağaza dosyaları `store/pawnic/` altındadır:
 - `listing/`: Türkçe ve İngilizce mağaza metinleri (ad, kısa ve tam açıklama, sürüm notu)
-- `screenshots/`: dil başına telefon, 7 inç ve 10 inç tablet ekran görüntüleri
-- `icon-512.png` ve `feature-1024x500.png`: mağaza simgesi ve öne çıkan görsel
+- `screenshots/`: dil başına telefon, 7 inç ve 10 inç tablet için 8'er başlıklı ekran görüntüsü
+  ve başlık metinleri (`captions.json`)
+- `icon-512.png`: mağaza simgesi
+- `feature-1024x500-tr-TR.png` ve `feature-1024x500-en-US.png`: sloganlı öne çıkan görseller;
+  `feature-board.png` bunlardaki tahta görüntüsüdür
 - `privacy.html`: gizlilik politikası. Yayındaki adresi
   `https://sezertanci.github.io/pawnic/privacy.html`; kaynak burada tutulur, değişince site
   deposuna kopyalanır.

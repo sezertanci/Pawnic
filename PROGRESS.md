@@ -793,3 +793,18 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   oyun sonu ve Tekrar Oyna (aynı odada yeni oyun) çalışıyor.
 - **2026-11-21 (15):** Sürüm 7 (1.6.0): üç ön ayarda sürüm yükseltildi; mağaza metinlerine (tr-TR,
   en-US) 1.6.0 sürüm notu eklendi. AAB Play'e, Gradle'lı APK tablete.
+- **2026-11-21 (16):** Mağaza ekran görüntüleri 3'ten 8'e çıktı (tr-TR, en-US; telefon, 7 ve 10 inç
+  tablet): ana ekran, kurulum (3 bot, Zor), kart seçilmiş tahta (çeşitli el), vurma/kalkan, Nasıl
+  Oynanır (Kartlar açık), Wi-Fi lobisi, süreli ağ oyunu, konfetili sonuç. Kura çarkı listeye
+  alınmadı. `tools/store_screenshots.gd` ham görüntüleri elle kurulmuş oyun durumlarıyla üretir;
+  `tools/make_store_screenshots.py` üste yarı saydam şerit ve `captions.json`'daki başlığı
+  bindirir (Titan One'da İ olmadığı için I ve i noktasıyla çizilir). `RuleList.sample_card`
+  herkese açıldı. Öne çıkan görsel yeniden üretilmedi; üretilirse girdi olan
+  `tablet-10/03-board.png` artık kart seçilmiş tahtadır (kırpılan alan şeridin altında kalır).
+- **2026-11-21 (17):** Mağaza metni "siz" hitabına çevrildi; kalkan ve hız kareleri, kura, renk
+  seçimi ve Wi-Fi ayrıntıları (lobide renk ve bot, sıra süresi, duraklatma, yeniden oynama, geri
+  dönme) eklendi. 07 başlığı sayısız yazıldı ("Süre dolmadan hamlenizi yapın"), süre değişse de
+  geçerli kalsın diye. Öne çıkan görsel iki dilde, "Pawnic" altında sloganla üretiliyor ("Zar yok,
+  kart var!" / "No dice, just cards!"); tahta, eski 03 görüntüsünden kırpılıp
+  `store/pawnic/feature-board.png` olarak sabitlendi. Play'de Türkçe uygulama adı "Pawnic:
+  Hoppala, Başa Döndüm!" yapıldı (Kızma Birader havasında, ona benzemeyen bir ad).
