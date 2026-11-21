@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/ui/back_arrow.gd" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/components/lobby_panel.tscn" id="3"]
 [ext_resource type="Script" path="res://scripts/ui/badge_button.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/ui/wide_button.gd" id="5"]
 
 [node name="JoinScreen" type="MarginContainer"]
 anchors_preset = 15
@@ -88,6 +89,27 @@ text = "SEARCHING_GAMES"
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="NotFound" type="VBoxContainer" parent="Box/Options/Box/SearchBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="NotFoundLabel" type="Label" parent="Box/Options/Box/SearchBox/NotFound"]
+layout_mode = 2
+theme_type_variation = &"PanelHint"
+text = "SEARCH_NOT_FOUND"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="SearchAgainButton" type="Button" parent="Box/Options/Box/SearchBox/NotFound"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_type_variation = &"MenuPlainGreenButton"
+text = "SEARCH_AGAIN"
+script = ExtResource("5")
+
 [node name="Games" type="VBoxContainer" parent="Box/Options/Box/SearchBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -149,3 +171,7 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+
+[node name="SearchTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+one_shot = true

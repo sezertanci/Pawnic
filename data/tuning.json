@@ -86,6 +86,7 @@
 		"discovery_port": 24681,
 		"announce_interval_ms": 1000,
 		"announce_expiry_ms": 3000,
+		"search_hint_sec": 15,
 		"room_code_digits": 4,
 		"max_wrong_codes": 10,
 		"connect_timeout_ms": 5000,

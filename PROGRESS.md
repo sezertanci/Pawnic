@@ -321,6 +321,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Parça 3 (oyun sırasında kopma ve geri
   dönme) yapıldı (2026-11-21 (3)). Ağ oyununda Tekrar oyna yapıldı (2026-11-21 (4)).
   Duraklatma yapıldı (2026-11-21 (5)). Ortak oyun içi reklam yapıldı (2026-11-21 (6)).
+  Katılma ekranında "oyun bulunamadı" uyarısı yapıldı (2026-11-21 (7)).
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -736,3 +737,10 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   (`peer_timeout_ms`) 30 sn beklemeden uzun olsun diye 40000 yapıldı. Yeni metinler
   `AD_BREAK`, `AD_BREAK_NOTE` 8 dilde. GUT 302/302, simülasyonda bitmeyen yok. Tablette
   denenmedi.
+- **2026-11-21 (7):** Katılma ekranında "oyun bulunamadı" uyarısı. `search_hint_sec` (15,
+  `tuning.json` → `network`) boyunca oyun bulunamazsa "aranıyor…" yazısının yerine uyarı
+  (kurucunun oyunu açtığı, aynı Wi-Fi, oyunun güncel olması ve misafir ağları) ve Yeniden Ara
+  düğmesi çıkar. Protokol sürümü farklı oyunlar listeye hiç düşmediği için güncellik de anılır. Arama arka
+  planda sürer; oyun bulununca uyarı kalkar, liste yeniden boşalırsa süre baştan sayılır. Yeniden
+  Ara "aranıyor…" yazısını gösterip süreyi yeniden başlatır. Yeni metinler `SEARCH_NOT_FOUND`,
+  `SEARCH_AGAIN` 8 dilde. GUT 302/302. Tablette denenmedi.

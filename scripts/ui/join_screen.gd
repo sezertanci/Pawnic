@@ -3,7 +3,9 @@ extends MarginContainer
 ## Ağ oyununa katılma ekranı. Önce yerel ağda bulunan oyunlar listelenir; seçilen oyun için oda
 ## kodu girilir, sonra hosta bağlanılır ve lobi gösterilir. Host reddederse nedeni yazılıp koda
 ## dönülür; bağlantı koparsa nedeni yazılıp listeye dönülür. Host oyunu başlatınca ilk görünüm
-## gelir ve oyun kaynağı verilir. Ekran açıkken kapanmaz.
+## gelir ve oyun kaynağı verilir. Ekran açıkken kapanmaz. Belirli bir süre oyun bulunamazsa arama
+## yazısının yerine uyarı ve Yeniden ara düğmesi çıkar; arama arka planda sürer, oyun bulununca
+## uyarı kalkar. Yeniden ara, arama yazısını gösterip süreyi baştan başlatır.
 
 ## Oyuncu ekrandan çıktı; arama ve bağlantı kapatıldı.
 signal closed
@@ -33,10 +35,14 @@ var _room: GuestRoom
 ## Odanın oyun kaynağı; oyun başlamadan önce kurulur ki ilk görünüm ve olaylar kaçmasın.
 var _source: ClientSource
 var _address := ""
+## Arama süresi oyun bulunmadan doldu; arama yazısının yerine uyarı gösterilir.
+var _not_found := false
 
 @onready var _search_box: Control = %SearchBox
 @onready var _games: VBoxContainer = %Games
 @onready var _searching: Label = %Searching
+@onready var _not_found_box: Control = %NotFound
+@onready var _search_timer: Timer = %SearchTimer
 @onready var _code_box: Control = %CodeBox
 @onready var _code_field: LineEdit = %CodeField
 @onready var _join: Button = %JoinButton
@@ -51,6 +57,9 @@ func _ready() -> void:
 	_join.pressed.connect(_on_join_pressed)
 	(%BackButton as Button).pressed.connect(_on_back_pressed)
 	_lobby_panel.color_chosen.connect(_on_color_chosen)
+	_search_timer.wait_time = Tuning.settings.search_hint_time
+	_search_timer.timeout.connect(_on_search_timeout)
+	(%SearchAgainButton as Button).pressed.connect(_on_search_again_pressed)
 
 
 ## Oyun aramaya başlar.
@@ -58,6 +67,7 @@ func open() -> void:
 	close()
 	_finder = GameFinder.new(Tuning.settings)
 	_finder.games_changed.connect(_show_games)
+	_not_found = false
 	_show_message("" if _finder.start() else SEARCH_FAILED_KEY)
 	_show_games()
 	_set_stage(Stage.SEARCH)
@@ -78,6 +88,7 @@ func close() -> void:
 
 ## Oyun bulma portu bırakılır; oyun başlayınca aranmaz, aynı cihazdaki başka pencere arayabilir.
 func _stop_search() -> void:
+	_search_timer.stop()
 	if _finder != null:
 		_finder.stop()
 		_finder = null
@@ -102,13 +113,35 @@ func _show_games() -> void:
 	for child: Node in _games.get_children():
 		child.queue_free()
 	var found := _finder.games()
-	_searching.visible = found.is_empty() and _finder.is_listening()
+	_show_search_state(found.is_empty() and _finder.is_listening())
 	for index: int in range(found.size()):
 		var button := Button.new()
 		button.theme_type_variation = ChoiceButtons.BUTTON_TYPE
 		button.text = tr("FOUND_GAME") % [index + 1, found[index].players]
 		button.pressed.connect(_on_game_chosen.bind(found[index].address))
 		_games.add_child(button)
+
+
+## Oyun beklenirken süre dolana kadar arama yazısı, sonra uyarı görünür. Oyun bulununca süre
+## durur; liste yeniden boşalırsa süre baştan sayılır.
+func _show_search_state(waiting: bool) -> void:
+	if not waiting:
+		_search_timer.stop()
+		_not_found = false
+	elif not _not_found and _search_timer.is_stopped():
+		_search_timer.start()
+	_searching.visible = waiting and not _not_found
+	_not_found_box.visible = waiting and _not_found
+
+
+func _on_search_timeout() -> void:
+	_not_found = true
+	_show_games()
+
+
+func _on_search_again_pressed() -> void:
+	_not_found = false
+	_show_games()
 
 
 func _on_game_chosen(address: String) -> void:
