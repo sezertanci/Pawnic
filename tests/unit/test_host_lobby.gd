@@ -153,6 +153,45 @@ func test_start_seats_players_and_fills_bots() -> void:
 	assert_null(_lobby.start())
 
 
+func test_rematch_keeps_players_colors_and_pawns() -> void:
+	_lobby.set_seat_count(FOUR_SEATS)
+	_lobby.set_pawns(PAWNS)
+	var client := await _join(CLIENT_PEER, _lobby.code)
+	client.choose_color(YELLOW)
+	await wait_frames(FRAMES)
+	var first := _lobby.start()
+
+	var game := _lobby.rematch(first)
+
+	assert_ne(game, first)
+	assert_eq(game.bots, first.bots)
+	assert_eq(game.seats, first.seats)
+	assert_eq(game.colors, first.colors)
+	assert_eq(game.pawns_per_player(), PAWNS)
+	assert_eq(game.bot_level, Bot.Level.MEDIUM)
+	assert_eq(_session.seat_of(CLIENT_PEER), game.seats[1])
+	assert_true(_session.has_guests())
+
+
+func test_rematch_gives_left_player_seat_to_bot() -> void:
+	var client := await _join(CLIENT_PEER, _lobby.code)
+	var first := _lobby.start()
+	client.leave()
+	await wait_frames(FRAMES)
+
+	var game := _lobby.rematch(first)
+
+	assert_false(_session.has_guests())
+	assert_eq(game.bots, [false, true, true, true])
+
+
+func test_rematch_before_start_returns_null() -> void:
+	var bot_flags: Array[bool] = [false, true]
+	var first := GameMatch.create(_settings, bot_flags, PAWNS, RandomNumberGenerator.new())
+
+	assert_null(_lobby.rematch(first))
+
+
 func test_hello_after_start_is_refused() -> void:
 	_lobby.start()
 

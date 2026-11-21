@@ -193,6 +193,42 @@ func test_leaving_client_hands_seat_to_bot() -> void:
 	assert_true(_game.bots[_game.seats.find(_client_seat)])
 
 
+func test_host_source_reports_leaving_guest() -> void:
+	await _start_match()
+	var host_source := RefereeSource.new(_referee, _host_seat, ROOM_CODE, _host)
+	watch_signals(host_source)
+
+	_source.leave()
+	await wait_frames(FRAMES)
+
+	assert_signal_emitted(host_source, "guests_changed")
+	assert_false(host_source.has_guests())
+
+
+func test_client_source_waits_for_begin_after_rematch() -> void:
+	await _start_match()
+	_source.begin()
+	var over := MatchEvent.new(MatchEvent.Kind.MATCH_OVER)
+	_host_transport().send(CLIENT_PEER, MatchMessage.event(over, _client_seat, MAX_EVENTS))
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
+	assert_eq(_shown.back().kind, MatchEvent.Kind.MATCH_OVER)
+
+	_referee.start(_new_game())
+	_host.share_match()
+	_referee.begin()
+	await wait_frames(FRAMES)
+	var count := _shown.size()
+	_source.begin()
+
+	assert_eq(count, _shown.size() - 1)
+	assert_eq(_shown.back().kind, MatchEvent.Kind.TURN_STARTED)
+
+
+func _host_transport() -> FakeTransport:
+	return _network[MatchTransport.HOST_PEER].get_ref()
+
+
 ## İstemci oturur, hakem oyunu başlatır ve ilk görünüm istemciye ulaşır; sıra hosttadır.
 func _start_match() -> void:
 	_room.session.join()

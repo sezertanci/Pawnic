@@ -319,8 +319,8 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   Ortak onay katmanı `ConfirmOverlay` (`scenes/components/`). Testler `test_match_sources.gd`
   ve `test_confirm_overlay.gd`'de.
   Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Parça 3 (oyun sırasında kopma ve geri
-  dönme) yapıldı (2026-11-21 (3)).
-  Sonraya kalanlar: ağ oyununda Tekrar oyna, duraklatma ve ortak oyun içi reklam.
+  dönme) yapıldı (2026-11-21 (3)). Ağ oyununda Tekrar oyna yapıldı (2026-11-21 (4)).
+  Sonraya kalanlar: duraklatma ve ortak oyun içi reklam.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -362,6 +362,13 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   içinde gelir. Ortak Wi-Fi'da yabancıların katılmasını önler.
 - Oyuncular yalnızca renkleriyle görünür; ad girilmez (başkalarına gösterilen kullanıcı içeriği yok).
 - "Tekrar oyna": host aynı oyuncularla hemen yeni oyun başlatır; ayrılanların yerine bot girer.
+  Ayrıntılar (karar 2026-11-21): aynı oyuncular, renkler, oyuncu ve taş sayısı kullanılır;
+  başlangıç kurası yeniden yapılır. Misafirin sonuç ekranında tablonun altında "Kurucunun yeni
+  oyunu başlatması bekleniyor…" yazar ve yalnızca "Yeni oyun" (çıkış) düğmesi kalır; host
+  başlatınca oyun misafirde kendiliğinden açılır. Katılanların hepsi çıktıysa hostta Tekrar oyna
+  gizlenir. Oyun sonu reklamı hostta Tekrar oyna'ya basınca, misafirde yeni oyun gelince ya da
+  Yeni oyun'a basıp çıkınca kendi kuralıyla gösterilir. Kopuk oyuncunun koltuğu korunur: 20 sn
+  bekleme kaldığı yerden sürer, süre dolduysa koltuğu bot oynar, oyuncu dönünce oturur.
 - Bitiren oyuncu oyunu izler, isterse çıkar; çıkması kopma sayılmaz, oyunu etkilemez.
 - Geç hamle: host'un saati esastır. İstemcide geri sayım görünür; süre dolunca yarım seçim iptal
   olur, host'a geç gelen hamle reddedilir ve sırayı bot oynar.
@@ -689,3 +696,13 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   gönderdiği bildirim güncel olayın beklemesini erken bitirmez. Yeniden katılma anahtarı ağda
   şifresiz gider (aynı ağda dinleyen biri koltuğu alabilir); bilgi olarak not edildi, düzeltilmedi.
   GUT 278/278. Tablette denenmedi.
+- **2026-11-21 (4):** Ağ oyununda Tekrar oyna. `HostLobby.rematch` biten oyunun renkleri ve taş
+  sayısıyla yeni oyun kurar, oturmayan katılımcının koltuğuna bot koyar, kurayı yeniden çeker;
+  `HostLobbyScreen.rematch` onu aynı odada başlatır. `HostSession.share_match` bekleme süresi
+  dolmuş koltukları yeni oyunda da bota verir. İstemcide `ClientSource` MATCH_OVER'dan sonra
+  yeniden `begin()` bekler; yeni görünüm gelince oyun ekranı sonuç ekranını kapatıp oyunu açar
+  (bitmiş oyunun yeniden bağlanma görünümü yok sayılır). `WinOverlay.set_mode` dört düzen
+  (yerel, host, misafir, bitmiş ağ oyunu); yeni metin `WAITING_FOR_REMATCH` 8 dilde. Sonuç
+  ekranı açıkken son katılımcı çıkarsa hostta Tekrar oyna hemen gizlenir
+  (`HostSession.guests_changed` → `MatchSource.guests_changed`; kopan oyuncu çıkmış sayılmaz).
+  GUT 284/284, simülasyonda bitmeyen yok. Tablette denenmedi.

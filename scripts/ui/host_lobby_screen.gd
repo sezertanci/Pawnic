@@ -81,7 +81,16 @@ func _refresh() -> void:
 
 ## Ağ oyununda oyun kaydedilmez ve oyun içi reklam çıkmaz; hız hostunkidir.
 func _on_start_pressed() -> void:
-	var game := _room.start_match()
+	_launch(_room.start_match())
+
+
+## Biten oyunun oyuncularıyla yeni oyun başlatır (tekrar oyna); oda kapandıysa bir şey yapmaz.
+func rematch() -> void:
+	if _room != null and _referee.game != null:
+		_launch(_room.lobby.rematch(_referee.game))
+
+
+func _launch(game: GameMatch) -> void:
 	if game == null:
 		return
 	_referee.start(game)

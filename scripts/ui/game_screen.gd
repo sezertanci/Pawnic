@@ -10,6 +10,8 @@ extends Control
 signal finished
 ## Oyun bitip oyuncu aynı ayarlarla yeniden oynamak istediğinde gelir (yalnızca yerel oyun).
 signal replay_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
+## Ağ oyunu bitip host aynı oyuncularla yeniden oynamak istediğinde gelir.
+signal rematch_requested
 ## Oyuncu geri düğmesiyle oyundan çıktığında gelir; yerel oyun kayıtlı kalır.
 signal left
 
@@ -104,12 +106,19 @@ func start(game: GameMatch, draw_starter := false) -> void:
 func start_source(source: MatchSource, draw_starter := false) -> void:
 	_release_source()
 	_source = source
-	_generation += 1
 	_source.event_emitted.connect(_on_event)
 	_source.intent_rejected.connect(_on_intent_rejected)
 	_source.view_reset.connect(_on_view_reset)
 	_source.ended.connect(_on_source_ended)
 	_source.connection_changed.connect(_on_connection_changed)
+	_source.guests_changed.connect(_on_guests_changed)
+	_open_table(draw_starter)
+
+
+## Masayı kaynağın görünümüyle baştan kurar ve oyunu başlatır.
+func _open_table(draw_starter: bool) -> void:
+	var source := _source
+	_generation += 1
 	_match_over = false
 	_reconnecting = false
 	_awaiting_human = false
@@ -140,6 +149,7 @@ func _release_source() -> void:
 	_source.view_reset.disconnect(_on_view_reset)
 	_source.ended.disconnect(_on_source_ended)
 	_source.connection_changed.disconnect(_on_connection_changed)
+	_source.guests_changed.disconnect(_on_guests_changed)
 
 
 ## Kaynak değiştiyse ya da oyun bırakıldıysa true.
@@ -164,7 +174,6 @@ func _set_up_table() -> void:
 	_cards.speed_scale = _source.speed_scale()
 	_board_view.speed_scale = _source.speed_scale()
 	_hand_view.slot_count = _view.settings.hand_size + 1
-	_win_overlay.set_networked(_source.is_networked())
 
 
 ## Başlangıç kurası ayrı katmanda oynar; el o sırada boştur ve saat henüz başlamamıştır.
@@ -342,6 +351,9 @@ func _on_intent_rejected() -> void:
 
 ## Görünümün tamamı yeniden geldi: süren animasyonlar bırakılır ve masa baştan çizilir.
 func _on_view_reset() -> void:
+	if _match_over:
+		_take_rematch()
+		return
 	_generation += 1
 	_awaiting_human = false
 	_board_view.stop_animation()
@@ -357,10 +369,22 @@ func _on_view_reset() -> void:
 		_show_idle_hand()
 
 
+## Oyun bitmişken hosttan yeni oyunun görünümü geldi (tekrar oyna): oyun sonu reklamı gösterilir
+## ve yeni oyun kurayla başlar. Bitmiş oyunun yeniden gelen görünümü (yeniden bağlanınca) yok
+## sayılır; yeni oyunda henüz bitiren yoktur.
+func _take_rematch() -> void:
+	if not _source.view().finishers.is_empty():
+		return
+	_win_overlay.close()
+	_show_end_ad()
+	_open_table(true)
+
+
 ## Ağ oyunu bu cihazın dışında bitti (host oyunu kapattı ya da hosta artık ulaşılamıyor); oyun
-## sonu tablosu açıksa oyuncu oradan çıkar.
+## sonu tablosu açıksa oyuncu oradan çıkar, yeni oyun beklenmez.
 func _on_source_ended(by_host: bool) -> void:
 	if _match_over:
+		_win_overlay.set_mode(WinOverlay.Mode.NETWORK_ENDED)
 		return
 	_generation += 1
 	_reconnecting = false
@@ -373,6 +397,12 @@ func _on_source_ended(by_host: bool) -> void:
 
 ## Hostla bağlantı koparken yeniden bağlanılıyor katmanı açılır, oyuncu oradan çıkabilir;
 ## bağlantı düzelince katman kapanır. Oyun bittiyse oyun sonu tablosu kalır.
+## Sonuç ekranı açıkken son katılımcı çıkarsa Tekrar oyna hemen gizlenir.
+func _on_guests_changed() -> void:
+	if _match_over:
+		_win_overlay.set_mode(_end_mode())
+
+
 func _on_connection_changed(lost: bool) -> void:
 	if _match_over:
 		return
@@ -543,6 +573,7 @@ func _end_match() -> void:
 	for seat: int in ranking:
 		rounds.append(MatchResult.round_of(_view.finishers, _view.finish_rounds, seat))
 		ranked_colors.append(_view.colors[seat])
+	_win_overlay.set_mode(_end_mode())
 	_win_overlay.open(ranked_colors, rounds, _seat_colors())
 
 
@@ -693,12 +724,28 @@ func _seat_color(seat: int) -> Color:
 	return Skins.current.seat_color(_view.colors[seat])
 
 
+## Sonuç ekranının düğmeleri: ağ oyununda host, oturan katılımcı kaldıysa aynı oyuncularla yeniden
+## oynayabilir; katılımcı hostun yeni oyunu başlatmasını bekler.
+func _end_mode() -> WinOverlay.Mode:
+	if not _source.is_networked():
+		return WinOverlay.Mode.LOCAL
+	if not _source.is_host():
+		return WinOverlay.Mode.NETWORK_GUEST
+	return WinOverlay.Mode.NETWORK_HOST if _source.has_guests() else WinOverlay.Mode.NETWORK_ENDED
+
+
 ## Oyun sonu geçiş reklamı kazanma ekranından çıkarken gösterilir; oyun içi reklam az önce
-## gösterildiyse atlanır. Yeniden oyna yalnızca yerel oyunda görünür.
+## gösterildiyse atlanır. Ağ oyununda katılımcıların hepsi çıktıysa yeniden oynanmaz.
 func _on_replay_pressed() -> void:
+	if _source.is_networked() and not _source.has_guests():
+		_win_overlay.set_mode(WinOverlay.Mode.NETWORK_ENDED)
+		return
 	_win_overlay.close()
 	_show_end_ad()
-	replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player(), _game.bot_level)
+	if _source.is_networked():
+		rematch_requested.emit()
+	else:
+		replay_requested.emit(_game.bots.duplicate(), _game.pawns_per_player(), _game.bot_level)
 
 
 func _on_home_pressed() -> void:

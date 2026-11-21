@@ -37,6 +37,7 @@ func _ready() -> void:
 	_join.started.connect(_on_network_started)
 	_game_screen.finished.connect(_on_game_closed)
 	_game_screen.replay_requested.connect(_on_start_requested)
+	_game_screen.rematch_requested.connect(_host_lobby.rematch)
 	_game_screen.left.connect(_on_game_closed)
 	_home.demo_requested.connect(_on_demo_requested)
 	_demo.closed.connect(_on_demo_closed)

@@ -9,6 +9,10 @@ extends Control
 signal replay_pressed
 signal home_pressed
 
+## Sonuç ekranının düğme düzeni: yerel oyun, ağ oyununda host, hostu bekleyen katılımcı ve yeniden
+## oynanamayan ağ oyunu (katılımcılar çıktı ya da host odayı kapattı).
+enum Mode { LOCAL, NETWORK_HOST, NETWORK_GUEST, NETWORK_ENDED }
+
 ## Sıra etiketlerinin çeviri anahtarı (RANK_1 … RANK_4).
 const RANK_KEY := "RANK_%d"
 ## Bitirmeyen oyuncunun tur sütununda görünen işaret.
@@ -37,10 +41,12 @@ func _ready() -> void:
 	(%HomeButton as Button).pressed.connect(home_pressed.emit)
 
 
-## Ağ oyununda yeniden oyna düğmesi gizlenir, ana ekran düğmesi yeni oyun kurmaya götürür.
-func set_networked(networked: bool) -> void:
-	(%ReplayButton as Button).visible = not networked
-	(%HomeButton as Button).text = NEW_GAME_KEY if networked else MAIN_MENU_KEY
+## Ağ oyununda ana ekran düğmesi yeni oyun kurmaya götürür; yeniden oyna düğmesi yalnızca hostta,
+## oturan katılımcı kaldıysa görünür. Katılımcı tablonun altında hostu beklediğini görür.
+func set_mode(mode: Mode) -> void:
+	(%ReplayButton as Button).visible = mode == Mode.LOCAL or mode == Mode.NETWORK_HOST
+	(%HomeButton as Button).text = MAIN_MENU_KEY if mode == Mode.LOCAL else NEW_GAME_KEY
+	(%WaitLabel as Label).visible = mode == Mode.NETWORK_GUEST
 
 
 ## Oyun sonunu gösterir: ranking sıralamadaki oyuncuların renkleri (kaplamadaki renk sırası),

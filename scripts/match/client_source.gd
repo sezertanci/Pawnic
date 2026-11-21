@@ -7,7 +7,8 @@ extends MatchSource
 ## bekler. Görünümün tamamı yeniden gelirse sıradaki olaylar atılır (yeni görünüm onları içerir).
 ## Saat, hostun sıra başlarında bildirdiği süreden ileri sayar. Sıra süresi hostun bildirdiği
 ## andan yerel saatle sayılır; süre dolunca oyuncunun niyeti artık beklenmez (host o hamleyi bota
-## oynatır) ve gelen ret seçimi yeniden açmaz.
+## oynatır) ve gelen ret seçimi yeniden açmaz. Oyun bitince kaynak yeniden begin() bekler: host
+## tekrar oynarsa yeni oyunun görünümü gelir, olaylar ekran yeni oyunu başlatana kadar sırada kalır.
 
 const MSEC_PER_SECOND := 1000.0
 ## Sıra süresi işlemiyorken bitiş anı yerine kullanılır.
@@ -167,6 +168,7 @@ func _show(event: MatchEvent) -> void:
 		_set_clock(event.elapsed, true)
 	elif event.kind == MatchEvent.Kind.MATCH_OVER:
 		_set_clock(elapsed(), false)
+		_begun = false
 	event_emitted.emit(event)
 
 

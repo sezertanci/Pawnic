@@ -29,6 +29,8 @@ func _init(
 	_room_code = room_code
 	_session = session
 	_referee.event_emitted.connect(_on_event)
+	if _session != null:
+		_session.guests_changed.connect(guests_changed.emit)
 
 
 func seat_wait(seat: int) -> float:
@@ -75,6 +77,8 @@ func leave() -> void:
 func detach() -> void:
 	if is_instance_valid(_referee) and _referee.event_emitted.is_connected(_on_event):
 		_referee.event_emitted.disconnect(_on_event)
+	if _session != null and _session.guests_changed.is_connected(guests_changed.emit):
+		_session.guests_changed.disconnect(guests_changed.emit)
 
 
 func is_live() -> bool:
@@ -87,6 +91,10 @@ func is_networked() -> bool:
 
 func is_host() -> bool:
 	return is_networked()
+
+
+func has_guests() -> bool:
+	return _session != null and _session.has_guests()
 
 
 func room_code() -> String:

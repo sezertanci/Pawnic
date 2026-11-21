@@ -19,6 +19,8 @@ extends RefCounted
 
 ## Eş el sıkışmadan geçti (yeniden katılan eş için gelmez).
 signal peer_welcomed(peer_id: int)
+## Oturan bir eş oyundan çıktı ve koltuğu bota geçti; kopup koltuğu korunan eş için gelmez.
+signal guests_changed
 
 ## Yeniden katılma anahtarının bayt sayısı.
 const TOKEN_BYTES := 16
@@ -71,7 +73,7 @@ func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSetti
 
 ## Eşi koltuğa oturtur; eş el sıkışmadan geçmemişse ya da koltuk ya da eş zaten eşlenmişse false.
 func seat_peer(peer_id: int, seat: int) -> bool:
-	if not _welcomed.has(peer_id) or _seats.has(peer_id) or _seats.values().has(seat):
+	if not _welcomed.has(peer_id) or _seats.has(peer_id) or is_seat_taken(seat):
 		return false
 	_seats[peer_id] = seat
 	return true
@@ -87,9 +89,23 @@ func seat_wait(seat: int) -> float:
 	return _presence.wait_left(seat, clock.call())
 
 
-## Hakemin oyununu her eşe kendi görünümüyle gönderir; oyun başında, hakemin start()'ından sonra
-## çağrılır.
+## Oturan (bağlı ya da kopuk) eş varsa true.
+func has_guests() -> bool:
+	return not _seats.is_empty()
+
+
+## Koltukta oturan (bağlı ya da kopuk) eş varsa true.
+func is_seat_taken(seat: int) -> bool:
+	return _seats.values().has(seat)
+
+
+## Hakemin oyununu her eşe kendi görünümüyle gönderir; oyun başında (tekrar oynamada da), hakemin
+## start()'ından sonra çağrılır. Bekleme süresi dolan koltukları, oyuncusu dönene kadar yeni oyunda
+## da bot oynar; kopuk koltukların bekleme süresi kaldığı yerden sürer.
 func share_match() -> void:
+	_pending.clear()
+	for seat: int in _benched:
+		_referee.hand_to_bot(seat)
 	for peer_id: int in _seats:
 		_send_snapshot(peer_id)
 
@@ -243,6 +259,7 @@ func _release_seat(peer_id: int) -> void:
 		_broadcast_status(seat, SeatPresence.PRESENT)
 	if _referee.game != null:
 		_referee.hand_to_bot(seat)
+	guests_changed.emit()
 
 
 ## Eş oturumdan tamamen çıkar; bekletmesi bırakılır.

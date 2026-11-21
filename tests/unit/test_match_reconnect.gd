@@ -101,6 +101,21 @@ func test_bot_takes_seat_when_wait_runs_out() -> void:
 	assert_true(_referee.is_awaiting_intent())
 
 
+func test_benched_seat_stays_with_bot_in_rematch() -> void:
+	_client_finishes = false
+	await _start_match()
+	_client_transport().disconnect_peer()
+	await wait_frames(FRAMES)
+	await _advance_clock(int(_game.settings.rejoin_wait_time * ClientSource.MSEC_PER_SECOND))
+	var rematch := _new_game()
+
+	_referee.start(rematch)
+	_host.share_match()
+
+	assert_true(rematch.bots[rematch.seats.find(_client_seat)])
+	assert_eq(_host.seat_wait(_client_seat), 0.0)
+
+
 func test_silent_client_is_marked_away() -> void:
 	await _start_match()
 	_network.erase(CLIENT_PEER)

@@ -16,6 +16,8 @@ signal view_reset
 signal ended(by_host: bool)
 ## Ağ oyununda hostla bağlantı koptu (lost true) ya da düzeldi.
 signal connection_changed(lost: bool)
+## Ağ oyununda hostta oturan katılımcılar azaldı; has_guests() değişmiş olabilir.
+signal guests_changed
 
 
 ## Oyunun bu cihazda görünen hâli; her olaydan önce güncellenir.
@@ -82,6 +84,12 @@ func is_networked() -> bool:
 
 ## Ağ oyununu bu cihaz kurduysa true.
 func is_host() -> bool:
+	return false
+
+
+## Ağ oyununda hostun oyununda hâlâ oturan (bağlı ya da kopuk) katılımcı varsa true; yalnızca
+## o zaman aynı oyuncularla yeniden oynanabilir.
+func has_guests() -> bool:
 	return false
 
 

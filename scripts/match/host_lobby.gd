@@ -5,7 +5,8 @@ extends RefCounted
 ## geçebilir. Her değişiklikte lobi her oyuncuya kendi görünümüyle gönderilir. Yanlış kodla gelen
 ## eş reddedilir; toplam max_wrong_codes yanlış denemede yeni oda kodu üretilir. Başlatınca
 ## oyuncular katılma sırasıyla koltuk alır, boş koltuklara Orta bot oturur ve yeni oyuncu alınmaz
-## (bağlantısı kopan oyuncu yeniden katılma anahtarıyla döner).
+## (bağlantısı kopan oyuncu yeniden katılma anahtarıyla döner). Oyun bitince host aynı oyuncularla
+## yeniden oynayabilir (rematch).
 
 ## Lobi değişti (oyuncu, renk ya da ayar).
 signal changed
@@ -99,8 +100,7 @@ func start() -> GameMatch:
 	var bot_flags: Array[bool] = []
 	for index: int in range(seat_count):
 		bot_flags.append(index >= players.size())
-	var game := GameMatch.create(_settings, bot_flags, pawns, _rng)
-	game.bot_level = BOT_LEVEL
+	var game := _create(bot_flags)
 	var chosen: Dictionary[int, int] = {}
 	for index: int in range(players.size()):
 		chosen[game.seats[index]] = _colors[players[index]]
@@ -108,6 +108,28 @@ func start() -> GameMatch:
 			_session.seat_peer(players[index], game.seats[index])
 	game.colors = SeatColors.with_choices(game.colors.size(), game.seats, chosen)
 	MatchStarter.choose(game, _rng)
+	return game
+
+
+## Biten oyunun koltuklarıyla, renkleriyle ve taş sayısıyla yeni oyun kurar (tekrar oyna); oturan
+## eşler koltuklarında kalır, oyundan çıkanların koltuğuna Orta bot oturur, başlayan oyuncu
+## yeniden kurayla seçilir. Oyun henüz başlamadıysa null.
+func rematch(previous: GameMatch) -> GameMatch:
+	if not _started:
+		return null
+	var bot_flags: Array[bool] = []
+	for index: int in range(previous.seats.size()):
+		var seat := previous.seats[index]
+		bot_flags.append(index != HOST_INDEX and not _session.is_seat_taken(seat))
+	var game := _create(bot_flags)
+	game.colors = previous.colors.duplicate()
+	MatchStarter.choose(game, _rng)
+	return game
+
+
+func _create(bot_flags: Array[bool]) -> GameMatch:
+	var game := GameMatch.create(_settings, bot_flags, pawns, _rng)
+	game.bot_level = BOT_LEVEL
 	return game
 
 
