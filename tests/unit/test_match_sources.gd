@@ -204,6 +204,18 @@ func test_only_host_source_pauses() -> void:
 	assert_true(host_source.is_paused())
 
 
+func test_client_source_skips_end_ad_soon_after_shared_ad() -> void:
+	_referee.in_game_ads = true
+	_game.elapsed = _game.settings.interstitial_interval
+	await _start_match()
+	assert_false(_source.skips_end_ad())
+
+	_source.begin()
+
+	assert_eq(_shown.back().kind, MatchEvent.Kind.AD_DUE)
+	assert_true(_source.skips_end_ad())
+
+
 func test_lost_room_ends_client_source() -> void:
 	await _start_match()
 	watch_signals(_source)

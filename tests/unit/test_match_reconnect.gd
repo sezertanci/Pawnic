@@ -4,6 +4,7 @@ extends GutTest
 ## anahtarıyla koltuğuna döner, sesi kesilip dönen eş kalan sıra süresini öğrenir, el sıkışmayan
 ## bağlantı kesilir; istemci kopan koltukları, hostun sesinin kesilmesini ve odanın kapandığını
 ## öğrenir. Molada kopan koltuk bota geçmez; istemci molayı iletiyle ya da görünümle öğrenir.
+## Ortak reklam arasında reklamını izleyen eş en fazla bekleme süresi kadar beklenir.
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 const TEST_PATH := "user://test_match_reconnect_save.json"
@@ -30,6 +31,7 @@ var _client_seat := BoardLayout.NO_SEAT
 var _client_finishes := true
 ## Sahte saatin şimdiki anı (ms).
 var _now := 0
+var _last_client_event: MatchEvent
 
 
 func before_each() -> void:
@@ -266,6 +268,62 @@ func test_rejoining_client_learns_pause_from_view() -> void:
 	assert_gte(back.pause_time(), 0.0)
 
 
+func test_client_watching_ad_is_not_marked_away() -> void:
+	await _start_with_ad()
+	_network.erase(CLIENT_PEER)
+
+	await _advance_clock(_ad_wait_ms() - CLOCK_STEP)
+
+	assert_eq(_host.seat_wait(_client_seat), SeatPresence.PRESENT)
+	assert_false(_referee.is_awaiting_intent())
+
+
+func test_game_goes_on_when_ad_wait_runs_out() -> void:
+	await _start_with_ad()
+	_network.erase(CLIENT_PEER)
+
+	await _advance_clock(_ad_wait_ms())
+
+	assert_true(_referee.is_awaiting_intent())
+	assert_gt(_host.seat_wait(_client_seat), 0.0)
+
+
+func test_client_lost_during_ad_is_marked_away_when_wait_runs_out() -> void:
+	await _start_with_ad()
+	_client_transport().disconnect_peer()
+	await wait_frames(FRAMES)
+	assert_eq(_host.seat_wait(_client_seat), SeatPresence.PRESENT)
+
+	await _advance_clock(_ad_wait_ms())
+
+	assert_gt(_host.seat_wait(_client_seat), 0.0)
+	assert_true(_referee.is_awaiting_intent())
+
+
+func test_game_goes_on_when_client_finishes_ad() -> void:
+	await _start_with_ad()
+	_client_finishes = true
+	_client.finish_event(_last_client_event)
+
+	await wait_frames(FRAMES)
+
+	assert_true(_referee.is_awaiting_intent())
+	assert_eq(_host.seat_wait(_client_seat), SeatPresence.PRESENT)
+
+
+## Oyun reklam zamanında başlar; istemci reklam olayını bitirmez.
+func _start_with_ad() -> void:
+	_client_finishes = false
+	_referee.in_game_ads = true
+	_game.elapsed = _game.settings.interstitial_interval
+	await _start_match()
+	assert_eq(_last_client_event.kind, MatchEvent.Kind.AD_DUE)
+
+
+func _ad_wait_ms() -> int:
+	return int(_game.settings.shared_ad_wait_time * ClientSource.MSEC_PER_SECOND)
+
+
 ## Hostun sırasında oynanabilecek ilk hamle; hamle yoksa ilk kart atılır.
 func _host_intent() -> MatchIntent:
 	var legal := _game.legal_moves()
@@ -275,6 +333,7 @@ func _host_intent() -> MatchIntent:
 
 
 func _on_client_event(event: MatchEvent) -> void:
+	_last_client_event = event
 	if _client_finishes:
 		_client.finish_event(event)
 

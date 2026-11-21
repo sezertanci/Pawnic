@@ -19,6 +19,12 @@ extends RefCounted
 ##
 ## Mola: host oyunu molaya alınca ve moladan çıkarınca oturan eşlere bildirilir. Molada kopma
 ## süreleri işlemez; yeniden katılan eş molayı görünümle öğrenir.
+##
+## Ortak reklam arası: oyun içi reklam olayı (AD_DUE) herkese aynı anda gider. Reklam sırasında
+## eşin cihazı durur; reklamını izleyen eşin sesi kesilse ya da bağlantısı kopsa da en fazla
+## shared_ad_wait_sec beklenir, uzakta sayılmaz. Süre dolunca oyun reklamı bitmeyenler olmadan
+## sürer; sesi hâlâ gelmeyen eş o zaman uzakta sayılır. Hostun kendi reklamında durduğu süre bu
+## bekleme süresinden düşülmez.
 
 ## Eş el sıkışmadan geçti (yeniden katılan eş için gelmez).
 signal peer_welcomed(peer_id: int)
@@ -27,6 +33,8 @@ signal guests_changed
 
 ## Yeniden katılma anahtarının bayt sayısı.
 const TOKEN_BYTES := 16
+## Ortak reklam arası yokken son an yerine kullanılır.
+const NO_AD_BREAK := -1
 
 ## Sürümü uyan eşin kabul denetimi (ör. lobinin oda kodu): HELLO içeriğini alır, ret nedenini
 ## (MatchMessage.Refusal) ya da MatchMessage.NO_REFUSAL döndürür. Boşsa her uyumlu eş kabul edilir.
@@ -58,6 +66,8 @@ var _watch: PeerWatch
 var _presence := SeatPresence.new()
 ## Bekleme süresi dolan, oyuncusu dönene kadar botun oynadığı koltuklar.
 var _benched: Array[int] = []
+## Ortak reklam arasının son anı (ms, clock'a göre); reklam arası yoksa NO_AD_BREAK.
+var _ad_deadline := NO_AD_BREAK
 var _crypto := Crypto.new()
 
 
@@ -278,10 +288,15 @@ func _forget_peer(peer_id: int) -> void:
 	_settle(peer_id)
 
 
-## Oyun sonu olayı ve uzaktaki koltuk beklenmez (hakem de oyun sonunu beklemez).
+## Oyun sonu olayı ve uzaktaki koltuk beklenmez (hakem de oyun sonunu beklemez). Reklam olayıyla
+## ortak reklam arası başlar, sıradaki olayla biter.
 func _on_event(event: MatchEvent) -> void:
 	_pending.clear()
 	_event_serial += 1
+	_ad_deadline = NO_AD_BREAK
+	if event.kind == MatchEvent.Kind.AD_DUE:
+		var wait := int(_settings.shared_ad_wait_time * ClientSource.MSEC_PER_SECOND)
+		_ad_deadline = clock.call() + wait
 	for peer_id: int in _seats:
 		_transport.send(peer_id, MatchMessage.event(event, _seats[peer_id], _event_serial))
 		if event.kind != MatchEvent.Kind.MATCH_OVER and not _presence.is_away(_seats[peer_id]):
@@ -318,11 +333,15 @@ func _on_peer_connected(peer_id: int) -> void:
 
 
 ## Oturan eşin koltuğu, eş dönene ya da çıkana kadar uzakta sayılır; oturmayan eş unutulur.
+## Reklamını izleyen eş izlenmeye devam eder: reklam arası bitince sesi gelmediği için uzakta
+## sayılır.
 func _on_peer_disconnected(peer_id: int) -> void:
 	_greeting.erase(peer_id)
 	var seat := seat_of(peer_id)
 	if seat == BoardLayout.NO_SEAT:
 		_forget_peer(peer_id)
+		return
+	if _is_watching_ad(peer_id):
 		return
 	_watch.forget(peer_id)
 	if not _presence.is_away(seat):
@@ -334,6 +353,7 @@ func _on_frame() -> void:
 	if _watch.update(now):
 		for peer_id: int in _welcomed:
 			_transport.send(peer_id, MatchMessage.heartbeat())
+	_check_ad_break(now)
 	for peer_id: int in _seats.keys():
 		_check_presence(peer_id, now)
 	for peer_id: int in _greeting.duplicate():
@@ -347,10 +367,28 @@ func _on_frame() -> void:
 func _check_presence(peer_id: int, now: int) -> void:
 	var seat := _seats[peer_id]
 	if not _presence.is_away(seat):
-		if _watch.is_silent(peer_id, now):
+		if _watch.is_silent(peer_id, now) and not _is_watching_ad(peer_id):
 			_mark_away(peer_id, seat)
 	elif not _benched.has(seat) and _presence.wait_left(seat, now) == 0.0:
 		_bench(seat)
+
+
+## Hostun kendi reklamında durduğu süre son ana eklenir. Son an geçince reklamı bitmeyen eşler
+## beklenmez. Hakem ancak son bekletme bırakılınca sürdüğünden döngü yeni olayla karışmaz.
+func _check_ad_break(now: int) -> void:
+	if _ad_deadline == NO_AD_BREAK:
+		return
+	_ad_deadline += _watch.stall()
+	if now < _ad_deadline:
+		return
+	_ad_deadline = NO_AD_BREAK
+	for peer_id: int in _pending.duplicate():
+		_settle(peer_id)
+
+
+## Ortak reklam arası sürüyor ve eş reklamını henüz bitirmediyse true.
+func _is_watching_ad(peer_id: int) -> bool:
+	return _ad_deadline != NO_AD_BREAK and _pending.has(peer_id)
 
 
 ## Uzaktaki eşin olayı bitirmesi beklenmez; diğerleri oynamaya devam eder.

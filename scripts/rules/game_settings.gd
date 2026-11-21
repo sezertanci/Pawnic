@@ -123,6 +123,9 @@ var home_pawn_scale := 0.0
 var interstitial_interval := 0.0
 ## Oyun içi reklamdan bu kadar süre geçmeden oyun biterse oyun sonu reklamı atlanır (saniye).
 var end_ad_cooldown := 0.0
+## Ağ oyununda ortak reklam arasında hostun, reklamı bitmeyen oyuncuyu en fazla beklediği süre
+## (saniye); süre dolunca oyun onsuz sürer.
+var shared_ad_wait_time := 0.0
 ## Ağ oyununda hostun dinlediği UDP portu.
 var network_port := 0
 ## Ağdan gelen bir mesajın en fazla bayt sayısı; büyüğü çözülmeden atılır.
@@ -276,6 +279,7 @@ func _read_ui(ui: Dictionary) -> void:
 func _read_ads(ads: Dictionary) -> void:
 	interstitial_interval = float(ads["interstitial_interval_sec"])
 	end_ad_cooldown = float(ads["end_ad_cooldown_sec"])
+	shared_ad_wait_time = float(ads["shared_ad_wait_sec"])
 
 
 func _read_network(network: Dictionary) -> void:

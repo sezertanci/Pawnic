@@ -14,6 +14,8 @@ var _limit: int
 var _heard: Dictionary[int, int] = {}
 var _last_update := NEVER
 var _last_beat := NEVER
+## Son güncellemeden önce bu cihazın durduğu süre (ms); durmadıysa 0.
+var _stall := 0
 
 
 func _init(settings: GameSettings) -> void:
@@ -33,15 +35,21 @@ func forget(peer_id: int) -> void:
 
 ## Zamanı ilerletir; yoklama gönderme zamanı geldiyse true.
 func update(now: int) -> bool:
+	_stall = 0
 	if _last_update != NEVER and now - _last_update > _limit:
-		var paused := now - _last_update
+		_stall = now - _last_update
 		for peer_id: int in _heard:
-			_heard[peer_id] += paused
+			_heard[peer_id] += _stall
 	_last_update = now
 	if _last_beat != NEVER and now - _last_beat < _interval:
 		return false
 	_last_beat = now
 	return true
+
+
+## Son güncellemede anlaşılan, bu cihazın durduğu süre (ms); durmadıysa 0.
+func stall() -> int:
+	return _stall
 
 
 ## İzlenen eşten sessizlik sınırından uzun süredir mesaj gelmediyse true.

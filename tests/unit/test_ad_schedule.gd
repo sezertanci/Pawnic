@@ -45,6 +45,17 @@ func test_is_due_counts_from_last_ad() -> void:
 	assert_false(AdSchedule.is_due(game))
 
 
+func test_is_recent_counts_from_given_ad_time() -> void:
+	var ad_at := _settings.interstitial_interval
+
+	var soon := AdSchedule.is_recent(ad_at, ad_at + _settings.end_ad_cooldown - MARGIN, _settings)
+	var late := AdSchedule.is_recent(ad_at, ad_at + _settings.end_ad_cooldown, _settings)
+
+	assert_true(soon)
+	assert_false(late)
+	assert_false(AdSchedule.is_recent(AdSchedule.NO_AD, ad_at, _settings))
+
+
 func test_skips_end_ad_without_mid_game_ad_returns_false() -> void:
 	var game := _new_game(HUMAN_FIRST)
 	game.elapsed = _settings.interstitial_interval

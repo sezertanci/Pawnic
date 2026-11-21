@@ -76,7 +76,8 @@
 	},
 	"ads": {
 		"interstitial_interval_sec": 300,
-		"end_ad_cooldown_sec": 120
+		"end_ad_cooldown_sec": 120,
+		"shared_ad_wait_sec": 30
 	},
 	"network": {
 		"port": 24680,
@@ -88,7 +89,7 @@
 		"room_code_digits": 4,
 		"max_wrong_codes": 10,
 		"connect_timeout_ms": 5000,
-		"peer_timeout_ms": 20000,
+		"peer_timeout_ms": 40000,
 		"heartbeat_interval_ms": 1000,
 		"silence_limit_ms": 3000,
 		"rejoin_wait_sec": 20,

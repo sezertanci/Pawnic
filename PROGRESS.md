@@ -320,7 +320,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   ve `test_confirm_overlay.gd`'de.
   Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Parça 3 (oyun sırasında kopma ve geri
   dönme) yapıldı (2026-11-21 (3)). Ağ oyununda Tekrar oyna yapıldı (2026-11-21 (4)).
-  Duraklatma yapıldı (2026-11-21 (5)). Sonraya kalan: ortak oyun içi reklam.
+  Duraklatma yapıldı (2026-11-21 (5)). Ortak oyun içi reklam yapıldı (2026-11-21 (6)).
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -652,7 +652,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   kırmızı ışık yayıp söner (zemin stilinin gölgesi, temada `glow_size`), sayı kırmızı olur.
   Çubuk ve sayı tahtanın genişliğine hizalanır (`BoardView.grid_rect()`); geniş ekranda taşmaz.
 - **2026-11-21 (3):** Ağ oyunu parça 3, kopma ve geri dönme. `tuning.json` → `network`:
-  `peer_timeout_ms` (20000, ENet eş zaman aşımı), `heartbeat_interval_ms` (1000),
+  `peer_timeout_ms` (20000, ENet eş zaman aşımı; 2026-11-21 (6)'da 40000 oldu), `heartbeat_interval_ms` (1000),
   `silence_limit_ms` (3000), `rejoin_wait_sec` (20), `rejoin_interval_ms` (1000).
   `PROTOCOL_VERSION` 4 oldu; yeni mesajlar `HEARTBEAT`, `SEAT_STATUS`, `CLOSED`, yeni ret
   `NOT_IN_MATCH`. Host ve istemci birbirine her saniye yoklama gönderir (`PeerWatch`; cihaz
@@ -720,4 +720,19 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   beri açık tutulduğu için ayrıca açılmadı. Yeni metinler `PAUSED`, `PAUSE_HOST_NOTE`,
   `PAUSE_GUEST_NOTE`, `QUIT_MATCH`, `END_MATCH` 8 dilde. `gdlintrc` eklendi, `max-public-methods`
   25 (kaynak sınıfları ve hakem testi 20'yi aşıyordu). GUT 295/295, simülasyonda bitmeyen yok.
-  Tablette denenmedi. Sıradaki iş: ortak oyun içi reklam.
+  Tablette denenmedi.
+- **2026-11-21 (6):** Ağ oyununda ortak oyun içi reklam. Host oyun içi reklamı kendi kuralıyla
+  açar (`in_game_ads` = hostta reklamlar kaldırılmadıysa); AD_DUE olayı herkese aynı anda gider.
+  `HostSession` reklam arasında reklamını bitirmeyen eşi `shared_ad_wait_sec` (30, `tuning.json`
+  → `ads`) kadar bekler; bu sırada sesi kesilen ya da bağlantısı kopan eş uzakta sayılmaz. Süre
+  dolunca oyun onsuz sürer ve sesi gelmeyen eş normal kopma kuralıyla uzakta sayılır. Hostun
+  kendi reklamında durduğu süre `PeerWatch.stall()` ile son ana eklenir. Reklamı biten ya da
+  reklamları kaldırılmış oyuncu "Reklam arası / Diğer oyuncular bekleniyor…" katmanını görür
+  (`PauseOverlay.open_ad_break`, oyun ekranında `AdBreakOverlay`); herkes bitirince kalkar, bu
+  sırada bağlantı koptu katmanı açılmaz (reklam arası bitince açılır). Katmanda çıkış düğmesi
+  var: misafirde Oyundan Çık, hostta Oyunu Bitir (host kaybolursa misafir takılmasın diye).
+  Oyun sonu reklamı her cihazda kendi kuralıyla gösterilir; istemci son oyun içi reklamın anını
+  kendisi saklar (`ClientSource.skips_end_ad`, `AdSchedule.is_recent`). ENet zaman aşımı
+  (`peer_timeout_ms`) 30 sn beklemeden uzun olsun diye 40000 yapıldı. Yeni metinler
+  `AD_BREAK`, `AD_BREAK_NOTE` 8 dilde. GUT 302/302, simülasyonda bitmeyen yok. Tablette
+  denenmedi.

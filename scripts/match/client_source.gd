@@ -9,7 +9,8 @@ extends MatchSource
 ## andan yerel saatle sayılır; süre dolunca oyuncunun niyeti artık beklenmez (host o hamleyi bota
 ## oynatır) ve gelen ret seçimi yeniden açmaz. Oyun bitince kaynak yeniden begin() bekler: host
 ## tekrar oynarsa yeni oyunun görünümü gelir, olaylar ekran yeni oyunu başlatana kadar sırada kalır.
-## Host oyunu molaya alınca saat ve sıra süresi durur, devamda kaldıkları yerden sürer.
+## Host oyunu molaya alınca saat ve sıra süresi durur, devamda kaldıkları yerden sürer. Oyun içi
+## reklamın anı saklanır; oyun sonu reklamı bu cihazın kuralıyla ona göre atlanır.
 
 const MSEC_PER_SECOND := 1000.0
 ## Sıra süresi işlemiyorken bitiş anı yerine kullanılır.
@@ -37,6 +38,8 @@ var _turn_deadline := NO_DEADLINE
 ## Bağlantı kopukken ya da molada donan kalan süre; donmuş süre yoksa MatchReferee.NO_TURN_TIMER.
 var _frozen_time := MatchReferee.NO_TURN_TIMER
 var _connection_lost := false
+## Bu oyunda son oyun içi reklamın oyun süresi; reklam yoksa AdSchedule.NO_AD.
+var _last_ad_at := AdSchedule.NO_AD
 
 
 func _init(room: GuestRoom) -> void:
@@ -61,7 +64,10 @@ func elapsed() -> float:
 	return _clock_base + (Time.get_ticks_msec() - _clock_start) / MSEC_PER_SECOND
 
 
+## Yeni oyun başlar (tekrar oynamada da); önceki oyunun reklamı sayılmaz.
 func begin() -> void:
+	if not _begun:
+		_last_ad_at = AdSchedule.NO_AD
 	_begun = true
 	_set_clock(_clock_base, _clock_may_run())
 	_pump()
@@ -118,6 +124,10 @@ func is_paused() -> bool:
 
 func pause_time() -> float:
 	return _session.pause_time()
+
+
+func skips_end_ad() -> bool:
+	return AdSchedule.is_recent(_last_ad_at, elapsed(), _display.settings)
 
 
 func seat_wait(seat: int) -> float:
@@ -177,7 +187,9 @@ func _show(event: MatchEvent) -> void:
 	_shown = event
 	_set_deadline(MatchReferee.NO_TURN_TIMER)
 	_awaiting = (event.kind == MatchEvent.Kind.TURN_STARTED and event.seat == _display.viewer_seat)
-	if event.kind == MatchEvent.Kind.TURN_STARTED:
+	if event.kind == MatchEvent.Kind.AD_DUE:
+		_last_ad_at = elapsed()
+	elif event.kind == MatchEvent.Kind.TURN_STARTED:
 		_set_clock(event.elapsed, _clock_may_run())
 	elif event.kind == MatchEvent.Kind.MATCH_OVER:
 		_set_clock(elapsed(), false)

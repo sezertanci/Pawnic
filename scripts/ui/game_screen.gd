@@ -57,6 +57,9 @@ var _awaiting_human := false
 var _pawns_before: Array[Vector2] = []
 ## Ağ oyununda hostla bağlantı koptu; yeniden bağlanılıyor katmanı açık.
 var _reconnecting := false
+## Ağ oyununda ortak reklam arası sürüyorsa true: reklam açıkken ve reklam kapanıp herkes
+## bitirene kadar. Bu sırada bağlantı koptu katmanı açılmaz (reklamdaki cihazların sesi kesilir).
+var _ad_break := false
 ## Sıra noktalarındaki taşların koltukları, noktalarla aynı sırada.
 var _dot_seats: Array[int] = []
 
@@ -76,6 +79,7 @@ var _dot_seats: Array[int] = []
 @onready var _starter_draw: StarterDraw = %StarterDraw
 @onready var _confirm: ConfirmOverlay = %ConfirmOverlay
 @onready var _pause_overlay: PauseOverlay = %PauseOverlay
+@onready var _ad_break_overlay: PauseOverlay = %AdBreakOverlay
 @onready var _pause_button: Button = %PauseButton
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
@@ -95,6 +99,7 @@ func _ready() -> void:
 	_pause_button.pressed.connect(_on_pause_pressed)
 	_pause_overlay.resume_pressed.connect(_on_resume_pressed)
 	_pause_overlay.quit_pressed.connect(_on_back_pressed)
+	_ad_break_overlay.quit_pressed.connect(_on_back_pressed)
 	_cards.deck_pile = _deck_pile
 	_cards.discard_pile = _discard_pile
 	_cards.discard_landed.connect(_on_discard_landed)
@@ -127,6 +132,7 @@ func _open_table(draw_starter: bool) -> void:
 	_generation += 1
 	_match_over = false
 	_reconnecting = false
+	_ad_break = false
 	_awaiting_human = false
 	_view = _source.view()
 	_set_up_table()
@@ -302,6 +308,7 @@ func _show_pause() -> void:
 		and _source.is_live()
 		and not paused
 		and not _match_over
+		and not _ad_break
 	)
 	if paused and not _pause_overlay.visible:
 		_pause_overlay.open(_source.is_host())
@@ -343,12 +350,13 @@ func _on_event(event: MatchEvent) -> void:
 	var generation := _generation
 	_view = _source.view()
 	_board_view.board = _view.board
+	if event.kind != MatchEvent.Kind.AD_DUE:
+		_end_ad_break()
 	match event.kind:
 		MatchEvent.Kind.RESHUFFLED:
 			await _show_reshuffle()
 		MatchEvent.Kind.AD_DUE:
-			Ads.show_interstitial()
-			await Ads.interstitial_closed
+			await _show_ad()
 		MatchEvent.Kind.TURN_STARTED:
 			await _on_turn_started(event)
 		MatchEvent.Kind.CARD_REVEALED:
@@ -364,6 +372,29 @@ func _on_event(event: MatchEvent) -> void:
 			_end_match()
 	if generation == _generation:
 		_source.acknowledge(event)
+
+
+## Oyun içi reklam. Ağ oyununda reklam kapanınca (reklamlar kaldırıldıysa hemen) herkes bitirene
+## kadar reklam arası katmanı açık kalır.
+func _show_ad() -> void:
+	var generation := _generation
+	_ad_break = _source.is_networked()
+	_show_pause()
+	Ads.show_interstitial()
+	await Ads.interstitial_closed
+	if _ad_break and generation == _generation:
+		_ad_break_overlay.open_ad_break(_source.is_host())
+
+
+## Reklam arası biter; bu arada bağlantı koptuysa yeniden bağlanılıyor katmanı şimdi açılır.
+func _end_ad_break() -> void:
+	if not _ad_break:
+		return
+	_ad_break = false
+	_ad_break_overlay.hide()
+	_show_pause()
+	if _reconnecting:
+		_ask_reconnecting()
 
 
 ## Olay, oyuncunun eli hazır olunca (çekilen kart ele inince) bitmiş sayılır; ağ oyununda sıra
@@ -396,6 +427,7 @@ func _on_view_reset() -> void:
 		_take_rematch()
 		return
 	_generation += 1
+	_end_ad_break()
 	_awaiting_human = false
 	_board_view.stop_animation()
 	_clear_selection()
@@ -429,6 +461,7 @@ func _on_source_ended(by_host: bool) -> void:
 		return
 	_generation += 1
 	_reconnecting = false
+	_ad_break = false
 	_awaiting_human = false
 	_board_view.stop_animation()
 	_clear_selection()
@@ -444,15 +477,22 @@ func _on_guests_changed() -> void:
 		_win_overlay.set_mode(_end_mode())
 
 
+## Bağlantı koptuğunda yeniden bağlanılıyor katmanı açılır; reklam arasında açılmaz, reklam arası
+## bitince açılır.
 func _on_connection_changed(lost: bool) -> void:
 	if _match_over:
 		return
 	if lost:
 		_reconnecting = true
-		_ask(RECONNECTING_KEY, LEAVE_KEY, "", _leave)
+		if not _ad_break:
+			_ask_reconnecting()
 	elif _reconnecting:
 		_reconnecting = false
 		_confirm.hide()
+
+
+func _ask_reconnecting() -> void:
+	_ask(RECONNECTING_KEY, LEAVE_KEY, "", _leave)
 
 
 ## Atılanlar karıştırılıp desteye döndü: atılanlar boşalır, kartlar desteye uçar ve deste
@@ -752,6 +792,7 @@ func _hide_overlays() -> void:
 	_starter_draw.close()
 	_confirm.hide()
 	_pause_overlay.hide()
+	_ad_break_overlay.hide()
 	_pause_button.hide()
 
 

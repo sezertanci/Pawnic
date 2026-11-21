@@ -18,6 +18,12 @@ static func is_due(game: GameMatch) -> bool:
 
 ## Oyun içi reklam yakın zamanda gösterildiyse oyun sonu reklamı atlanır.
 static func skips_end_ad(game: GameMatch) -> bool:
-	if game.last_ad_at == NO_AD:
+	return is_recent(game.last_ad_at, game.elapsed, game.settings)
+
+
+## Oyun süresi elapsed iken last_ad_at anındaki oyun içi reklam, oyun sonu reklamını atlatacak
+## kadar yakınsa true (ağ oyununda istemci de kendi saydığı anla kullanır).
+static func is_recent(last_ad_at: float, elapsed: float, settings: GameSettings) -> bool:
+	if last_ad_at == NO_AD:
 		return false
-	return game.elapsed - game.last_ad_at < game.settings.end_ad_cooldown
+	return elapsed - last_ad_at < settings.end_ad_cooldown

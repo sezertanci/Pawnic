@@ -241,6 +241,11 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 1
 
+[node name="AdBreakOverlay" parent="." instance=ExtResource("pause_overlay")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
 [node name="ConfirmOverlay" parent="." instance=ExtResource("confirm_overlay")]
 unique_name_in_owner = true
 visible = false

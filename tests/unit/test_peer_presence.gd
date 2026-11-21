@@ -60,6 +60,17 @@ func test_device_pause_is_not_counted_as_silence() -> void:
 	assert_false(_watch.is_silent(PEER, resumed))
 
 
+func test_stall_reports_device_pause_once() -> void:
+	_watch.update(0)
+	var resumed := _settings.silence_limit_ms * 10
+
+	_watch.update(resumed)
+	assert_eq(_watch.stall(), resumed)
+	_watch.update(resumed + 1)
+
+	assert_eq(_watch.stall(), 0)
+
+
 func test_present_seat_has_no_wait() -> void:
 	var presence := SeatPresence.new()
 
