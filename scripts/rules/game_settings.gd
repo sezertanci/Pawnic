@@ -74,11 +74,14 @@ var capture_height := 0.0
 var settle_time := 0.0
 ## Eve giren taşın bitiş karesindeki küçük cama girerken küçülme süresi.
 var home_shrink_time := 0.0
-## Başlangıç kurası: sıra okunun oyuncular arasında kaç tur döndüğü, ilk ve son adımın süresi
+## Başlangıç kurası: adım sayısının oyuncu sayısına oranı (kaç tur), ilk ve son adımın süresi
 ## (ok giderek yavaşlar) ve başlayanda durduktan sonra bekleme süresi.
 var starter_spin_rounds := 0
 var starter_spin_first_step := 0.0
 var starter_spin_last_step := 0.0
+## Adım süresinin ilk adımdan son adıma artış eğrisi (Godot ease() üssü): 1 doğrusal, büyüdükçe
+## kura uzun süre hızlı döner ve çark gibi sona doğru belirgin yavaşlar.
+var starter_spin_ease := 1.0
 var starter_spin_hold := 0.0
 ## Oyun hızı seviyelerinin (yavaş, normal, hızlı) animasyon hız çarpanları.
 var speed_levels: Array[float] = []
@@ -241,6 +244,7 @@ func _read_animation(animation: Dictionary) -> void:
 	starter_spin_rounds = int(animation["starter_spin_rounds"])
 	starter_spin_first_step = float(animation["starter_spin_first_step_sec"])
 	starter_spin_last_step = float(animation["starter_spin_last_step_sec"])
+	starter_spin_ease = float(animation["starter_spin_ease"])
 	starter_spin_hold = float(animation["starter_spin_hold_sec"])
 	for level: Variant in animation["speed_levels"]:
 		speed_levels.append(float(level))

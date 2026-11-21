@@ -751,3 +751,16 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   genişlemiyor; panel başlığın hemen altında başlıyor, alt düğmeler yine en altta. Ölçüm (800x1280):
   üç sekmede panel y=192. Oyuncu sayısı değişince kayma bilgisayarda görülmedi; panelin üstü sabit
   olduğu için boy değişse bile sekmeler ve sayaçlar yerinde kalır. GUT 302/302. Tablette denenmedi.
+- **2026-11-21 (9):** Başlangıç kurasına ses ve çark gibi yavaşlama. Taş her değiştiğinde yeni çark
+  tıkırtısı (`spin.wav`), sonuç yazılınca iki notalı çan (`starter.wav`) çalar; ikisi de
+  `tools/make_sounds.py` ile üretilir, `Sound.SPIN` / `Sound.STARTER`. Adım süresi artık doğrusal
+  değil, `ease()` eğrisiyle artar (`animation.starter_spin_ease` 2.0): kura uzun süre hızlı döner,
+  sona doğru belirgin yavaşlar. Kullanıcı isteğiyle tur sayısı 2 → 3, son adım 0,4 → 0,5 sn;
+  kura (bekleme hariç) 2 oyuncuda yaklaşık 1,2–1,4 sn'den 1,6–1,8 sn'ye, 4 oyuncuda 2,2–2,9 sn'den
+  2,9–3,6 sn'ye uzadı. GUT 302/302. Tablette denenmedi.
+- **2026-11-21 (10):** Kurada renkler artık sırayla değil karışık değişir (`StarterDraw.spin_order`):
+  her adım rastgele ve bir öncekinden farklı, son adım başlayan. Sıra sondan başa kurulur, sonuç
+  değişmez. Gösterim sırası yalnızca görünüş olduğu için tohumsuz yerel üretici kullanılır. Adım
+  sayısı artık başlayana bağlı değil (`starter_spin_rounds * oyuncu + 1`); kuranın süresi sonucu
+  ele vermez: 2 oyuncuda yaklaşık 1,6 sn, 4 oyuncuda 2,9 sn (bekleme hariç). Test
+  `test_starter_draw.gd`. GUT 306/306. Tablette denenmedi.

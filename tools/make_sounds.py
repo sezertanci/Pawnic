@@ -4,6 +4,8 @@ Sesler kayıt değil, notalardan hesaplanır: kısa yükseliş ve üstel sönme 
 RobiCodes'taki notalarla aynıdır. Işınlanma sesi tonu yükselen, titreşimli bir süpürmedir.
 Kart çekme sesi, yavaşça kabarıp sönen boğuk bir fışırtıdır (süzülmüş gürültü).
 Karıştırma sesi, kartların art arda birbirine çarptığı hızlı bir tıkırtı dizisidir ("brrrt").
+Kura tıkırtısı, çarkın dilinin çiviye çarpması gibi kısa ve parlak bir vuruştur; kura sonucu
+iki notalı, yükselen bir çandır.
 Yalnızca Python'un standart kütüphanesi gerekir.
 
 Kullanım: python tools/make_sounds.py assets/sounds
@@ -26,6 +28,7 @@ MELODIES = {
     'tap': [(1047, 0, 0.06)],
     'step': [(392, 0, 0.08)],
     'tick': [(1760, 0, 0.05)],
+    'starter': [(784, 0, 0.18), (1175, 0.12, 0.45)],
 }
 
 # Işınlanma: frekans başlangıçtan bitişe üstel olarak yükselir, üstüne hızlı bir titreşim biner.
@@ -53,6 +56,15 @@ SHUFFLE_SMOOTH = 0.35        # Çekme sesinden daha açık süzgeç: daha parlak
 SHUFFLE_TAIL_GAIN = 0.4      # Son vuruşun ilk vuruşa oranla genliği.
 SHUFFLE_VOLUME = 0.7
 SHUFFLE_SEED = 11
+
+# Kura tıkırtısı: tek, çok kısa bir gürültü vuruşu (çiviye çarpan dil) ve altında hızla sönen tahta
+# tınısı. Kura adımları en kısa 0,08 sn olduğundan ses ondan kısadır; üst üste binmez.
+SPIN_SECONDS = 0.03
+SPIN_SMOOTH = 0.6            # Karıştırmadan da açık süzgeç: kuru, parlak tık.
+SPIN_BODY_HZ = 1400          # Vuruşa gövde veren tını.
+SPIN_BODY_MIX = 0.5          # Tınının gürültüye oranla payı.
+SPIN_VOLUME = 0.8
+SPIN_SEED = 13
 
 
 def sine(phase):
@@ -121,6 +133,19 @@ def render_shuffle():
     return [s / peak * SHUFFLE_VOLUME * VOLUME for s in samples]
 
 
+def render_spin():
+    rng = random.Random(SPIN_SEED)
+    length = round(SPIN_SECONDS * SAMPLE_RATE)
+    samples = []
+    smooth = 0.0
+    for i in range(length):
+        smooth += SPIN_SMOOTH * (rng.uniform(-1, 1) - smooth)
+        body = SPIN_BODY_MIX * sine(SPIN_BODY_HZ * i / SAMPLE_RATE)
+        samples.append((smooth + body) * SILENT_GAIN ** (i / length))
+    peak = max(abs(s) for s in samples)
+    return [s / peak * SPIN_VOLUME * VOLUME for s in samples]
+
+
 def write_wav(path, samples):
     with wave.open(path, 'wb') as file:
         file.setnchannels(1)
@@ -135,6 +160,7 @@ def main(output_dir):
     sounds['teleport'] = render_teleport()
     sounds['draw'] = render_draw()
     sounds['shuffle'] = render_shuffle()
+    sounds['spin'] = render_spin()
     for name, samples in sounds.items():
         write_wav(os.path.join(output_dir, f'{name}.wav'), samples)
         print(f'{name}.wav')

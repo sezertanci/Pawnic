@@ -44,9 +44,10 @@
 		"capture_height": 1.5,
 		"settle_sec": 0.2,
 		"home_shrink_sec": 0.3,
-		"starter_spin_rounds": 2,
+		"starter_spin_rounds": 3,
 		"starter_spin_first_step_sec": 0.08,
-		"starter_spin_last_step_sec": 0.4,
+		"starter_spin_last_step_sec": 0.5,
+		"starter_spin_ease": 2.0,
 		"starter_spin_hold_sec": 0.8,
 		"speed_levels": [0.6, 1.0, 1.5]
 	},
