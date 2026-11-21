@@ -106,7 +106,8 @@ bilmez. Kullanılan dosya `data/tuning.json` içindeki `board.layout` ayarıyla 
   - `forced`: bu koltuklar kareden her zaman bağlantıya girer (ev yolu girişi).
   - `choice`: taş kareden geçerken ya da kareden başlarken oyuncu yolu seçer.
   - `exact`: bağlantıya yalnızca hamleye o karede başlayan taş girebilir.
-- `safe`: güvenli kareler.
+- `safe`: güvenli kareler. Her koltuğun çıkış karesi bu listede olmalıdır; değilse tahta
+  yüklenmez.
 - `speed`: hız kareleri ve değerleri (ör. `{"ring:4": 4, "ring:18": -3}`). Artı değerde taş o kadar ileri,
   eksi değerde o kadar geri gider (geri giderken sahibinin çıkış karesinde durur). Bir hız karesinden
   zıplayan taş başka bir hız karesine düşmemelidir; birim test bunu denetler.

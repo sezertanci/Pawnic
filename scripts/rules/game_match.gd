@@ -268,12 +268,12 @@ func unseen_cards() -> Array[Card]:
 func determinized(rng: RandomNumberGenerator) -> GameMatch:
 	var copy := GameMatch.new(settings, rng)
 	copy.board = board.clone()
-	copy.seats = seats
-	copy.bots = bots
+	copy.seats = seats.duplicate()
+	copy.bots = bots.duplicate()
 	copy.bot_level = bot_level
 	copy.starter = starter
 	copy.current = current
-	copy.colors = colors
+	copy.colors = colors.duplicate()
 	copy.last_discard_seat = last_discard_seat
 	copy.top_discard_value = top_discard_value
 	copy.round_number = round_number

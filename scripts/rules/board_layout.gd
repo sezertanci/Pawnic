@@ -54,11 +54,12 @@ var grid_size := Vector2i.ZERO
 var _index_by_name: Dictionary[String, int] = {}
 ## Koltuk başına, kareden eve en kısa adım sayısı.
 var _home_distances: Array[Dictionary] = []
-## Dosyada tanımsız bir kareye başvurulduysa true olur; tahta yüklenmez.
+## Dosyada tanımsız bir kareye başvurulduysa ya da bir çıkış karesi güvenli değilse true olur;
+## tahta yüklenmez.
 var _failed := false
 
 
-## Tahtayı dosyadan okur; dosya bozuksa null döner.
+## Tahtayı dosyadan okur; dosya bozuksa ya da bir çıkış karesi güvenli değilse null döner.
 static func load_from(path: String) -> BoardLayout:
 	var required: Array[String] = [KEY_PATHS, KEY_SEATS]
 	var root := JsonData.read(path, required)
@@ -73,6 +74,7 @@ static func load_from(path: String) -> BoardLayout:
 	layout._set_speeds(root.get("speed", {}))
 	for seat_data: Dictionary in root[KEY_SEATS]:
 		layout._add_seat(seat_data)
+	layout._check_safe_starts()
 	if layout._failed:
 		return null
 	layout._finish()
@@ -201,6 +203,15 @@ func _require(square_name: Variant) -> int:
 		push_error("Tahta dosyasında tanımsız kare: %s" % square_name)
 		_failed = true
 	return square
+
+
+## Kural motoru çıkış karesini güvenli sayar: çıkan taş denetimsiz konur, aynı renk taşlar üst
+## üste durabilir ve orada duran rakip taş çarpılmaz. Bu yüzden her çıkış karesi güvenli olmalıdır.
+func _check_safe_starts() -> void:
+	for start: int in starts:
+		if start != NO_SQUARE and not safe[start]:
+			push_error("Tahta dosyasında çıkış karesi güvenli değil: %s" % names[start])
+			_failed = true
 
 
 func _finish() -> void:

@@ -1,6 +1,6 @@
 extends GutTest
 ## Botun gördüğü bilgiyle yaptığı hesapların birim testleri: görünmeyen kartlar, kart olasılıkları,
-## tehdit okuyan değerlendirme ve olası oyun kopyası.
+## tehdit okuyan değerlendirme ve olası oyun kopyası (oyunla dizi paylaşmaz).
 
 const SEED := 11
 const PLAYERS := 3
@@ -74,6 +74,20 @@ func test_determinized_keeps_own_hand_and_hand_sizes() -> void:
 		assert_eq(copy.hands[index].size(), game.hands[index].size())
 	assert_eq(copy.draw_count(), game.draw_count())
 	assert_eq(copy.board.positions, game.board.positions)
+
+
+func test_determinized_copy_does_not_share_seat_lists() -> void:
+	var game := _game()
+	var colors := game.colors.duplicate()
+	var copy := game.determinized(RandomNumberGenerator.new())
+
+	copy.bots[0] = false
+	copy.seats.clear()
+	copy.colors.clear()
+
+	assert_true(game.bots[0])
+	assert_eq(game.seats.size(), PLAYERS)
+	assert_eq(game.colors, colors)
 
 
 func _game() -> GameMatch:

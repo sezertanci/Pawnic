@@ -1,0 +1,9 @@
+{
+	"paths": [
+		{ "id": "ring", "points": [[0, 0], [3, 0], [3, 3], [0, 3]], "loop": true },
+		{ "id": "lane0", "points": [[1, 1], [2, 1]], "owner": 0 }
+	],
+	"links": [{ "from": "ring:0", "to": "lane0:0", "seats": [0], "mode": "forced" }],
+	"safe": ["ring:5"],
+	"seats": [{ "start": "ring:1", "home": "lane0:1", "base": [1.5, 2.0] }]
+}

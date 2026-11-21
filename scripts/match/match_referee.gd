@@ -62,6 +62,9 @@ var _pause_time := 0.0
 var _dealer: RewardDealer
 ## Sıradaki oyuncunun ödülü sürüyorsa true.
 var _reward_active := false
+## Ödül kapandı ama ekran REWARD_ENDED olayını henüz bitirmedi; sıra süresi ve saat bu sırada
+## da durur, olay bitince eşlerle aynı anda yeniden başlar.
+var _reward_closing := false
 ## Sıradaki oyuncu bu sırada ödülü kullandıysa true.
 var _reward_used := false
 ## Sürmekte olan ödülde teklif edilen kartlar.
@@ -94,6 +97,7 @@ func stop() -> void:
 	_clock_running = false
 	_paused = false
 	_reward_active = false
+	_reward_closing = false
 	_stop_awaiting()
 	_screen_busy = false
 	_holds = 0
@@ -155,7 +159,7 @@ func is_awaiting_intent() -> bool:
 
 ## Sıra süresinden kalan (saniye); süre işlemiyorsa (ödül sürerken de) NO_TURN_TIMER.
 func turn_time_left() -> float:
-	return NO_TURN_TIMER if _reward_active else _turn_time_left
+	return NO_TURN_TIMER if _reward_active or _reward_closing else _turn_time_left
 
 
 ## Ödülü süren koltuk; ödül yoksa BoardLayout.NO_SEAT.
@@ -227,6 +231,8 @@ func _submit_turn(intent: MatchIntent) -> bool:
 func _process(delta: float) -> void:
 	if _paused:
 		_pause_time += delta
+		return
+	if _reward_closing:
 		return
 	if _reward_active:
 		_count_reward_time(delta)
@@ -336,7 +342,7 @@ func _count_turn_time(delta: float) -> void:
 
 ## Sıra süresi işliyorsa kalan süreyle yeniden yayılır (moladan ya da ödülden dönüş).
 func _restart_turn_timer() -> void:
-	if _turn_time_left != NO_TURN_TIMER and not _reward_active:
+	if _turn_time_left != NO_TURN_TIMER and not _reward_active and not _reward_closing:
 		turn_timer_started.emit(game.current_seat(), _turn_time_left)
 
 
@@ -387,12 +393,15 @@ func _take_reward(offer_index: int, card_index: int) -> bool:
 ## bitince sıra süresi kalan süreyle sürer.
 func _end_reward(card_index: int) -> void:
 	_reward_active = false
+	_reward_closing = true
 	_reward_offers = []
 	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.current_seat())
 	event.card_index = card_index
 	if card_index != MatchEvent.NO_CARD:
 		event.card = game.current_hand()[card_index]
-	if await _emit(event) and not _reward_active:
+	var settled := await _emit(event)
+	_reward_closing = false
+	if settled and not _reward_active:
 		_restart_turn_timer()
 
 
@@ -415,12 +424,14 @@ func _show_ad() -> bool:
 
 
 ## Bot hamlesini arka planda düşünür; ekran bu sırada akıcı kalır. Kart, en az bot_delay kadar
-## beklendikten ve düşünme bittikten sonra açılır.
+## beklendikten ve düşünme bittikten sonra açılır. Bot, ana iş parçacığında alınan kopya üstünde
+## düşünür; oyun bu sırada değişse (koltuk bota geçse, saat ilerlese) de kopyası etkilenmez.
 func _play_bot_turn() -> void:
 	var current := game
 	var bot := _bot
+	var copy := current.determinized(RandomNumberGenerator.new())
 	var result: Array[Move] = []
-	var task := WorkerThreadPool.add_task(func() -> void: result.append(bot.choose_move(current)))
+	var task := WorkerThreadPool.add_task(func() -> void: result.append(bot.choose_move(copy)))
 	await get_tree().create_timer(current.settings.bot_delay).timeout
 	while not WorkerThreadPool.is_task_completed(task):
 		await get_tree().process_frame

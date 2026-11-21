@@ -2,7 +2,7 @@
 
 ## Uygulama adı (en fazla 30 karakter)
 
-Pawnic
+Pawnic: Hoppala, Başa Döndüm!
 
 ## Kısa açıklama (en fazla 80 karakter)
 

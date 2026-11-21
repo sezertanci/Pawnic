@@ -1,5 +1,6 @@
 extends "res://tests/fixtures/referee_case.gd"
-## Hakemde ödüllü reklam akışı: teklifler, kartın değişmesi, turda bir kez kuralı ve bekleme süresi.
+## Hakemde ödüllü reklam akışı: teklifler, kartın değişmesi, turda bir kez kuralı, bekleme süresi
+## ve ödülün kapanış olayı bitene kadar sıra süresinin durması.
 
 
 func test_reward_start_offers_cards_and_stops_turn_time() -> void:
@@ -31,6 +32,22 @@ func test_reward_take_swaps_card_and_restarts_turn_time() -> void:
 	assert_eq(_events.back().kind, MatchEvent.Kind.REWARD_ENDED)
 	assert_true(game.current_hand()[0].same_as(offer))
 	assert_eq(_referee.reward_seat(), BoardLayout.NO_SEAT)
+	assert_eq(_referee.turn_time_left(), TURN_TIME)
+
+
+func test_turn_time_waits_until_reward_end_is_shown() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	var game := _new_game(HUMANS)
+	_start(game)
+	_referee.submit(_reward(MatchIntent.Kind.REWARD_START, game))
+	_auto_ack = false
+	_referee.submit(_reward(MatchIntent.Kind.REWARD_CANCEL, game))
+
+	_referee._process(SHORT_TURN_TIME)
+	var left_while_shown := _referee.turn_time_left()
+	_referee.acknowledge()
+
+	assert_eq(left_while_shown, MatchReferee.NO_TURN_TIMER)
 	assert_eq(_referee.turn_time_left(), TURN_TIME)
 
 

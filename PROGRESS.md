@@ -809,7 +809,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `store/pawnic/feature-board.png` olarak sabitlendi. Play'de Türkçe uygulama adı "Pawnic:
   Hoppala, Başa Döndüm!" yapıldı (Kızma Birader havasında, ona benzemeyen bir ad).
 - **2026-11-21 (18):** Uygulama boyutunu (~117 MB) küçültme işinden vazgeçildi. Ödüllü reklam
-  eklendi: oyun ekranında pillerin sağında video simgeli "Kart Seç" düğmesi (solda simetri için
+  eklendi: oyun ekranında deste ile atılan kartların sağında video simgeli "Kart Seç" düğmesi (solda simetri için
   boş yer). Oyuncunun sırasında, turda bir kez, sınırsız kullanılır; reklam hazır değilse ya da
   sıra başkasındaysa soluk durur. Reklam izlenince desteden oyuncunun işine en çok yarayacak 3
   kart (`RewardDealer`: her farklı kart, onunla yapılabilecek en iyi hamleye göre puanlanır)
@@ -833,3 +833,11 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   katılımcılardan gelen mesajlara uygulanır. Ayrıca ekranın kopyası (`ClientSource`) bir olaya
   uymazsa olayı ekrana vermez, `ClientSession.request_view` ile görünümün tamamını hosttan ister.
   Ağ protokolü (7) ve kayıt sürümü (4) değişmedi.
+- **2026-11-22 (20):** İnceleme bulguları düzeltildi. Tahta dosyasında her çıkış karesi güvenli
+  olmalıdır; değilse `BoardLayout` yüklenmez (kural motoru çıkış karesini güvenli sayar). Ödül
+  kapanırken sıra süresi ve saat, REWARD_ENDED olayı bitene kadar durur; süre eşlerle aynı anda
+  yeniden başlar. Bot, ana iş parçacığında alınan kopya (`GameMatch.determinized`) üstünde
+  düşünür; kopya oyunla `seats`, `bots` ve `colors` dizilerini paylaşmaz. Ertelenenler:
+  `game_screen.gd`'deki ödül akışının ayrı sınıfa alınması, `MSEC_PER_SECOND`'un ortak yere
+  taşınması, `GameMatch.from_dict`'in bölünmesi, testlerdeki sahipsiz düğüm ve çıkış sızıntısı
+  uyarıları.

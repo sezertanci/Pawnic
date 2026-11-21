@@ -2,6 +2,8 @@ extends GutTest
 ## Tahta dosyası okuma ve dallanan yollarda hareket testleri (tests/fixtures/branch_board.json).
 
 const FIXTURE := "res://tests/fixtures/branch_board.json"
+## Çıkış karesi güvenli kareler listesinde olmayan tahta.
+const UNSAFE_START_FIXTURE := "res://tests/fixtures/unsafe_start_board.json"
 const FORWARD := Card.Type.FORWARD
 
 var _board: BoardState
@@ -21,6 +23,13 @@ func test_load_from_expands_paths_into_squares() -> void:
 	assert_eq(layout.square_count(), 24 + 2 + 3 + 2)
 	assert_eq(layout.cells[layout.index_of("ring:6")], Vector2i(6, 0))
 	assert_eq(layout.grid_size, Vector2i(7, 7))
+
+
+func test_load_from_rejects_unsafe_start() -> void:
+	var layout := BoardLayout.load_from(UNSAFE_START_FIXTURE)
+
+	assert_null(layout)
+	assert_push_error("çıkış karesi güvenli değil")
 
 
 func test_home_distance_follows_forced_link() -> void:
