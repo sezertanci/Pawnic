@@ -75,6 +75,8 @@ var _dot_seats: Array[int] = []
 @onready var _win_overlay: WinOverlay = %WinOverlay
 @onready var _starter_draw: StarterDraw = %StarterDraw
 @onready var _confirm: ConfirmOverlay = %ConfirmOverlay
+@onready var _pause_overlay: PauseOverlay = %PauseOverlay
+@onready var _pause_button: Button = %PauseButton
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
 
@@ -90,6 +92,9 @@ func _ready() -> void:
 	_confirm.confirmed.connect(_on_confirmed)
 	_handoff_button.pressed.connect(_on_handoff_pressed)
 	(%BackButton as Button).pressed.connect(_on_back_pressed)
+	_pause_button.pressed.connect(_on_pause_pressed)
+	_pause_overlay.resume_pressed.connect(_on_resume_pressed)
+	_pause_overlay.quit_pressed.connect(_on_back_pressed)
 	_cards.deck_pile = _deck_pile
 	_cards.discard_pile = _discard_pile
 	_cards.discard_landed.connect(_on_discard_landed)
@@ -112,6 +117,7 @@ func start_source(source: MatchSource, draw_starter := false) -> void:
 	_source.ended.connect(_on_source_ended)
 	_source.connection_changed.connect(_on_connection_changed)
 	_source.guests_changed.connect(_on_guests_changed)
+	_source.pause_changed.connect(_on_pause_changed)
 	_open_table(draw_starter)
 
 
@@ -125,6 +131,7 @@ func _open_table(draw_starter: bool) -> void:
 	_view = _source.view()
 	_set_up_table()
 	_hide_overlays()
+	_show_pause()
 	_show_clock()
 	_refresh_table()
 	# Ekran yeni göründüğünde kapların düzeni henüz kurulmamıştır; ilk tur bir kare sonra başlar,
@@ -150,6 +157,7 @@ func _release_source() -> void:
 	_source.ended.disconnect(_on_source_ended)
 	_source.connection_changed.disconnect(_on_connection_changed)
 	_source.guests_changed.disconnect(_on_guests_changed)
+	_source.pause_changed.disconnect(_on_pause_changed)
 
 
 ## Kaynak değiştiyse ya da oyun bırakıldıysa true.
@@ -194,6 +202,8 @@ func _process(_delta: float) -> void:
 	_show_turn_timer()
 	if _source.is_networked() and not _match_over:
 		_show_seat_waits()
+	if _pause_overlay.visible:
+		_pause_overlay.show_time(_source.pause_time())
 
 
 ## Sıradaki insan oyuncunun sıra süresi (ağ oyunu) elin üstündeki çubukta, oyuncunun renginde
@@ -266,6 +276,37 @@ func _on_back_pressed() -> void:
 		_ask(LEAVE_MATCH_CONFIRM_KEY, LEAVE_KEY, CANCEL_KEY, _leave)
 	else:
 		_leave()
+
+
+## Ağ oyununda host oyunu molaya alır.
+func _on_pause_pressed() -> void:
+	_source.pause()
+
+
+func _on_resume_pressed() -> void:
+	_source.resume()
+
+
+func _on_pause_changed(_paused: bool) -> void:
+	if not _match_over:
+		_show_pause()
+
+
+## Mola katmanı ve duraklat düğmesi kaynağın durumunu izler; yeniden katılan oyuncu molayı
+## görünümle öğrenir. Ağ oyununda ekran baştan beri açık tutulur (lobi ekranları açar).
+func _show_pause() -> void:
+	var paused := _source.is_paused() and not _match_over
+	_pause_button.visible = (
+		_source.is_networked()
+		and _source.is_host()
+		and _source.is_live()
+		and not paused
+		and not _match_over
+	)
+	if paused and not _pause_overlay.visible:
+		_pause_overlay.open(_source.is_host())
+	elif not paused:
+		_pause_overlay.hide()
 
 
 ## Oyunu bırakır (yerel oyunun kaydı hakemde güncellenir). Bekleyen animasyonlar kaynak
@@ -565,6 +606,7 @@ func _show_move(event: MatchEvent) -> void:
 ## Oyun bitti: sıralama tablosu açılır.
 func _end_match() -> void:
 	_match_over = true
+	_show_pause()
 	_clear_selection()
 	_hand_view.clear()
 	var ranking := MatchResult.order(_view.settings, _view.board, _view.seats, _view.finishers)
@@ -709,6 +751,8 @@ func _hide_overlays() -> void:
 	_win_overlay.close()
 	_starter_draw.close()
 	_confirm.hide()
+	_pause_overlay.hide()
+	_pause_button.hide()
 
 
 ## Oyundaki koltukların renkleri (konfeti için).

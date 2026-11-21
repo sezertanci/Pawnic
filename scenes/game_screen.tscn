@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_screen.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/board_view.gd" id="2"]
@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" path="res://scenes/components/win_overlay.tscn" id="win_overlay"]
 [ext_resource type="PackedScene" path="res://scenes/components/starter_draw.tscn" id="starter_draw"]
 [ext_resource type="PackedScene" path="res://scenes/components/confirm_overlay.tscn" id="confirm_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/pause_icon.gd" id="pause_icon"]
+[ext_resource type="PackedScene" path="res://scenes/components/pause_overlay.tscn" id="pause_overlay"]
 
 [node name="GameScreen" type="Control"]
 layout_mode = 3
@@ -81,6 +83,23 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 script = ExtResource("4")
+
+[node name="PauseButton" type="Button" parent="Margin/Box/Header"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+theme_type_variation = &"IconButton"
+
+[node name="Icon" type="Control" parent="Margin/Box/Header/PauseButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("pause_icon")
 
 [node name="RoomInfo" type="Label" parent="Margin/Box"]
 unique_name_in_owner = true
@@ -213,6 +232,11 @@ visible = false
 layout_mode = 1
 
 [node name="StarterDraw" parent="." instance=ExtResource("starter_draw")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="PauseOverlay" parent="." instance=ExtResource("pause_overlay")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

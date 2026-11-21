@@ -6,7 +6,9 @@ extends Node
 ## beklenir: olayı dinleyen her bekletme (hold) bırakılana (release) kadar sıradaki olay yayılmaz.
 ## Kayıt verildiyse her sıranın başında oyun kaydedilir, oyun bitince kayıt silinir (ağ oyununda
 ## kayıt yoktur). Sıra süresi verildiyse (ağ oyunu) insan oyuncunun niyeti beklenmeye başlayınca
-## süre işler; süre dolarsa o hamleyi bot oynar, koltuk oyuncuda kalır.
+## süre işler; süre dolarsa o hamleyi bot oynar, koltuk oyuncuda kalır. Ağ oyununda host oyunu
+## molaya alabilir: molada saat ve sıra süresi işlemez, ekranın çizdiği olay biter ama sıradaki
+## olay (bot hamlesi ya da gelen niyet dahil) devam edilene kadar yayılmaz.
 
 ## Bir olay yayıldı; dinleyen, olayı bitirince acknowledge() çağırır.
 signal event_emitted(event: MatchEvent)
@@ -15,10 +17,14 @@ signal acknowledged
 ## İnsan oyuncunun sıra süresi başladı: seconds saniye içinde niyet gelmezse hamleyi bot oynar.
 ## Cihaz durup (uygulama arka plandaydı) devam edince kalan süreyle yeniden yayılır.
 signal turn_timer_started(seat: int, seconds: float)
+## Oyun molaya alındı (paused true) ya da moladan çıktı.
+signal pause_changed(paused: bool)
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 ## Sıra süresi işlemiyorken kalan süre yerine verilir.
 const NO_TURN_TIMER := -1.0
+## Mola yokken moladaki süre yerine verilir.
+const NOT_PAUSED := -1.0
 
 ## Yarım kalan oyunun yazıldığı kayıt; null ise oyun kaydedilmez.
 var store: SaveStoreScript
@@ -45,6 +51,10 @@ var _awaiting_intent := false
 var _announced := 0
 ## Sıra süresinden kalan (saniye); süre işlemiyorsa NO_TURN_TIMER.
 var _turn_time_left := NO_TURN_TIMER
+## Oyun moladaysa true.
+var _paused := false
+## Molanın başından beri geçen süre (saniye).
+var _pause_time := 0.0
 
 
 ## Oyunu devralır; ilk sıra begin() ile başlar (ekran arada başlangıç kurasını gösterebilir).
@@ -68,6 +78,7 @@ func begin() -> void:
 func stop() -> void:
 	game = null
 	_clock_running = false
+	_paused = false
 	_stop_awaiting()
 	_screen_busy = false
 	_holds = 0
@@ -131,6 +142,35 @@ func turn_time_left() -> float:
 	return _turn_time_left
 
 
+## Oyunu molaya alır; oyun yoksa, bittiyse ya da zaten moladaysa bir şey yapmaz.
+func pause() -> void:
+	if game == null or _paused or MatchResult.is_over(game):
+		return
+	_paused = true
+	_pause_time = 0.0
+	pause_changed.emit(true)
+
+
+## Moladan çıkar: sıra süresi kalan süreyle yeniden yayılır, bekleyen akış sürer.
+func resume() -> void:
+	if not _paused:
+		return
+	_paused = false
+	pause_changed.emit(false)
+	if _turn_time_left != NO_TURN_TIMER:
+		turn_timer_started.emit(game.current_seat(), _turn_time_left)
+	_settle()
+
+
+func is_paused() -> bool:
+	return _paused
+
+
+## Molanın başından beri geçen süre (saniye); mola yoksa NOT_PAUSED.
+func pause_time() -> float:
+	return _pause_time if _paused else NOT_PAUSED
+
+
 ## Niyeti doğrular ve geçerliyse uygular; geçersizse (sıra onun değil, hamle yasal değil) false.
 func submit(intent: MatchIntent) -> bool:
 	if not _awaiting_intent or intent.seat != game.current_seat():
@@ -151,6 +191,9 @@ func submit(intent: MatchIntent) -> bool:
 
 
 func _process(delta: float) -> void:
+	if _paused:
+		_pause_time += delta
+		return
 	if _clock_running:
 		game.elapsed += delta
 	if _turn_time_left == NO_TURN_TIMER:
@@ -171,21 +214,30 @@ func _is_hand_card(card_index: int) -> bool:
 	return card_index >= 0 and card_index < game.current_hand().size()
 
 
-## Olayı yayar ve ekranla bütün bekletmelerin bitirmesini bekler; beklerken oyun değiştiyse
-## (hakem durdu) false döner. Dinleyiciler olayı yayılırken bitirirse beklenmez.
+## Olayı yayar ve ekranla bütün bekletmelerin bitirmesini bekler; molada önce devam edilmesi
+## beklenir. Beklerken oyun değiştiyse (hakem durdu) false döner. Dinleyiciler olayı yayılırken
+## bitirirse beklenmez.
 func _emit(event: MatchEvent) -> bool:
 	var current := game
+	await _wait_settled()
+	if current != game:
+		return false
 	_screen_busy = true
 	_holds = 0
 	event_emitted.emit(event)
-	if _screen_busy or _holds > 0:
-		_waiting_ack = true
-		await acknowledged
+	await _wait_settled()
 	return current == game and current != null
 
 
+## Ekran ve bekletmeler son olayı bitirene ve mola bitene kadar bekler.
+func _wait_settled() -> void:
+	if _screen_busy or _holds > 0 or _paused:
+		_waiting_ack = true
+		await acknowledged
+
+
 func _settle() -> void:
-	if _waiting_ack and not _screen_busy and _holds == 0:
+	if _waiting_ack and not _screen_busy and _holds == 0 and not _paused:
 		_waiting_ack = false
 		acknowledged.emit()
 

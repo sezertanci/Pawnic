@@ -1,7 +1,8 @@
 extends GutTest
 ## Oyun kaynakları: hakemden beslenen kaynağın bayatlaması ve hostun görünümü; istemci kaynağının
 ## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
-## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; kaynakların oda kodu. Ağ sahte taşıyıcıyla
+## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; molada saatin ve sıra süresinin durması;
+## kaynakların oda kodu. Ağ sahte taşıyıcıyla
 ## kurulur.
 
 const SEED := 11
@@ -168,6 +169,39 @@ func test_client_source_freezes_turn_time_while_connection_lost() -> void:
 	_room.connection_changed.emit(false)
 	await wait_seconds(SHORT_TURN_TIME * 2)
 	assert_false(_source.is_awaiting_intent())
+
+
+func test_client_source_freezes_turn_time_and_clock_while_paused() -> void:
+	await _reach_client_turn()
+	_source.acknowledge(_shown.back())
+	await wait_frames(FRAMES)
+	_room.session.turn_timer_started.emit(_client_seat, SHORT_TURN_TIME)
+	watch_signals(_source)
+
+	_referee.pause()
+	await wait_frames(FRAMES)
+	var elapsed := _source.elapsed()
+	await wait_seconds(SHORT_TURN_TIME * 2)
+
+	assert_true(_source.is_paused())
+	assert_signal_emitted_with_parameters(_source, "pause_changed", [true])
+	assert_true(_source.is_awaiting_intent())
+	assert_eq(_source.elapsed(), elapsed)
+	_referee.resume()
+	await wait_seconds(SHORT_TURN_TIME * 2)
+	assert_false(_source.is_awaiting_intent())
+
+
+func test_only_host_source_pauses() -> void:
+	await _start_match()
+	var host_source := RefereeSource.new(_referee, _host_seat, ROOM_CODE, _host)
+	var local_source := RefereeSource.new(_referee)
+
+	local_source.pause()
+	assert_false(_referee.is_paused())
+	host_source.pause()
+
+	assert_true(host_source.is_paused())
 
 
 func test_lost_room_ends_client_source() -> void:

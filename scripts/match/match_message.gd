@@ -44,6 +44,10 @@ enum Type {
 	SEAT_STATUS,
 	## Hosttan istemciye: host odayı kapattı. İçerik boştur.
 	CLOSED,
+	## Hosttan istemciye: host oyunu molaya aldı. İçerik boştur.
+	PAUSED,
+	## Hosttan istemciye: host oyunu moladan çıkardı. İçerik boştur.
+	RESUMED,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -64,7 +68,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 5
+const PROTOCOL_VERSION := 6
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
@@ -80,6 +84,9 @@ const KEY_SPEED := "speed"
 const KEY_AWAITING := "awaiting"
 ## Görünümle birlikte giden, sıradaki oyuncunun sıra süresinden kalan (saniye).
 const KEY_TURN_TIME := "turn_time"
+## Görünümle birlikte giden, molanın başından beri geçen süre (saniye); mola yoksa
+## MatchReferee.NOT_PAUSED.
+const KEY_PAUSE := "pause"
 const KEY_SECONDS := "seconds"
 const KEY_TOKEN := "token"
 const KEY_SERIAL := "serial"
@@ -100,17 +107,20 @@ static func event(match_event: MatchEvent, viewer_seat: int, serial: int) -> Dic
 
 
 ## Görünüm, hostun oyun hızıyla ve hostun bu oyuncunun niyetini bekleyip beklemediğiyle birlikte
-## gider; istemci animasyonları bu hızla oynatır. Sıra süresi işliyorsa kalanı da gider.
+## gider; istemci animasyonları bu hızla oynatır. Sıra süresi işliyorsa kalanı, oyun moladaysa
+## molanın süresi de gider.
 static func snapshot(
 	view: MatchView,
 	speed_level: int,
 	awaiting := false,
 	turn_time := MatchReferee.NO_TURN_TIMER,
+	pause_time := MatchReferee.NOT_PAUSED,
 ) -> Dictionary:
 	var data := view.to_dict()
 	data[KEY_SPEED] = speed_level
 	data[KEY_AWAITING] = awaiting
 	data[KEY_TURN_TIME] = turn_time
+	data[KEY_PAUSE] = pause_time
 	return make(Type.SNAPSHOT, data)
 
 
@@ -161,6 +171,14 @@ static func seat_status(seat: int, seconds: float) -> Dictionary:
 
 static func closed() -> Dictionary:
 	return make(Type.CLOSED, {})
+
+
+static func paused() -> Dictionary:
+	return make(Type.PAUSED, {})
+
+
+static func resumed() -> Dictionary:
+	return make(Type.RESUMED, {})
 
 
 ## İçerikteki yeniden katılma anahtarı; yoksa ya da metin değilse boş.

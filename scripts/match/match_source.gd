@@ -18,6 +18,8 @@ signal ended(by_host: bool)
 signal connection_changed(lost: bool)
 ## Ağ oyununda hostta oturan katılımcılar azaldı; has_guests() değişmiş olabilir.
 signal guests_changed
+## Ağ oyununda host oyunu molaya aldı (paused true) ya da moladan çıkardı.
+signal pause_changed(paused: bool)
 
 
 ## Oyunun bu cihazda görünen hâli; her olaydan önce güncellenir.
@@ -60,6 +62,26 @@ func turn_time_left() -> float:
 ## kalan saniye (süre dolduysa 0); oyuncu bağlıysa ya da oyun yerelse SeatPresence.PRESENT.
 func seat_wait(_seat: int) -> float:
 	return SeatPresence.PRESENT
+
+
+## Ağ oyunu moladaysa true.
+func is_paused() -> bool:
+	return false
+
+
+## Molanın başından beri geçen süre (saniye); mola yoksa MatchReferee.NOT_PAUSED.
+func pause_time() -> float:
+	return MatchReferee.NOT_PAUSED
+
+
+## Ağ oyununda host oyunu molaya alır; başka yerde bir şey yapmaz.
+func pause() -> void:
+	pass
+
+
+## Ağ oyununda host oyunu moladan çıkarır; başka yerde bir şey yapmaz.
+func resume() -> void:
+	pass
 
 
 ## Oyuncu oyundan çıkıyor.

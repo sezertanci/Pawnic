@@ -320,7 +320,7 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   ve `test_confirm_overlay.gd`'de.
   Parça 2 (20 sn sıra süresi) yapıldı (2026-11-21 (2)). Parça 3 (oyun sırasında kopma ve geri
   dönme) yapıldı (2026-11-21 (3)). Ağ oyununda Tekrar oyna yapıldı (2026-11-21 (4)).
-  Sonraya kalanlar: duraklatma ve ortak oyun içi reklam.
+  Duraklatma yapıldı (2026-11-21 (5)). Sonraya kalan: ortak oyun içi reklam.
 
 **Kararlar (2026-11-20)**
 - Oyuncular: her cihazda bir kişi; boş koltuklara bot konabilir. Bir cihazda birden çok kişi
@@ -345,8 +345,10 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
     oynamaz. Kendi isteğiyle ayrılma kesindir, geri dönülemez (istemeden kopan geri dönebilir).
   - Molada kopma sayılmaz: 20 saniyelik kopma sayacı işlemez; oyuncu devam edilene kadar
     dönebilir, dönmemişse devamda sayaç başlar.
-  - Host'un duraklatma ekranında "Telefonu kilitlemeyin, oyun biter" uyarısı yazar ve ekran açık
-    tutulur (host kopması oyunu bitirir).
+  - Host'un duraklatma ekranında "Telefonu kilitlerseniz oyun bitebilir." uyarısı yazar ve ekran
+    açık tutulur. (Karar değişti, 2026-11-21: önceki "Telefonu kilitlemeyin, oyun biter" yazısı
+    yumuşatıldı. Tablette host ekranı 20 sn'den uzun kapalı kaldı, açılınca misafir yeniden
+    bağlandı ve oyun sürdü; Android uygulamayı kapatır ya da Wi-Fi'yi keserse oyun yine biter.)
 - Katılma: otomatik oyun bulma, QR kod ve oda kodu / elle IP; üçü de olacak.
 - QR okuma Google'ın kod tarayıcısıyla (Play Hizmetleri, ML Kit "Google code scanner") yapılır;
   uygulama kamera izni istemez. Hazır resmî Godot eklentisi bilinmiyor, küçük bir Godot Android
@@ -706,3 +708,16 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   ekranı açıkken son katılımcı çıkarsa hostta Tekrar oyna hemen gizlenir
   (`HostSession.guests_changed` → `MatchSource.guests_changed`; kopan oyuncu çıkmış sayılmaz).
   GUT 284/284, simülasyonda bitmeyen yok. Tablette denenmedi.
+- **2026-11-21 (5):** Ağ oyununda duraklatma. `MatchReferee.pause`/`resume`: molada saat, sıra
+  süresi ve reklam süresi (oyun saatine bağlı) işlemez; yürüyen animasyon biter ama hakem sonraki
+  adımı vermez, yarım seçim korunur, devamda sıra süresi kalan süreyle yeniden başlar.
+  `SeatPresence.freeze`/`thaw` molada kopma sayacını durdurur (molada kopan koltuk bota geçmez,
+  dönmemişse devamda sayaç başlar). Yeni iletiler PAUSED/RESUMED, görünüm mola süresini taşır
+  (`PROTOCOL_VERSION` 6); yeniden katılan oyuncu molayı görünümden öğrenir. Yalnızca hostta üst
+  çubukta ⏸ düğmesi (`PauseIcon`, çizilen simge). Mola katmanı `PauseOverlay`: "Duraklatıldı",
+  mola süresi ve hostta "Telefonu kilitlerseniz oyun bitebilir." uyarısıyla Devam Et / Oyunu Bitir,
+  misafirde bekleme yazısıyla Oyundan Çık (ikisi de mevcut onayla). Ekran ağ oyununda lobiden
+  beri açık tutulduğu için ayrıca açılmadı. Yeni metinler `PAUSED`, `PAUSE_HOST_NOTE`,
+  `PAUSE_GUEST_NOTE`, `QUIT_MATCH`, `END_MATCH` 8 dilde. `gdlintrc` eklendi, `max-public-methods`
+  25 (kaynak sınıfları ve hakem testi 20'yi aşıyordu). GUT 295/295, simülasyonda bitmeyen yok.
+  Tablette denenmedi. Sıradaki iş: ortak oyun içi reklam.

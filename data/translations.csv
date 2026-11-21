@@ -129,3 +129,8 @@ LEAVE_MATCH_CONFIRM,Oyundan çıkılsın mı? Yerini bir bot alacak.,Leave the g
 END_MATCH_CONFIRM,Oyundan çıkılsın mı? Oyun herkes için bitecek.,Leave the game? It will end for everyone.,Spiel verlassen? Es endet für alle.,¿Salir de la partida? Terminará para todos.,Quitter la partie ? Elle se terminera pour tout le monde.,Uscire dalla partita? Finirà per tutti.,Sair do jogo? Ele vai terminar para todos.,Keluar dari permainan? Permainan akan berakhir untuk semua.
 LEAVE,Çık,Leave,Verlassen,Salir,Quitter,Esci,Sair,Keluar
 CANCEL,Vazgeç,Cancel,Abbrechen,Cancelar,Annuler,Annulla,Cancelar,Batal
+PAUSED,Duraklatıldı,Paused,Pausiert,En pausa,En pause,In pausa,Pausado,Dijeda
+PAUSE_HOST_NOTE,Telefonu kilitlerseniz oyun bitebilir.,"If you lock your phone, the game may end.","Wenn du dein Handy sperrst, kann das Spiel enden.","Si bloqueas el teléfono, la partida puede terminar.","Si tu verrouilles ton téléphone, la partie peut se terminer.","Se blocchi il telefono, la partita potrebbe finire.","Se você bloquear o celular, o jogo pode terminar.","Jika ponsel dikunci, permainan bisa berakhir."
+PAUSE_GUEST_NOTE,Kurucunun devam etmesi bekleniyor…,Waiting for the host to continue…,"Warten, bis der Gastgeber fortsetzt…",Esperando a que el anfitrión continúe…,En attente de la reprise par l'hôte…,In attesa che l'host riprenda…,Aguardando o anfitrião continuar…,Menunggu tuan rumah melanjutkan…
+QUIT_MATCH,Oyundan Çık,Leave Game,Spiel Verlassen,Salir De La Partida,Quitter La Partie,Esci Dalla Partita,Sair Do Jogo,Keluar Permainan
+END_MATCH,Oyunu Bitir,End Game,Spiel Beenden,Terminar Partida,Terminer La Partie,Termina Partita,Encerrar Jogo,Akhiri Permainan

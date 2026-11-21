@@ -16,6 +16,9 @@ extends RefCounted
 ## (rejoin_wait_sec) dolana kadar durur. Süre dolunca koltuğu, eş dönene kadar bot oynar. Eş aynı
 ## bağlantıdan sesini duyurunca ya da WELCOME'da aldığı yeniden katılma anahtarıyla yeniden
 ## bağlanınca koltuğuna döner.
+##
+## Mola: host oyunu molaya alınca ve moladan çıkarınca oturan eşlere bildirilir. Molada kopma
+## süreleri işlemez; yeniden katılan eş molayı görünümle öğrenir.
 
 ## Eş el sıkışmadan geçti (yeniden katılan eş için gelmez).
 signal peer_welcomed(peer_id: int)
@@ -68,6 +71,7 @@ func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSetti
 	_transport.peer_disconnected.connect(_on_peer_disconnected)
 	_referee.event_emitted.connect(_on_event)
 	_referee.turn_timer_started.connect(_on_turn_timer_started)
+	_referee.pause_changed.connect(_on_pause_changed)
 	Engine.get_main_loop().process_frame.connect(_on_frame)
 
 
@@ -245,7 +249,10 @@ func _send_snapshot(peer_id: int) -> void:
 	var view := MatchView.of(_referee.game, seat)
 	var awaiting := _referee.is_awaiting_intent() and _referee.game.current_seat() == seat
 	var turn_time := _referee.turn_time_left()
-	_transport.send(peer_id, MatchMessage.snapshot(view, speed_level, awaiting, turn_time))
+	var pause_time := _referee.pause_time()
+	_transport.send(
+		peer_id, MatchMessage.snapshot(view, speed_level, awaiting, turn_time, pause_time)
+	)
 
 
 ## Eş oyundan çıktı: koltuğu bota geçer, eş oyundan düşer.
@@ -285,6 +292,17 @@ func _on_event(event: MatchEvent) -> void:
 func _on_turn_timer_started(seat: int, seconds: float) -> void:
 	for peer_id: int in _seats:
 		_transport.send(peer_id, MatchMessage.turn_timer(seat, seconds))
+
+
+## Molada kopma süreleri durur; devamda kaldıkları yerden sürer.
+func _on_pause_changed(paused: bool) -> void:
+	if paused:
+		_presence.freeze(clock.call())
+	else:
+		_presence.thaw(clock.call())
+	var message := MatchMessage.paused() if paused else MatchMessage.resumed()
+	for peer_id: int in _seats:
+		_transport.send(peer_id, message)
 
 
 ## Eş son olayı bitirdi ya da artık beklenmiyor; bekletmesi bırakılır.

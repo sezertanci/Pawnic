@@ -1,5 +1,6 @@
 extends GutTest
-## Bağlantı yoklaması (PeerWatch) ve kopan koltukların bekleme süresi (SeatPresence).
+## Bağlantı yoklaması (PeerWatch) ve kopan koltukların bekleme süresi (SeatPresence), moladaki
+## donması dahil.
 
 const PEER := 2
 const SEAT := 1
@@ -83,3 +84,24 @@ func test_marking_present_reports_change_once() -> void:
 	assert_true(presence.mark_present(SEAT))
 	assert_false(presence.mark_present(SEAT))
 	assert_false(presence.is_away(SEAT))
+
+
+func test_frozen_wait_resumes_where_it_stopped() -> void:
+	var presence := SeatPresence.new()
+	presence.mark_away(SEAT, WAIT_SECONDS, 0)
+
+	presence.freeze(5000)
+	assert_almost_eq(presence.wait_left(SEAT, 60000), WAIT_SECONDS - 5.0, 0.001)
+	presence.thaw(60000)
+
+	assert_almost_eq(presence.wait_left(SEAT, 61000), WAIT_SECONDS - 6.0, 0.001)
+
+
+func test_seat_lost_while_frozen_waits_in_full_after_thaw() -> void:
+	var presence := SeatPresence.new()
+	presence.freeze(0)
+
+	presence.mark_away(SEAT, WAIT_SECONDS, 30000)
+	presence.thaw(50000)
+
+	assert_almost_eq(presence.wait_left(SEAT, 50000), WAIT_SECONDS, 0.001)

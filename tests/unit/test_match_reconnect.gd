@@ -3,7 +3,7 @@ extends GutTest
 ## sürer, sıra onun koltuğuna gelince beklenir, süre dolunca koltuk bota geçer, eş yeniden katılma
 ## anahtarıyla koltuğuna döner, sesi kesilip dönen eş kalan sıra süresini öğrenir, el sıkışmayan
 ## bağlantı kesilir; istemci kopan koltukları, hostun sesinin kesilmesini ve odanın kapandığını
-## öğrenir.
+## öğrenir. Molada kopan koltuk bota geçmez; istemci molayı iletiyle ya da görünümle öğrenir.
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
 const TEST_PATH := "user://test_match_reconnect_save.json"
@@ -222,6 +222,48 @@ func test_client_notices_silent_host() -> void:
 
 	assert_true(_client.is_host_silent())
 	assert_signal_emitted_with_parameters(_client, "host_silent_changed", [true])
+
+
+func test_client_learns_pause_and_resume() -> void:
+	await _start_match()
+	watch_signals(_client)
+
+	_referee.pause()
+	await wait_frames(FRAMES)
+	assert_true(_client.is_paused())
+	_referee.resume()
+	await wait_frames(FRAMES)
+
+	assert_false(_client.is_paused())
+	assert_signal_emit_count(_client, "pause_changed", 2)
+
+
+func test_seat_lost_during_pause_is_not_benched() -> void:
+	_client_finishes = false
+	await _start_match()
+	_referee.pause()
+	_client_transport().disconnect_peer()
+	await wait_frames(FRAMES)
+
+	await _advance_clock(int(_game.settings.rejoin_wait_time * ClientSource.MSEC_PER_SECOND))
+
+	assert_eq(_host.seat_wait(_client_seat), _game.settings.rejoin_wait_time)
+	assert_false(_game.bots[_game.seats.find(_client_seat)])
+
+
+func test_rejoining_client_learns_pause_from_view() -> void:
+	_client_finishes = false
+	await _start_match()
+	_referee.pause()
+	_client_transport().disconnect_peer()
+	await wait_frames(FRAMES)
+	var back := _rejoining_client(_client.token)
+
+	back.join()
+	await wait_frames(FRAMES)
+
+	assert_true(back.is_paused())
+	assert_gte(back.pause_time(), 0.0)
 
 
 ## Hostun sırasında oynanabilecek ilk hamle; hamle yoksa ilk kart atılır.

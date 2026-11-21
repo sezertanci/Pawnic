@@ -5,7 +5,8 @@ extends RefCounted
 ## okunur. Olay kopyayla uyuşmazsa görünümün tamamı yeniden istenir; o gelene kadar olaylar
 ## yok sayılır (yeni görünüm onları zaten içerir). El sıkışınca hosta düzenli aralıkla HEARTBEAT
 ## gönderilir; oyun sürerken hosttan bir süredir ses gelmezse bu bildirilir. WELCOME'daki yeniden
-## katılma anahtarı saklanır ve yeniden bağlanırken HELLO ile gönderilir.
+## katılma anahtarı saklanır ve yeniden bağlanırken HELLO ile gönderilir. Host oyunu molaya
+## alınca koltukların kopma süreleri durur; mola görünümle de gelir.
 
 ## Host el sıkışmayı kabul etti.
 signal welcomed
@@ -25,6 +26,8 @@ signal turn_timer_started(seat: int, seconds: float)
 signal host_silent_changed(silent: bool)
 ## Host odayı kapattı.
 signal closed_by_host
+## Host oyunu molaya aldı (paused true) ya da moladan çıkardı.
+signal pause_changed(paused: bool)
 
 ## İstemcinin kopyası; ilk görünüm gelene kadar null.
 var view: MatchView
@@ -51,6 +54,9 @@ var _watch: PeerWatch
 ## Koltukların bağlantı durumu, hostun bildirdiği kadarıyla.
 var _presence := SeatPresence.new()
 var _host_silent := false
+var _paused := false
+## Molanın başladığı an (ms, clock'a göre).
+var _pause_start := 0
 
 
 func _init(transport: MatchTransport, settings: GameSettings) -> void:
@@ -76,6 +82,18 @@ func is_host_silent() -> bool:
 ## Koltuğu bot alana kadar kalan saniye; süre dolduysa 0, oyuncu bağlıysa SeatPresence.PRESENT.
 func seat_wait(seat: int) -> float:
 	return _presence.wait_left(seat, clock.call())
+
+
+## Host oyunu molaya aldıysa true.
+func is_paused() -> bool:
+	return _paused
+
+
+## Molanın başından beri geçen süre (saniye); mola yoksa MatchReferee.NOT_PAUSED.
+func pause_time() -> float:
+	if not _paused:
+		return MatchReferee.NOT_PAUSED
+	return (clock.call() - _pause_start) / ClientSource.MSEC_PER_SECOND
 
 
 ## Hostla bağlantı koptu; yeniden el sıkışana kadar hosta mesaj gönderilmez. Kopya ve anahtar
@@ -150,6 +168,25 @@ func _dispatch(type: int, data: Dictionary) -> void:
 		_update_presence(data)
 	elif type == MatchMessage.Type.CLOSED:
 		closed_by_host.emit()
+	elif type == MatchMessage.Type.PAUSED:
+		_set_paused(true, 0.0)
+	elif type == MatchMessage.Type.RESUMED:
+		_set_paused(false, MatchReferee.NOT_PAUSED)
+
+
+## Molada koltukların süreleri durur (yeniden katılınca yeni durum da); mola değiştiyse
+## bildirilir. seconds molanın başından beri geçen süredir.
+func _set_paused(paused: bool, seconds: float) -> void:
+	var now: int = clock.call()
+	if paused:
+		_presence.freeze(now)
+		if not _paused:
+			_pause_start = now - int(seconds * ClientSource.MSEC_PER_SECOND)
+	else:
+		_presence.thaw(now)
+	if paused != _paused:
+		_paused = paused
+		pause_changed.emit(paused)
 
 
 func _hear_host() -> void:
@@ -195,22 +232,26 @@ func _update_lobby(data: Dictionary) -> void:
 		lobby_changed.emit(lobby)
 
 
-## Bozuk görünüm (hız, bekleme bayrağı ve sıra süresi dahil) yok sayılır; kopya değişmez.
+## Bozuk görünüm (hız, bekleme bayrağı, sıra süresi ve mola dahil) yok sayılır; kopya değişmez.
 func _reset(data: Dictionary) -> void:
 	var received := MatchView.from_dict(_settings, data)
 	var levels := _settings.speed_levels.size()
 	var level := MessageData.read_index(data, MatchMessage.KEY_SPEED, 0, levels)
 	var awaiting: Variant = data.get(MatchMessage.KEY_AWAITING)
 	var turn_time: Variant = data.get(MatchMessage.KEY_TURN_TIME)
+	var pause_time: Variant = data.get(MatchMessage.KEY_PAUSE)
 	if received == null or level == MessageData.INVALID or not awaiting is bool:
 		return
 	if not _is_turn_time(turn_time) and not _is_no_turn_time(turn_time):
+		return
+	if not _is_pause_time(pause_time):
 		return
 	view = received
 	speed_level = level
 	host_awaiting = awaiting
 	host_turn_time = turn_time
 	_awaiting_snapshot = false
+	_set_paused(pause_time != MatchReferee.NOT_PAUSED, pause_time)
 	view_reset.emit(view)
 
 
@@ -229,6 +270,10 @@ func _is_turn_time(value: Variant) -> bool:
 
 func _is_no_turn_time(value: Variant) -> bool:
 	return MessageData.is_number(value) and value == MatchReferee.NO_TURN_TIMER
+
+
+func _is_pause_time(value: Variant) -> bool:
+	return MessageData.is_number(value) and (value >= 0.0 or value == MatchReferee.NOT_PAUSED)
 
 
 func _apply(data: Dictionary) -> void:

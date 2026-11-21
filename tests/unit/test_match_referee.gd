@@ -1,6 +1,6 @@
 extends GutTest
 ## Hakemin (MatchReferee) sıra akışı: olayların sırası, ekranın ve bekletmelerin beklenmesi,
-## niyetlerin doğrulanması, kayıt ve saat. Gerçek kayıt dosyasına dokunmamak için ayrı bir yol
+## niyetlerin doğrulanması, kayıt, saat ve mola. Gerçek kayıt dosyasına dokunmamak için ayrı bir yol
 ## kullanılır.
 
 const SaveStoreScript := preload("res://scripts/autoload/save_store.gd")
@@ -241,6 +241,61 @@ func test_device_pause_does_not_use_turn_time() -> void:
 	assert_true(_referee.is_awaiting_intent())
 	assert_eq(started, [[game.current_seat(), _referee.turn_time_left()]])
 	assert_gt(_referee.turn_time_left(), TURN_TIME - pause)
+
+
+func test_pause_stops_clock_and_turn_time() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	var game := _new_game(HUMANS)
+	_start(game)
+	var elapsed := game.elapsed
+
+	_referee.pause()
+	await wait_frames(FRAMES)
+
+	assert_true(_referee.is_paused())
+	assert_eq(game.elapsed, elapsed)
+	assert_eq(_referee.turn_time_left(), TURN_TIME)
+	assert_gt(_referee.pause_time(), 0.0)
+
+
+func test_paused_flow_waits_for_resume() -> void:
+	var game := _new_game(HUMANS)
+	_give_exit_cards(game)
+	_start(game)
+	_referee.pause()
+
+	_referee.submit(MatchIntent.play(game.current_seat(), game.legal_moves()[0]))
+	assert_eq(_kinds(), [MatchEvent.Kind.TURN_STARTED])
+	_referee.resume()
+
+	assert_false(_referee.is_paused())
+	assert_eq(_referee.pause_time(), MatchReferee.NOT_PAUSED)
+	assert_eq(game.current, 1)
+
+
+func test_resume_restarts_turn_timer_with_time_left() -> void:
+	_referee.turn_time_limit = TURN_TIME
+	var game := _new_game(HUMANS)
+	_start(game)
+	var started: Array = []
+	_referee.turn_timer_started.connect(
+		func(seat: int, seconds: float) -> void: started.append([seat, seconds])
+	)
+	_referee.pause()
+
+	_referee.resume()
+
+	assert_eq(started, [[game.current_seat(), TURN_TIME]])
+
+
+func test_stopped_referee_cannot_be_paused() -> void:
+	var game := _new_game(HUMANS)
+	_start(game)
+	_referee.stop()
+
+	_referee.pause()
+
+	assert_false(_referee.is_paused())
 
 
 func test_local_match_has_no_turn_timer() -> void:

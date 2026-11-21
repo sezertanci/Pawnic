@@ -29,6 +29,7 @@ func _init(
 	_room_code = room_code
 	_session = session
 	_referee.event_emitted.connect(_on_event)
+	_referee.pause_changed.connect(_on_pause_changed)
 	if _session != null:
 		_session.guests_changed.connect(guests_changed.emit)
 
@@ -69,6 +70,24 @@ func turn_time_left() -> float:
 	return _referee.turn_time_left() if is_live() else MatchReferee.NO_TURN_TIMER
 
 
+func is_paused() -> bool:
+	return is_live() and _referee.is_paused()
+
+
+func pause_time() -> float:
+	return _referee.pause_time() if is_live() else MatchReferee.NOT_PAUSED
+
+
+func pause() -> void:
+	if is_live() and is_host():
+		_referee.pause()
+
+
+func resume() -> void:
+	if is_live() and is_host():
+		_referee.resume()
+
+
 func leave() -> void:
 	if is_live():
 		_referee.leave()
@@ -77,6 +96,7 @@ func leave() -> void:
 func detach() -> void:
 	if is_instance_valid(_referee) and _referee.event_emitted.is_connected(_on_event):
 		_referee.event_emitted.disconnect(_on_event)
+		_referee.pause_changed.disconnect(_on_pause_changed)
 	if _session != null and _session.guests_changed.is_connected(guests_changed.emit):
 		_session.guests_changed.disconnect(guests_changed.emit)
 
@@ -131,3 +151,8 @@ func _viewer() -> int:
 func _on_event(event: MatchEvent) -> void:
 	if is_live():
 		event_emitted.emit(event)
+
+
+func _on_pause_changed(paused: bool) -> void:
+	if is_live():
+		pause_changed.emit(paused)

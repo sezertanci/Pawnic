@@ -9,6 +9,7 @@ extends MatchSource
 ## andan yerel saatle sayılır; süre dolunca oyuncunun niyeti artık beklenmez (host o hamleyi bota
 ## oynatır) ve gelen ret seçimi yeniden açmaz. Oyun bitince kaynak yeniden begin() bekler: host
 ## tekrar oynarsa yeni oyunun görünümü gelir, olaylar ekran yeni oyunu başlatana kadar sırada kalır.
+## Host oyunu molaya alınca saat ve sıra süresi durur, devamda kaldıkları yerden sürer.
 
 const MSEC_PER_SECOND := 1000.0
 ## Sıra süresi işlemiyorken bitiş anı yerine kullanılır.
@@ -33,8 +34,9 @@ var _clock_start := 0
 var _clock_running := false
 ## Sıra süresinin bittiği an (Time.get_ticks_msec); süre işlemiyorsa NO_DEADLINE.
 var _turn_deadline := NO_DEADLINE
-## Bağlantı kopukken donan kalan süre; donmuş süre yoksa MatchReferee.NO_TURN_TIMER.
+## Bağlantı kopukken ya da molada donan kalan süre; donmuş süre yoksa MatchReferee.NO_TURN_TIMER.
 var _frozen_time := MatchReferee.NO_TURN_TIMER
+var _connection_lost := false
 
 
 func _init(room: GuestRoom) -> void:
@@ -44,6 +46,7 @@ func _init(room: GuestRoom) -> void:
 	_session.event_received.connect(_on_event_received)
 	_session.intent_rejected.connect(_on_intent_rejected)
 	_session.turn_timer_started.connect(_on_turn_timer_started)
+	_session.pause_changed.connect(_on_pause_changed)
 	_room.lost.connect(_on_lost)
 	_room.connection_changed.connect(_on_connection_changed)
 
@@ -60,7 +63,7 @@ func elapsed() -> float:
 
 func begin() -> void:
 	_begun = true
-	_set_clock(_clock_base, true)
+	_set_clock(_clock_base, _clock_may_run())
 	_pump()
 
 
@@ -104,8 +107,17 @@ func detach() -> void:
 	_session.event_received.disconnect(_on_event_received)
 	_session.intent_rejected.disconnect(_on_intent_rejected)
 	_session.turn_timer_started.disconnect(_on_turn_timer_started)
+	_session.pause_changed.disconnect(_on_pause_changed)
 	_room.lost.disconnect(_on_lost)
 	_room.connection_changed.disconnect(_on_connection_changed)
+
+
+func is_paused() -> bool:
+	return _session.is_paused()
+
+
+func pause_time() -> float:
+	return _session.pause_time()
 
 
 func seat_wait(seat: int) -> float:
@@ -138,7 +150,8 @@ func _on_view_reset(received: MatchView) -> void:
 	_display = MatchView.from_dict(received.settings, received.to_dict())
 	_awaiting = _session.host_awaiting
 	_set_deadline(_session.host_turn_time)
-	_set_clock(_display.elapsed, _begun)
+	_update_turn_freeze()
+	_set_clock(_display.elapsed, _clock_may_run())
 	view_reset.emit()
 
 
@@ -165,7 +178,7 @@ func _show(event: MatchEvent) -> void:
 	_set_deadline(MatchReferee.NO_TURN_TIMER)
 	_awaiting = (event.kind == MatchEvent.Kind.TURN_STARTED and event.seat == _display.viewer_seat)
 	if event.kind == MatchEvent.Kind.TURN_STARTED:
-		_set_clock(event.elapsed, true)
+		_set_clock(event.elapsed, _clock_may_run())
 	elif event.kind == MatchEvent.Kind.MATCH_OVER:
 		_set_clock(elapsed(), false)
 		_begun = false
@@ -184,6 +197,7 @@ func _on_intent_rejected(_intent: MatchIntent) -> void:
 func _on_turn_timer_started(seat: int, seconds: float) -> void:
 	if not _closed and _display != null and seat == _display.current_seat():
 		_set_deadline(seconds)
+		_update_turn_freeze()
 
 
 ## seconds NO_TURN_TIMER ise süre durur.
@@ -211,13 +225,36 @@ func _on_lost(loss: GuestRoom.Loss) -> void:
 func _on_connection_changed(lost: bool) -> void:
 	if _closed:
 		return
-	if lost:
-		var left := turn_time_left()
-		_turn_deadline = NO_DEADLINE
-		_frozen_time = left
-	elif _frozen_time != MatchReferee.NO_TURN_TIMER:
-		_set_deadline(_frozen_time)
+	_connection_lost = lost
+	_update_turn_freeze()
 	connection_changed.emit(lost)
+
+
+## Molada saat ve sıra süresi durur; devamda kaldıkları yerden sürer (host kalan sıra süresini
+## ayrıca bildirir).
+func _on_pause_changed(paused: bool) -> void:
+	if _closed:
+		return
+	_set_clock(elapsed(), _clock_may_run())
+	_update_turn_freeze()
+	pause_changed.emit(paused)
+
+
+## Bağlantı kopukken ya da molada sıra süresi donar; ikisi de bitince donan süre işlemeye başlar.
+func _update_turn_freeze() -> void:
+	var frozen := _frozen_time != MatchReferee.NO_TURN_TIMER
+	if _connection_lost or _session.is_paused():
+		if not frozen:
+			var left := turn_time_left()
+			_turn_deadline = NO_DEADLINE
+			_frozen_time = left
+	elif frozen:
+		_set_deadline(_frozen_time)
+
+
+## Saat oyun başlamışsa ve mola yoksa işler.
+func _clock_may_run() -> bool:
+	return _begun and not _session.is_paused()
 
 
 func _close() -> void:
