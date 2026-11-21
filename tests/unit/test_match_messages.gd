@@ -12,6 +12,7 @@ const ROUND := 3
 const ELAPSED := 12.5
 const BAD_KIND := 99
 const TURN_SECONDS := 12.5
+const OFFER_INDEX := 2
 
 
 func test_move_round_trip_keeps_fields() -> void:
@@ -135,6 +136,42 @@ func test_broken_envelope_has_invalid_type() -> void:
 	assert_eq(MatchMessage.type_of(unknown), MessageData.INVALID)
 	assert_eq(MatchMessage.type_of(no_data), MessageData.INVALID)
 	assert_eq(MatchMessage.type_of({}), MessageData.INVALID)
+
+
+func test_reward_take_intent_round_trip_keeps_offer_and_card() -> void:
+	var intent := MatchIntent.reward(MatchIntent.Kind.REWARD_TAKE, SEAT, OFFER_INDEX, CARD_INDEX)
+
+	var read := MatchIntent.from_dict(intent.to_dict())
+
+	assert_eq(read.kind, MatchIntent.Kind.REWARD_TAKE)
+	assert_eq(read.offer_index, OFFER_INDEX)
+	assert_eq(read.card_index, CARD_INDEX)
+	assert_true(read.is_reward())
+
+
+func test_reward_offers_are_hidden_from_other_seats() -> void:
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_STARTED, SEAT)
+	event.offers = [Card.new(Card.Type.FORWARD, STEPS), Card.new(Card.Type.BACK, STEPS)]
+
+	var own := MatchEvent.from_dict(event.to_dict(SEAT))
+	var other := MatchEvent.from_dict(event.to_dict(OTHER_SEAT))
+
+	assert_eq(own.offers.size(), event.offers.size())
+	assert_eq(own.offers[1].to_dict(), event.offers[1].to_dict())
+	assert_eq(other.offers.size(), 0)
+
+
+func test_reward_card_is_hidden_from_other_seats() -> void:
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, SEAT)
+	event.card_index = CARD_INDEX
+	event.card = Card.new(Card.Type.FORWARD, STEPS)
+
+	var own := MatchEvent.from_dict(event.to_dict(SEAT))
+	var other := MatchEvent.from_dict(event.to_dict(OTHER_SEAT))
+
+	assert_eq(own.card.to_dict(), event.card.to_dict())
+	assert_null(other.card)
+	assert_eq(other.card_index, CARD_INDEX)
 
 
 func _move() -> Move:

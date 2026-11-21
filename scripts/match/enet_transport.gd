@@ -5,6 +5,9 @@ extends MatchTransport
 ## eski bağlantısı düşmeden yenisi de sığar. Bağlanan eşten peer_timeout_ms boyunca yanıt
 ## alınamazsa bağlantı düşer. Gelen paket güvenilmezdir: sınırdan
 ## büyüğü çözülmeden, eş başına saniyedeki sınırı aşanlar okunmadan atılır (bağlantı kesilmez).
+## Saniye sınırı yalnızca hostta, katılımcılardan gelenlere uygulanır: istemci hostun mesajlarını
+## hiç atmaz, çünkü uygulama arka plandan dönünce ya da ağ bir an takılınca biriken mesajlar
+## topluca gelir ve atılan bir olay istemcinin kopyasını bozar.
 ## Paket nesne çözme kapalıyken okunur; sözlük olmayan atılır. Paketler her karede okunur. Host
 ## bağlantıyı kesince istemci taşıyıcısı kendini kapatır.
 
@@ -164,7 +167,7 @@ func _poll() -> void:
 func _receive(peer_id: int, bytes: PackedByteArray) -> void:
 	if not _peers.has(peer_id) or bytes.size() > _settings.max_message_bytes:
 		return
-	if not _within_rate(peer_id):
+	if peer_id != MatchTransport.HOST_PEER and not _within_rate(peer_id):
 		return
 	var message: Variant = bytes_to_var(bytes)
 	if message is Dictionary:

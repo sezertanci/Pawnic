@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_screen.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/board_view.gd" id="2"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://scenes/components/confirm_overlay.tscn" id="confirm_overlay"]
 [ext_resource type="Script" path="res://scripts/ui/pause_icon.gd" id="pause_icon"]
 [ext_resource type="PackedScene" path="res://scenes/components/pause_overlay.tscn" id="pause_overlay"]
+[ext_resource type="Texture2D" path="res://assets/images/icon_video.svg" id="icon_video"]
 
 [node name="GameScreen" type="Control"]
 layout_mode = 3
@@ -113,6 +114,10 @@ layout_mode = 2
 theme_override_constants/separation = 24
 alignment = 1
 
+[node name="PilesLeft" type="Control" parent="Margin/Box/Piles"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="DeckPile" type="Control" parent="Margin/Box/Piles"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(88, 150)
@@ -125,6 +130,27 @@ custom_minimum_size = Vector2(88, 150)
 layout_mode = 2
 script = ExtResource("5")
 kind = 1
+
+[node name="RewardSlot" type="CenterContainer" parent="Margin/Box/Piles"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RewardButton" type="Button" parent="Margin/Box/Piles/RewardSlot"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"RewardButton"
+text = "REWARD_CARD"
+icon = ExtResource("icon_video")
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="RewardChoice" type="Button" parent="Margin/Box/Piles/RewardSlot"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(88, 123)
+layout_mode = 2
+theme_type_variation = &"CardButton"
 
 [node name="BoardView" type="Control" parent="Margin/Box"]
 unique_name_in_owner = true

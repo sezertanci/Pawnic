@@ -9,6 +9,9 @@ extends Node
 ## süre işler; süre dolarsa o hamleyi bot oynar, koltuk oyuncuda kalır. Ağ oyununda host oyunu
 ## molaya alabilir: molada saat ve sıra süresi işlemez, ekranın çizdiği olay biter ama sıradaki
 ## olay (bot hamlesi ya da gelen niyet dahil) devam edilene kadar yayılmaz.
+## İnsan oyuncu sırasında bir kez ödüllü reklamla desteden kart alabilir: ödül sürerken saat ve
+## sıra süresi durur, yalnızca ödül niyetleri kabul edilir; reward_wait_sec içinde bitmezse
+## ödül kart verilmeden kapanır.
 
 ## Bir olay yayıldı; dinleyen, olayı bitirince acknowledge() çağırır.
 signal event_emitted(event: MatchEvent)
@@ -55,6 +58,16 @@ var _turn_time_left := NO_TURN_TIMER
 var _paused := false
 ## Molanın başından beri geçen süre (saniye).
 var _pause_time := 0.0
+## Ödül kartlarını seçen yardımcı.
+var _dealer: RewardDealer
+## Sıradaki oyuncunun ödülü sürüyorsa true.
+var _reward_active := false
+## Sıradaki oyuncu bu sırada ödülü kullandıysa true.
+var _reward_used := false
+## Sürmekte olan ödülde teklif edilen kartlar.
+var _reward_offers: Array[Card] = []
+## Ödülün kapanmasına kalan süre (saniye).
+var _reward_time_left := 0.0
 
 
 ## Oyunu devralır; ilk sıra begin() ile başlar (ekran arada başlangıç kurasını gösterebilir).
@@ -66,6 +79,7 @@ func start(match_game: GameMatch) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	_bot = Bot.new(match_game.settings.bot_profiles[match_game.bot_level], match_game.settings, rng)
+	_dealer = RewardDealer.new(match_game.settings)
 
 
 ## Saati başlatır ve sıradaki oyuncunun sırasını açar.
@@ -79,6 +93,7 @@ func stop() -> void:
 	game = null
 	_clock_running = false
 	_paused = false
+	_reward_active = false
 	_stop_awaiting()
 	_screen_busy = false
 	_holds = 0
@@ -121,6 +136,7 @@ func hand_to_bot(seat: int) -> void:
 	game.bots[index] = true
 	if _awaiting_intent and game.current == index:
 		_stop_awaiting()
+		cancel_reward()
 		_play_bot_turn()
 
 
@@ -137,9 +153,20 @@ func is_awaiting_intent() -> bool:
 	return _awaiting_intent
 
 
-## Sıra süresinden kalan (saniye); süre işlemiyorsa NO_TURN_TIMER.
+## Sıra süresinden kalan (saniye); süre işlemiyorsa (ödül sürerken de) NO_TURN_TIMER.
 func turn_time_left() -> float:
-	return _turn_time_left
+	return NO_TURN_TIMER if _reward_active else _turn_time_left
+
+
+## Ödülü süren koltuk; ödül yoksa BoardLayout.NO_SEAT.
+func reward_seat() -> int:
+	return game.current_seat() if game != null and _reward_active else BoardLayout.NO_SEAT
+
+
+## Süren ödülü kart vermeden kapatır (oyuncu koltuğu bıraktı ya da yeniden bağlandı).
+func cancel_reward() -> void:
+	if _reward_active:
+		_end_reward(MatchEvent.NO_CARD)
 
 
 ## Oyunu molaya alır; oyun yoksa, bittiyse ya da zaten moladaysa bir şey yapmaz.
@@ -157,8 +184,7 @@ func resume() -> void:
 		return
 	_paused = false
 	pause_changed.emit(false)
-	if _turn_time_left != NO_TURN_TIMER:
-		turn_timer_started.emit(game.current_seat(), _turn_time_left)
+	_restart_turn_timer()
 	_settle()
 
 
@@ -171,10 +197,18 @@ func pause_time() -> float:
 	return _pause_time if _paused else NOT_PAUSED
 
 
-## Niyeti doğrular ve geçerliyse uygular; geçersizse (sıra onun değil, hamle yasal değil) false.
+## Niyeti doğrular ve geçerliyse uygular; geçersizse (sıra onun değil, hamle yasal değil, ödül
+## sürüyor) false.
 func submit(intent: MatchIntent) -> bool:
 	if not _awaiting_intent or intent.seat != game.current_seat():
 		return false
+	if intent.is_reward():
+		return _submit_reward(intent)
+	return not _reward_active and _submit_turn(intent)
+
+
+## Sıranın hamle ya da atma niyeti.
+func _submit_turn(intent: MatchIntent) -> bool:
 	var legal := game.legal_moves()
 	if intent.kind == MatchIntent.Kind.DISCARD:
 		if not legal.is_empty() or not _is_hand_card(intent.card_index):
@@ -193,6 +227,9 @@ func submit(intent: MatchIntent) -> bool:
 func _process(delta: float) -> void:
 	if _paused:
 		_pause_time += delta
+		return
+	if _reward_active:
+		_count_reward_time(delta)
 		return
 	if _clock_running:
 		game.elapsed += delta
@@ -229,9 +266,11 @@ func _emit(event: MatchEvent) -> bool:
 	return current == game and current != null
 
 
-## Ekran ve bekletmeler son olayı bitirene ve mola bitene kadar bekler.
+## Ekran ve bekletmeler son olayı bitirene ve mola bitene kadar bekler. Birden fazla olay
+## bekliyorsa (ödül olayları niyetle gelir) ilk uyanan yeni olayını yayar, diğerleri beklemeyi
+## sürdürür.
 func _wait_settled() -> void:
-	if _screen_busy or _holds > 0 or _paused:
+	while _screen_busy or _holds > 0 or _paused:
 		_waiting_ack = true
 		await acknowledged
 
@@ -258,6 +297,7 @@ func _start_turn() -> void:
 	if in_game_ads and AdSchedule.is_due(game) and not await _show_ad():
 		return
 	_save()
+	_reward_used = false
 	var hand_before := game.current_hand().size()
 	game.begin_turn()
 	var event := MatchEvent.new(MatchEvent.Kind.TURN_STARTED, game.current_seat())
@@ -292,6 +332,74 @@ func _count_turn_time(delta: float) -> void:
 	if _turn_time_left <= 0.0:
 		_stop_awaiting()
 		_play_bot_turn()
+
+
+## Sıra süresi işliyorsa kalan süreyle yeniden yayılır (moladan ya da ödülden dönüş).
+func _restart_turn_timer() -> void:
+	if _turn_time_left != NO_TURN_TIMER and not _reward_active:
+		turn_timer_started.emit(game.current_seat(), _turn_time_left)
+
+
+# --- Ödül ---
+
+
+func _submit_reward(intent: MatchIntent) -> bool:
+	match intent.kind:
+		MatchIntent.Kind.REWARD_START:
+			return _start_reward()
+		MatchIntent.Kind.REWARD_TAKE:
+			return _take_reward(intent.offer_index, intent.card_index)
+	if not _reward_active:
+		return false
+	_end_reward(MatchEvent.NO_CARD)
+	return true
+
+
+## Teklifler hazırlanır; saat ve sıra süresi ödül bitene kadar durur.
+func _start_reward() -> bool:
+	if _reward_active or _reward_used:
+		return false
+	var offers := _dealer.offers(game)
+	if offers.is_empty():
+		return false
+	_reward_active = true
+	_reward_used = true
+	_reward_offers = offers
+	_reward_time_left = game.settings.reward_wait_time
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_STARTED, game.current_seat())
+	event.offers = offers
+	_emit(event)
+	return true
+
+
+func _take_reward(offer_index: int, card_index: int) -> bool:
+	if not _reward_active or offer_index < 0 or offer_index >= _reward_offers.size():
+		return false
+	if not _is_hand_card(card_index):
+		return false
+	if not game.take_reward(card_index, _reward_offers[offer_index]):
+		return false
+	_end_reward(card_index)
+	return true
+
+
+## Ödül kapanır; kart alındıysa (card_index NO_CARD değilse) olay yeni kartı taşır. Olay
+## bitince sıra süresi kalan süreyle sürer.
+func _end_reward(card_index: int) -> void:
+	_reward_active = false
+	_reward_offers = []
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.current_seat())
+	event.card_index = card_index
+	if card_index != MatchEvent.NO_CARD:
+		event.card = game.current_hand()[card_index]
+	if await _emit(event) and not _reward_active:
+		_restart_turn_timer()
+
+
+func _count_reward_time(delta: float) -> void:
+	_reward_time_left -= delta
+	if _reward_time_left <= 0.0:
+		_end_reward(MatchEvent.NO_CARD)
 
 
 ## Oyun reklamdan önce kaydedilir ki uygulama reklamda kapanırsa aynı yerden dönülsün ve reklam

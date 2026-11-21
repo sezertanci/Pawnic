@@ -57,6 +57,9 @@ var _host_silent := false
 var _paused := false
 ## Molanın başladığı an (ms, clock'a göre).
 var _pause_start := 0
+## Başka bir oyuncunun ödüllü reklamının en geç biteceği an (ms, clock'a göre). Reklamı host
+## izliyorsa sesi bu arada kesilir; bu ana kadar kopukluk sayılmaz.
+var _reward_until := 0
 
 
 func _init(transport: MatchTransport, settings: GameSettings) -> void:
@@ -123,6 +126,15 @@ func finish_event(event: MatchEvent) -> void:
 
 
 ## Hosta oyundan çıktığını bildirir; koltuğunu bot alır.
+## Görünümün tamamını hosttan ister; istenmiş ve henüz gelmemişse yeniden istenmez. Gelene kadar
+## olaylar yok sayılır.
+func request_view() -> void:
+	if _awaiting_snapshot:
+		return
+	_awaiting_snapshot = true
+	_transport.send(MatchTransport.HOST_PEER, MatchMessage.snapshot_request())
+
+
 func leave() -> void:
 	if _welcomed:
 		_transport.send(MatchTransport.HOST_PEER, MatchMessage.leave())
@@ -219,7 +231,7 @@ func _on_frame() -> void:
 	var now: int = clock.call()
 	if _watch.update(now):
 		_transport.send(MatchTransport.HOST_PEER, MatchMessage.heartbeat())
-	var silent := _watch.is_silent(MatchTransport.HOST_PEER, now)
+	var silent := _watch.is_silent(MatchTransport.HOST_PEER, now) and now >= _reward_until
 	if view != null and silent and not _host_silent:
 		_set_host_silent(true)
 
@@ -282,8 +294,18 @@ func _apply(data: Dictionary) -> void:
 	var event := MatchEvent.from_dict(data)
 	var serial := MessageData.read_int(data, MatchMessage.KEY_SERIAL)
 	if event == null or serial == MessageData.INVALID or not view.apply(event):
-		_awaiting_snapshot = true
-		_transport.send(MatchTransport.HOST_PEER, MatchMessage.snapshot_request())
+		request_view()
 		return
 	event.serial = serial
+	_track_reward(event)
 	event_received.emit(event)
+
+
+## Başka bir oyuncunun ödülü sürerken hostun sesi en fazla ödül süresince beklenir.
+func _track_reward(event: MatchEvent) -> void:
+	if event.kind == MatchEvent.Kind.REWARD_STARTED and event.seat != view.viewer_seat:
+		_reward_until = (
+			clock.call() + int(_settings.reward_wait_time * ClientSource.MSEC_PER_SECOND)
+		)
+	elif event.kind == MatchEvent.Kind.REWARD_ENDED:
+		_reward_until = 0

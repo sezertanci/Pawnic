@@ -15,6 +15,11 @@ signal rematch_requested
 ## Oyuncu geri düğmesiyle oyundan çıktığında gelir; yerel oyun kayıtlı kalır.
 signal left
 
+## Ödüllü reklamın bu cihazdaki aşaması: WAITING'de kaynak ya da reklam bekleniyor, OFFERS'ta
+## teklif edilen kartlar görünüyor, PLACING'de oyuncu teklifin yerine geçeceği kartı seçiyor,
+## SWAPPING'de iki kart yer değiştiriyor. PLACING'den itibaren düğmenin yerinde kart durur.
+enum RewardStage { NONE, WAITING, OFFERS, PLACING, SWAPPING }
+
 const SECONDS_PER_MINUTE := 60
 const SECONDS_PER_HOUR := 3600
 ## Joker sayı kartlarının eldeki kartlara göre boyu.
@@ -30,6 +35,8 @@ const OK_KEY := "OK"
 const ROOM_INFO_KEY := "ROOM_INFO"
 const ROLE_HOST_KEY := "ROLE_HOST"
 const ROLE_GUEST_KEY := "ROLE_GUEST"
+## Ödüllü reklamın yeri (sağlayıcıya iletilir).
+const REWARD_PLACEMENT := "reward_card"
 
 ## Yerel oyunun hakemi.
 var _referee := MatchReferee.new()
@@ -62,6 +69,13 @@ var _reconnecting := false
 var _ad_break := false
 ## Sıra noktalarındaki taşların koltukları, noktalarla aynı sırada.
 var _dot_seats: Array[int] = []
+var _reward_stage := RewardStage.NONE
+## Bu turda ödül düğmesine basıldıysa true (ödül turda bir kez alınır).
+var _reward_used := false
+## Ödülde desteden teklif edilen kartlar.
+var _reward_offers: Array[Card] = []
+## PLACING aşamasında seçilen teklifin sırası.
+var _reward_offer := MatchIntent.NO_OFFER
 
 @onready var _clock: Label = %Clock
 @onready var _level_slash: Label = %LevelSlash
@@ -83,6 +97,8 @@ var _dot_seats: Array[int] = []
 @onready var _pause_button: Button = %PauseButton
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
+@onready var _reward_button: Button = %RewardButton
+@onready var _reward_choice: Button = %RewardChoice
 
 
 func _ready() -> void:
@@ -103,6 +119,8 @@ func _ready() -> void:
 	_cards.deck_pile = _deck_pile
 	_cards.discard_pile = _discard_pile
 	_cards.discard_landed.connect(_on_discard_landed)
+	_reward_button.pressed.connect(_on_reward_pressed)
+	_reward_choice.pressed.connect(_show_reward_offers)
 
 
 ## Yerel oyunu başlatır; yeni oyunda (draw_starter) ilk turdan önce başlayan oyuncu kurayla
@@ -134,6 +152,8 @@ func _open_table(draw_starter: bool) -> void:
 	_reconnecting = false
 	_ad_break = false
 	_awaiting_human = false
+	_reward_used = false
+	_reset_reward()
 	_view = _source.view()
 	_set_up_table()
 	_hide_overlays()
@@ -206,6 +226,7 @@ func _process(_delta: float) -> void:
 	if int(_source.elapsed()) != _clock_second:
 		_show_clock()
 	_show_turn_timer()
+	_show_reward_button()
 	if _source.is_networked() and not _match_over:
 		_show_seat_waits()
 	if _pause_overlay.visible:
@@ -368,6 +389,10 @@ func _on_event(event: MatchEvent) -> void:
 			_refresh_table()
 		MatchEvent.Kind.PLAYER_FINISHED:
 			_announce_finisher(event)
+		MatchEvent.Kind.REWARD_STARTED:
+			_on_reward_started(event)
+		MatchEvent.Kind.REWARD_ENDED:
+			_on_reward_ended()
 		MatchEvent.Kind.MATCH_OVER:
 			_end_match()
 	if generation == _generation:
@@ -401,6 +426,8 @@ func _end_ad_break() -> void:
 ## süresi ancak o zaman başlar. Aynı cihazda sıra devri beklenmez.
 func _on_turn_started(event: MatchEvent) -> void:
 	_awaiting_human = false
+	_reward_used = false
+	_reset_reward()
 	_clear_selection()
 	_show_idle_hand()
 	# Deste sayacı burada değil, kart desteden kalktığı an düşer.
@@ -416,6 +443,7 @@ func _on_turn_started(event: MatchEvent) -> void:
 ## Kaynak niyeti reddetti: seçim kalkar; oyuncunun niyeti hâlâ bekleniyorsa seçim yeniden açılır,
 ## yoksa ekran kaynağın sıradaki olayını bekler.
 func _on_intent_rejected() -> void:
+	_reset_reward()
 	_clear_selection()
 	if _source.is_awaiting_intent():
 		_show_human_turn()
@@ -429,6 +457,7 @@ func _on_view_reset() -> void:
 	_generation += 1
 	_end_ad_break()
 	_awaiting_human = false
+	_reset_reward()
 	_board_view.stop_animation()
 	_clear_selection()
 	_handoff_button.hide()
@@ -474,7 +503,7 @@ func _on_source_ended(by_host: bool) -> void:
 ## Sonuç ekranı açıkken son katılımcı çıkarsa Tekrar oyna hemen gizlenir.
 func _on_guests_changed() -> void:
 	if _match_over:
-		_win_overlay.set_mode(_end_mode())
+		_win_overlay.set_mode(WinOverlay.mode_for(_source))
 
 
 ## Bağlantı koptuğunda yeniden bağlanılıyor katmanı açılır; reklam arasında açılmaz, reklam arası
@@ -647,6 +676,7 @@ func _show_move(event: MatchEvent) -> void:
 func _end_match() -> void:
 	_match_over = true
 	_show_pause()
+	_reset_reward()
 	_clear_selection()
 	_hand_view.clear()
 	var ranking := MatchResult.order(_view.settings, _view.board, _view.seats, _view.finishers)
@@ -655,7 +685,7 @@ func _end_match() -> void:
 	for seat: int in ranking:
 		rounds.append(MatchResult.round_of(_view.finishers, _view.finish_rounds, seat))
 		ranked_colors.append(_view.colors[seat])
-	_win_overlay.set_mode(_end_mode())
+	_win_overlay.set_mode(WinOverlay.mode_for(_source))
 	_win_overlay.open(ranked_colors, rounds, _seat_colors())
 
 
@@ -669,6 +699,9 @@ func _announce_finisher(event: MatchEvent) -> void:
 
 
 func _on_card_pressed(card_index: int) -> void:
+	if _reward_stage == RewardStage.PLACING:
+		_take_reward(card_index)
+		return
 	if _picker.must_discard():
 		_send_intent(MatchIntent.discard(_view.current_seat(), card_index))
 		return
@@ -688,16 +721,17 @@ func _show_values(card_index: int) -> void:
 	_hand_view.hide()
 	_joker_box.show()
 	for value: int in _picker.values():
-		var button := _add_joker_button(_on_value_pressed.bind(card_index, value), card_size)
+		var button := _add_joker_button(
+			Button.new(), _on_value_pressed.bind(card_index, value), card_size
+		)
 		button.theme_type_variation = HandView.CARD_VARIATION
 		var symbol := CardSymbol.new()
 		symbol.show_symbol(CardSymbol.Kind.FORWARD, value)
 		button.add_child(symbol)
-	_add_joker_button(_on_values_back_pressed, card_size).add_child(BackArrow.new())
+	_add_joker_button(Button.new(), _on_values_back_pressed, card_size).add_child(BackArrow.new())
 
 
-func _add_joker_button(action: Callable, button_size: Vector2) -> Button:
-	var button := Button.new()
+func _add_joker_button(button: Button, action: Callable, button_size: Vector2) -> Button:
 	button.custom_minimum_size = button_size
 	button.pressed.connect(action)
 	_joker_box.add_child(button)
@@ -767,6 +801,135 @@ func _clear_values() -> void:
 	_hand_view.show()
 
 
+# --- Ödüllü reklam ---
+
+
+## Düğme oyun sürerken görünür; oyuncunun sırasında, turda bir kez ve reklam hazırken basılabilir,
+## değilse soluk durur. Oyuncu teklifin yerini seçerken düğmenin yerinde seçilen teklif durur.
+func _show_reward_button() -> void:
+	_reward_button.visible = not _match_over and _reward_stage < RewardStage.PLACING
+	_reward_button.disabled = (
+		not _awaiting_human
+		or _reward_used
+		or _reward_stage != RewardStage.NONE
+		or not Ads.is_rewarded_ready()
+	)
+
+
+## Ödül kaynaktan istenir; kaynak teklifleri REWARD_STARTED ile verir.
+func _on_reward_pressed() -> void:
+	_reward_used = true
+	_reward_stage = RewardStage.WAITING
+	_clear_selection()
+	_show_idle_hand()
+	_send_intent(MatchIntent.reward(MatchIntent.Kind.REWARD_START, _view.current_seat()))
+
+
+## Bu cihazın istediği ödül başladı: reklam açılır. Olay reklamı beklemeden biter; ödül sürerken
+## kaynak yalnızca ödül niyetlerini kabul eder.
+func _on_reward_started(event: MatchEvent) -> void:
+	if _reward_stage == RewardStage.WAITING and event.seat == _view.viewer_seat:
+		_watch_reward_ad(event.offers)
+
+
+## Reklam ödülü verdiyse teklifler görünür, vermediyse ödül kartsız kapanır. Reklam sürerken ödül
+## bittiyse (süre doldu) ya da ekran bayatladıysa sonuç yok sayılır.
+func _watch_reward_ad(offers: Array[Card]) -> void:
+	var generation := _generation
+	Ads.show_rewarded(REWARD_PLACEMENT)
+	var result: Array = await Ads.rewarded_completed
+	if _is_stale(generation) or _reward_stage != RewardStage.WAITING:
+		return
+	var granted: bool = result[1]
+	if not granted or offers.is_empty():
+		_cancel_reward()
+		return
+	_reward_offers = offers
+	_show_reward_offers()
+
+
+## Teklif edilen kartlar elin yerinde görünür; geri oku ödülden vazgeçer.
+func _show_reward_offers() -> void:
+	_reward_stage = RewardStage.OFFERS
+	_reward_choice.hide()
+	_clear_values()
+	_hand_view.hide()
+	_joker_box.show()
+	var card_size := _hand_view.card_size()
+	for index: int in range(_reward_offers.size()):
+		var button := _add_joker_button(Button.new(), _on_offer_pressed.bind(index), card_size)
+		button.theme_type_variation = HandView.CARD_VARIATION
+		HandView.add_face(button, _reward_offers[index], _view.settings)
+	_add_joker_button(Button.new(), _cancel_reward, card_size).add_child(BackArrow.new())
+
+
+## Teklif seçildi: el ve pillerin yanındaki teklif değiştir işaretiyle görünür; oyuncu teklifin
+## yerine geçeceği kartı seçer. Teklife basılırsa tekliflere dönülür.
+func _on_offer_pressed(index: int) -> void:
+	_reward_stage = RewardStage.PLACING
+	_reward_offer = index
+	_clear_values()
+	_show_hand(func(_index: int) -> bool: return true)
+	_hand_view.mark_swap()
+	Nodes.free_children(_reward_choice)
+	HandView.add_face(_reward_choice, _reward_offers[index], _view.settings)
+	_reward_choice.add_child(SwapMark.new())
+	_reward_choice.show()
+
+
+## Teklif ile eldeki kart çaprazlama yer değiştirir; uçuş bitince seçim kaynağa gider.
+func _take_reward(card_index: int) -> void:
+	var generation := _generation
+	var intent := MatchIntent.reward(
+		MatchIntent.Kind.REWARD_TAKE, _view.current_seat(), _reward_offer, card_index
+	)
+	var offer := _reward_offers[_reward_offer]
+	_close_reward(RewardStage.SWAPPING)
+	_hand_view.hold(card_index)
+	var hand_rect := _hand_view.card_rect(card_index)
+	await _cards.swap_cards(
+		_reward_choice.get_global_rect(), offer, hand_rect, _view.hand[card_index]
+	)
+	if not _is_stale(generation) and _reward_stage == RewardStage.SWAPPING:
+		_submit_reward(intent)
+
+
+func _cancel_reward() -> void:
+	_submit_reward(MatchIntent.reward(MatchIntent.Kind.REWARD_CANCEL, _view.current_seat()))
+
+
+## Seçim kapanır ve niyet kaynağa gider; ödül REWARD_ENDED ile biter.
+func _submit_reward(intent: MatchIntent) -> void:
+	_close_reward(RewardStage.WAITING)
+	_source.submit(intent)
+
+
+## Ödül seçimi kapanır, el dokunulmaz biçimde çizilir ve ödül verilen aşamada bekler.
+func _close_reward(stage: RewardStage) -> void:
+	_reset_reward()
+	_reward_stage = stage
+	_show_idle_hand()
+
+
+## Ödül bitti: el (varsa yeni kartıyla) yeniden çizilir; sıra hâlâ bu cihazdaysa oyuncu oynar.
+func _on_reward_ended() -> void:
+	_reset_reward()
+	_refresh_table()
+	if _source.is_awaiting_intent():
+		_show_human_turn()
+	else:
+		_show_idle_hand()
+
+
+## Ödül seçimi kapanır; turda bir kez kuralı (_reward_used) yerinde kalır.
+func _reset_reward() -> void:
+	_reward_stage = RewardStage.NONE
+	_reward_offers = []
+	_reward_offer = MatchIntent.NO_OFFER
+	_reward_choice.hide()
+	_clear_values()
+
+
 # --- Sıra devri ve oyun sonu ---
 
 
@@ -807,16 +970,6 @@ func _seat_colors() -> Array[Color]:
 ## Koltuğun bu oyundaki rengi.
 func _seat_color(seat: int) -> Color:
 	return Skins.current.seat_color(_view.colors[seat])
-
-
-## Sonuç ekranının düğmeleri: ağ oyununda host, oturan katılımcı kaldıysa aynı oyuncularla yeniden
-## oynayabilir; katılımcı hostun yeni oyunu başlatmasını bekler.
-func _end_mode() -> WinOverlay.Mode:
-	if not _source.is_networked():
-		return WinOverlay.Mode.LOCAL
-	if not _source.is_host():
-		return WinOverlay.Mode.NETWORK_GUEST
-	return WinOverlay.Mode.NETWORK_HOST if _source.has_guests() else WinOverlay.Mode.NETWORK_ENDED
 
 
 ## Oyun sonu geçiş reklamı kazanma ekranından çıkarken gösterilir; oyun içi reklam az önce

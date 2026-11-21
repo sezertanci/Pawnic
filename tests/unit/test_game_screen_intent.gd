@@ -1,6 +1,7 @@
 extends GutTest
 ## Oyun ekranının hakeme niyet göndermesi: kabul edilen niyette seçim kapanır, reddedilen niyette
-## oyuncunun sırası yeniden açılır. Gerçek kayıt dosyasına dokunmamak için ayrı bir yol kullanılır.
+## oyuncunun sırası yeniden açılır; ödüllü reklamda seçilen teklif eldeki kartın yerine geçer.
+## Gerçek kayıt dosyasına dokunmamak için ayrı bir yol kullanılır.
 
 const SCREEN_SCENE := preload("res://scenes/game_screen.tscn")
 const TEST_PATH := "user://test_game_screen_save.json"
@@ -58,6 +59,24 @@ func test_accepted_intent_closes_selection_and_plays() -> void:
 
 	assert_false(_is_waiting())
 	assert_false(_screen.get("_referee").call("is_awaiting_intent"))
+
+
+func test_reward_offer_replaces_chosen_hand_card() -> void:
+	_screen.get("_reward_button").emit_signal("pressed")
+	await wait_until(_reward_stage_is.bind(GameScreen.RewardStage.OFFERS), TURN_TIMEOUT)
+	var offer: Card = _screen.get("_reward_offers")[0]
+
+	_screen.call("_on_offer_pressed", 0)
+	_screen.call("_on_card_pressed", 0)
+	await wait_until(_reward_stage_is.bind(GameScreen.RewardStage.NONE), TURN_TIMEOUT)
+
+	assert_true(_game.current_hand()[0].same_as(offer))
+	assert_true(_screen.get("_reward_used"))
+	assert_true(_is_waiting())
+
+
+func _reward_stage_is(stage: int) -> bool:
+	return _screen.get("_reward_stage") == stage
 
 
 func _new_game() -> GameMatch:

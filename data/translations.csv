@@ -157,3 +157,4 @@ PAUSE_HOST_NOTE,Telefonu kilitlerseniz oyun bitebilir.,"If you lock your phone, 
 PAUSE_GUEST_NOTE,Kurucunun devam etmesi bekleniyor…,Waiting for the host to continue…,"Warten, bis der Gastgeber fortsetzt…",Esperando a que el anfitrión continúe…,En attente de la reprise par l'hôte…,In attesa che l'host riprenda…,Aguardando o anfitrião continuar…,Menunggu tuan rumah melanjutkan…
 QUIT_MATCH,Oyundan Çık,Leave Game,Spiel Verlassen,Salir De La Partida,Quitter La Partie,Esci Dalla Partita,Sair Do Jogo,Keluar Permainan
 END_MATCH,Oyunu Bitir,End Game,Spiel Beenden,Terminar Partida,Terminer La Partie,Termina Partita,Encerrar Jogo,Akhiri Permainan
+REWARD_CARD,Kart Seç,Pick Card,Karte Wählen,Elegir Carta,Choisir Carte,Scegli Carta,Escolher Carta,Pilih Kartu

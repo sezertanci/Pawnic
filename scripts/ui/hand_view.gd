@@ -29,7 +29,7 @@ func show_cards(hand: Array[Card], settings: GameSettings, playable: Array[bool]
 		button.theme_type_variation = CARD_VARIATION
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.disabled = not playable[index]
-		_add_face(button, hand[index], settings)
+		add_face(button, hand[index], settings)
 		button.pressed.connect(card_pressed.emit.bind(index))
 		add_child(button)
 	_arrange()
@@ -49,8 +49,8 @@ func show_backs(count: int) -> void:
 	_arrange()
 
 
-## Kartın yazısını ya da (varsa) sembolünü düğmeye koyar.
-func _add_face(button: Button, card: Card, settings: GameSettings) -> void:
+## Kartın yazısını ya da (varsa) sembolünü düğmeye koyar (ödül teklifleri de kullanır).
+static func add_face(button: Button, card: Card, settings: GameSettings) -> void:
 	var symbol := CardSymbol.new()
 	symbol.show_card(card, settings)
 	var face := button.get_theme_stylebox(DISABLED_STYLE) as StyleBoxFlat
@@ -63,8 +63,17 @@ func _add_face(button: Button, card: Card, settings: GameSettings) -> void:
 
 ## Oynanabilir kart yokken bütün kartların köşesine atılacağını gösteren çarpı koyar.
 func mark_discard() -> void:
+	_mark_cards(DiscardMark)
+
+
+## Ödül teklifinin yerine geçeceği kart seçilirken bütün kartların köşesine değiştir işareti koyar.
+func mark_swap() -> void:
+	_mark_cards(SwapMark)
+
+
+func _mark_cards(mark: Script) -> void:
 	for button: Button in get_children():
-		button.add_child(DiscardMark.new())
+		button.add_child(mark.new() as Control)
 
 
 ## Seçili kartı öne çıkarır, diğerlerini soluklaştırır.

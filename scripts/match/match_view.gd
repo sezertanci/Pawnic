@@ -118,6 +118,8 @@ func apply(event: MatchEvent) -> bool:
 			return _play(event)
 		MatchEvent.Kind.DISCARDED:
 			return _take_card(event)
+		MatchEvent.Kind.REWARD_ENDED:
+			return _take_reward(event)
 	return true
 
 
@@ -151,6 +153,17 @@ func _start_turn(event: MatchEvent) -> bool:
 	hand_sizes[index] += 1
 	if event.seat == viewer_seat:
 		hand.append(event.card)
+	return true
+
+
+## Ödül kartı izleyicinin elindeki kartın yerine geçer; kartlar desteyle yer değiştirdiği için
+## sayılar değişmez.
+func _take_reward(event: MatchEvent) -> bool:
+	if event.card_index == MatchEvent.NO_CARD or event.seat != viewer_seat:
+		return seats.has(event.seat)
+	if event.card == null or event.card_index < 0 or event.card_index >= hand.size():
+		return false
+	hand[event.card_index] = event.card
 	return true
 
 

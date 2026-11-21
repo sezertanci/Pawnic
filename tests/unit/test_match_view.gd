@@ -100,6 +100,27 @@ func test_move_event_from_unknown_seat_is_refused() -> void:
 	assert_false(view.apply(event))
 
 
+func test_reward_event_puts_new_card_into_viewer_hand() -> void:
+	var game := _new_game(TWO_HUMANS)
+	var view := MatchView.of(game, game.seats[0])
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.seats[0])
+	event.card_index = 0
+	event.card = Card.new(Card.Type.EXIT, 0)
+
+	assert_true(view.apply(event))
+
+	assert_true(view.hand[0].same_as(event.card))
+
+
+func test_reward_event_without_card_is_accepted() -> void:
+	var game := _new_game(TWO_HUMANS)
+	var view := MatchView.of(game, game.seats[0])
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.seats[1])
+	event.card_index = 0
+
+	assert_true(view.apply(event))
+
+
 func test_views_follow_whole_two_player_match() -> void:
 	_play_whole_match(TWO_HUMANS)
 

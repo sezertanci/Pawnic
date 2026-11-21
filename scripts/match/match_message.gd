@@ -68,7 +68,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 6
+const PROTOCOL_VERSION := 7
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"

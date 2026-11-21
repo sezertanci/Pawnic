@@ -5,11 +5,15 @@ extends MatchSource
 ## verilmeden hemen önce ona uygulanır, böylece ekran olayı yerel oyundaki gibi uygulanmış
 ## görünümle çizer. Ekran olayı bitirince hosta bildirilir; host her olayda bütün ekranları
 ## bekler. Görünümün tamamı yeniden gelirse sıradaki olaylar atılır (yeni görünüm onları içerir).
+## Olay ekranın kopyasına uymazsa (kopya kaymış) ekrana verilmez: görünümün tamamı hosttan
+## istenir ve o gelene kadar ekrana olay verilmez.
 ## Saat, hostun sıra başlarında bildirdiği süreden ileri sayar. Sıra süresi hostun bildirdiği
 ## andan yerel saatle sayılır; süre dolunca oyuncunun niyeti artık beklenmez (host o hamleyi bota
 ## oynatır) ve gelen ret seçimi yeniden açmaz. Oyun bitince kaynak yeniden begin() bekler: host
 ## tekrar oynarsa yeni oyunun görünümü gelir, olaylar ekran yeni oyunu başlatana kadar sırada kalır.
-## Host oyunu molaya alınca saat ve sıra süresi durur, devamda kaldıkları yerden sürer. Oyun içi
+## Ödül olaylarında oyuncunun niyeti beklenmeye devam eder; sıra süresi durur, ödül bitince host
+## kalan süreyi bildirir. Host oyunu molaya alınca saat ve sıra süresi durur, devamda kaldıkları
+## yerden sürer. Oyun içi
 ## reklamın anı saklanır; oyun sonu reklamı bu cihazın kuralıyla ona göre atlanır.
 
 const MSEC_PER_SECOND := 1000.0
@@ -26,6 +30,8 @@ var _shown: MatchEvent
 var _begun := false
 var _pumping := false
 var _awaiting := false
+## Ekranın kopyası bir olaya uymadı; görünümün tamamı bekleniyor.
+var _resyncing := false
 ## Niyet gönderildikten sonra gelen olay sayısı; sıfırsa gelen ret bu niyetindir.
 var _events_since_submit := 0
 ## Oyuncu çıktıysa ya da bağlantı koptuysa true.
@@ -82,7 +88,9 @@ func acknowledge(event: MatchEvent) -> void:
 
 
 func submit(intent: MatchIntent) -> void:
-	_awaiting = false
+	# Ödül niyetinden sonra sıra yine bu oyuncudadır; bekleme sürer.
+	if not intent.is_reward():
+		_awaiting = false
 	_events_since_submit = 0
 	_session.send_intent(intent)
 
@@ -157,6 +165,7 @@ func speed_scale() -> float:
 func _on_view_reset(received: MatchView) -> void:
 	_queue.clear()
 	_shown = null
+	_resyncing = false
 	_display = MatchView.from_dict(received.settings, received.to_dict())
 	_awaiting = _session.host_awaiting
 	_set_deadline(_session.host_turn_time)
@@ -176,21 +185,31 @@ func _pump() -> void:
 	if _pumping:
 		return
 	_pumping = true
-	while _begun and not _closed and _shown == null and not _queue.is_empty():
+	while _begun and not _closed and not _resyncing and _shown == null and not _queue.is_empty():
 		_show(_queue.pop_front())
 	_pumping = false
 
 
 func _show(event: MatchEvent) -> void:
 	if not _display.apply(event):
-		push_warning("Olay ekranın kopyasına uymadı: tür %d" % event.kind)
+		push_warning("Olay ekrana uymadı, görünüm yeniden isteniyor: tür %d" % event.kind)
+		_resyncing = true
+		_session.request_view()
+		return
 	_shown = event
 	_set_deadline(MatchReferee.NO_TURN_TIMER)
-	_awaiting = (event.kind == MatchEvent.Kind.TURN_STARTED and event.seat == _display.viewer_seat)
+	if not MatchEvent.REWARD_KINDS.has(event.kind):
+		_awaiting = (
+			event.kind == MatchEvent.Kind.TURN_STARTED and event.seat == _display.viewer_seat
+		)
 	if event.kind == MatchEvent.Kind.AD_DUE:
 		_last_ad_at = elapsed()
 	elif event.kind == MatchEvent.Kind.TURN_STARTED:
 		_set_clock(event.elapsed, _clock_may_run())
+	elif event.kind == MatchEvent.Kind.REWARD_STARTED:
+		_set_clock(elapsed(), false)
+	elif event.kind == MatchEvent.Kind.REWARD_ENDED:
+		_set_clock(elapsed(), _clock_may_run())
 	elif event.kind == MatchEvent.Kind.MATCH_OVER:
 		_set_clock(elapsed(), false)
 		_begun = false

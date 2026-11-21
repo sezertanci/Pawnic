@@ -1,6 +1,7 @@
 extends GutTest
 ## ENet taşıyıcısı aynı cihazda (127.0.0.1) host ve istemciyle: mesaj gidiş-dönüşü, boyut ve
-## sıklık sınırı, izinsiz adresin reddi ve en fazla istemci sayısı.
+## sıklık sınırı (yalnızca hostta; hostun mesajları sınırlanmaz), izinsiz adresin reddi ve en
+## fazla istemci sayısı.
 
 ## Bağlantı ve mesaj için beklenen en fazla süre (saniye).
 const TIMEOUT := 3.0
@@ -79,6 +80,21 @@ func test_messages_over_rate_are_dropped() -> void:
 
 	assert_eq(_host_inbox.size(), _settings.max_messages_per_sec)
 	assert_eq(_host_inbox[0], {KEY_INDEX: 0})
+
+
+func test_host_messages_are_not_rate_limited() -> void:
+	var client := await _connect()
+	client.message_received.connect(
+		func(_peer: int, message: Dictionary) -> void: _client_inbox.append(message)
+	)
+	var count := _settings.max_messages_per_sec + 5
+
+	for index: int in range(count):
+		_host.send(client.own_peer(), {KEY_INDEX: index})
+	await wait_until(func() -> bool: return _client_inbox.size() == count, TIMEOUT)
+
+	assert_eq(_client_inbox.size(), count)
+	assert_eq(_client_inbox.back(), {KEY_INDEX: count - 1})
 
 
 func test_address_outside_local_network_is_refused() -> void:

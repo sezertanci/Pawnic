@@ -1,7 +1,8 @@
 class_name CardAnimator
 extends Control
 ## Kartların uçuşunu canlandırır: desteden ele çekme, elden atılanlara oynama, botun
-## kartını desteden atılanlara açarak götürme ve atılanları desteye karıştırma. Ekranın
+## kartını desteden atılanlara açarak götürme, atılanları desteye karıştırma ve ödüllü reklamda
+## kartların yer değiştirmesi. Ekranın
 ## tamamını kaplayan, dokunuşları geçiren katmandır.
 
 ## Kart atılanlar yığınına indiği an yayımlanır; sayaç kart inerken artar.
@@ -56,6 +57,22 @@ func shuffle_to_deck() -> void:
 		else:
 			_fly_and_free(card, to, settings.card_shuffle_time)
 			await get_tree().create_timer(settings.card_shuffle_stagger / speed_scale).timeout
+
+
+## Ödüllü reklamda teklif kartı kendi yerinden (offer_rect) eldeki kartın yerine, eldeki kart da
+## teklifin yerine aynı anda çaprazlama uçar; sonra bırakılan kart kapanıp desteye gider.
+func swap_cards(offer_rect: Rect2, offer: Card, hand_rect: Rect2, dropped: Card) -> void:
+	Sound.play(Sound.DRAW)
+	var incoming := _spawn(_local(offer_rect))
+	incoming.show_card(offer, settings)
+	var outgoing := _spawn(_local(hand_rect))
+	outgoing.show_card(dropped, settings)
+	_fly_and_free(incoming, _local(hand_rect), settings.card_swap_time)
+	await _fly(outgoing, _local(offer_rect), settings.card_swap_time, 1.0)
+	outgoing.queue_free()
+	await _fly_and_free(
+		_spawn(_local(offer_rect)), _local(deck_pile.card_rect()), settings.card_swap_time
+	)
 
 
 func _spawn(rect: Rect2) -> CardFace:

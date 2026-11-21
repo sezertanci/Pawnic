@@ -49,6 +49,11 @@ func _init(card_type: Type, card_value: int) -> void:
 	value = card_value
 
 
+## Türü ve değeri aynıysa true.
+func same_as(other: Card) -> bool:
+	return type == other.type and value == other.value
+
+
 ## Kayıt için sözlüğe çevirir.
 func to_dict() -> Dictionary:
 	return {KEY_TYPE: TYPE_BY_NAME.find_key(type), KEY_VALUE: value}

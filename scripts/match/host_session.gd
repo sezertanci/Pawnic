@@ -260,6 +260,9 @@ func _send_snapshot(peer_id: int) -> void:
 	var seat := seat_of(peer_id)
 	if seat == BoardLayout.NO_SEAT or _referee.game == null:
 		return
+	# Görünümü yeniden isteyen eşin süren ödülü (reklamı) artık ekranında yoktur.
+	if _referee.reward_seat() == seat:
+		_referee.cancel_reward()
 	var view := MatchView.of(_referee.game, seat)
 	var awaiting := _referee.is_awaiting_intent() and _referee.game.current_seat() == seat
 	var turn_time := _referee.turn_time_left()
@@ -390,9 +393,12 @@ func _check_ad_break(now: int) -> void:
 		_settle(peer_id)
 
 
-## Ortak reklam arası sürüyor ve eş reklamını henüz bitirmediyse true.
+## Ortak reklam arası sürüyor ve eş reklamını henüz bitirmediyse ya da eş ödüllü reklam
+## izliyorsa true.
 func _is_watching_ad(peer_id: int) -> bool:
-	return _ad_deadline != NO_AD_BREAK and _pending.has(peer_id)
+	if _ad_deadline != NO_AD_BREAK and _pending.has(peer_id):
+		return true
+	return _referee.game != null and _referee.reward_seat() == seat_of(peer_id)
 
 
 ## Uzaktaki eşin olayı bitirmesi beklenmez; diğerleri oynamaya devam eder.

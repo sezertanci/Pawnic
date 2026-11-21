@@ -2,7 +2,8 @@ extends GutTest
 ## Oyun kaynakları: hakemden beslenen kaynağın bayatlaması ve hostun görünümü; istemci kaynağının
 ## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
 ## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; molada saatin ve sıra süresinin durması;
-## kaynakların oda kodu. Ağ sahte taşıyıcıyla
+## kaynakların oda kodu; ekranın kopyasına uymayan olayda görünümün yeniden istenmesi. Ağ sahte
+## taşıyıcıyla
 ## kurulur.
 
 const SEED := 11
@@ -13,6 +14,8 @@ const CLIENT_PEER := 2
 const FRAMES := 4
 ## Tahtada olmayan taş; bu taşla hamle hiçbir zaman yasal değildir.
 const MISSING_PAWN := 99
+## Oyunda olmayan koltuk; ekranın kopyasını kaydırmak için kullanılır.
+const MISSING_SEAT := 99
 ## İstemcinin sırasına kadar gelebilecek en fazla olay; aşılırsa döngü durur.
 const MAX_EVENTS := 20
 const ROOM_CODE := "4568"
@@ -104,6 +107,20 @@ func test_client_source_waits_for_view_before_events() -> void:
 	assert_eq(_shown.size(), 0)
 	assert_not_null(_source.view())
 	assert_eq(_source.view().viewer_seat, _client_seat)
+
+
+func test_client_source_requests_view_when_event_does_not_fit() -> void:
+	await _start_match()
+	var drifted: Array[int] = [MISSING_SEAT, MISSING_SEAT]
+	_source.view().seats = drifted
+	watch_signals(_source)
+
+	_source.begin()
+	await wait_frames(FRAMES)
+
+	assert_eq(_shown.size(), 0)
+	assert_signal_emitted(_source, "view_reset")
+	assert_eq(_source.view().seats, _game.seats)
 
 
 func test_client_source_holds_events_until_acknowledged() -> void:

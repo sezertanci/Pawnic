@@ -41,6 +41,16 @@ func _ready() -> void:
 	(%HomeButton as Button).pressed.connect(home_pressed.emit)
 
 
+## Sonuç ekranının düğmeleri: ağ oyununda host, oturan katılımcı kaldıysa aynı oyuncularla yeniden
+## oynayabilir; katılımcı hostun yeni oyunu başlatmasını bekler.
+static func mode_for(source: MatchSource) -> Mode:
+	if not source.is_networked():
+		return Mode.LOCAL
+	if not source.is_host():
+		return Mode.NETWORK_GUEST
+	return Mode.NETWORK_HOST if source.has_guests() else Mode.NETWORK_ENDED
+
+
 ## Ağ oyununda ana ekran düğmesi yeni oyun kurmaya götürür; yeniden oyna düğmesi yalnızca hostta,
 ## oturan katılımcı kaldıysa görünür. Katılımcı tablonun altında hostu beklediğini görür.
 func set_mode(mode: Mode) -> void:

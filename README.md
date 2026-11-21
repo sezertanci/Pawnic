@@ -77,16 +77,20 @@ Mağaza dosyaları `store/pawnic/` altındadır:
 (yoksa AAB yaklaşık 18 MB büyür).
 
 ## Klasörler
-- `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu, ana ekran arka planının bulanıklığı)
+- `data/tuning.json`: kullanılan tahta dosyası, kural, deste, bot, animasyon ve arayüz ayarları (ör. menü düğmelerinin ortak boyutu, ana ekran arka planının bulanıklığı) ile reklam
+  ayarları; ödüllü reklamda teklif edilen kart sayısı `ads.reward_offer_count`, ödülün en uzun
+  süresi `ads.reward_wait_sec`; kartların ödülde yer değiştirme süresi `cards.swap_sec`
 - `data/boards/`: tahta tasarımları (aşağıda)
 - `data/translations.csv`: oyuncuya görünen metinlerin 8 dildeki karşılıkları
-- `scripts/rules/`: kural motoru (`BoardState`, `GameMatch`, `MovePicker`), kartlar ve bot
+- `scripts/rules/`: kural motoru (`BoardState`, `GameMatch`, `MovePicker`), kartlar, bot ve
+  ödüllü reklamın kart teklifleri (`RewardDealer`)
 - `scripts/ui/`: tahta çizimi, el, ana ekran, yeni oyun ve oyun ekranları
 - `scripts/autoload/`: genel servisler (aşağıda)
 - `scripts/services/`: reklam ve satın alma sağlayıcı arayüzleri ile sahte sürümleri
 - `scenes/`: ana sahne, ekranlar ve ortak bileşenler
 - `themes/`: arayüz teması ve tahta görünümleri (`themes/skins/`)
-- `tests/unit/`: GUT birim testleri, `tests/fixtures/`: testlerde kullanılan deneme tahtası
+- `tests/unit/`: GUT birim testleri, `tests/fixtures/`: testlerde kullanılan deneme tahtası ve
+  hakem testlerinin ortak tabanı (`referee_case.gd`)
 - `tools/`: simülasyon, ekran görüntüsü, ses, ikon ve mağaza görseli üretme betikleri
 - `store/`: Play Store dosyaları (yukarıda)
 

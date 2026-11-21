@@ -99,6 +99,9 @@ var card_discard_time := 0.0
 var card_shuffle_count := 0
 var card_shuffle_stagger := 0.0
 var card_shuffle_time := 0.0
+## Ödüllü reklamda teklif kartıyla eldeki kartın çaprazlama yer değiştirme ve bırakılan kartın
+## desteye gitme süresi.
+var card_swap_time := 0.0
 ## Ana ekran logosundaki taşların bir kareden ötekine zıplama süresi (saniye) ve yüksekliği
 ## (kare boyuna oranla).
 var logo_hop_time := 0.0
@@ -129,6 +132,10 @@ var end_ad_cooldown := 0.0
 ## Ağ oyununda ortak reklam arasında hostun, reklamı bitmeyen oyuncuyu en fazla beklediği süre
 ## (saniye); süre dolunca oyun onsuz sürer.
 var shared_ad_wait_time := 0.0
+## Ödüllü reklamdan sonra oyuncuya desteden gösterilen en fazla kart sayısı.
+var reward_offer_count := 0
+## Ödül (reklam ve kart seçimi) için en fazla beklenen süre (saniye); dolunca ödül kapanır.
+var reward_wait_time := 0.0
 ## Ağ oyununda hostun dinlediği UDP portu.
 var network_port := 0
 ## Ağdan gelen bir mesajın en fazla bayt sayısı; büyüğü çözülmeden atılır.
@@ -263,6 +270,7 @@ func _read_cards(cards: Dictionary) -> void:
 	card_shuffle_count = int(cards["shuffle_cards"])
 	card_shuffle_stagger = float(cards["shuffle_stagger_sec"])
 	card_shuffle_time = float(cards["shuffle_sec"])
+	card_swap_time = float(cards["swap_sec"])
 
 
 func _read_effects(effects: Dictionary) -> void:
@@ -289,6 +297,8 @@ func _read_ads(ads: Dictionary) -> void:
 	interstitial_interval = float(ads["interstitial_interval_sec"])
 	end_ad_cooldown = float(ads["end_ad_cooldown_sec"])
 	shared_ad_wait_time = float(ads["shared_ad_wait_sec"])
+	reward_offer_count = int(ads["reward_offer_count"])
+	reward_wait_time = float(ads["reward_wait_sec"])
 
 
 func _read_network(network: Dictionary) -> void:

@@ -123,7 +123,7 @@
     kullandığı için tablette sahte sağlayıcı çalışır. Tablette denemek için "Android APK" ön ayarı
     gerekir.
   - Açık: AdMob hesabında uygulama açılınca gerçek uygulama kimliği (`admob/general/android/app_id`)
-    ve birim kimlikleri yazılacak; ödüllü reklamın ödülü ve düğmesi belli değil; banner yüklenemezse
+    ve birim kimlikleri yazılacak; banner yüklenemezse
     yeniden denenmiyor.
 - Reklamları kaldırma satın alması (`remove_ads`, tek seferlik ürün): resmî GodotGooglePlayBilling
   3.3.0 eklentisi (`addons/GodotGooglePlayBilling/`, `PlayBillingBackend`, yanıtları
@@ -808,3 +808,28 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   kart var!" / "No dice, just cards!"); tahta, eski 03 görüntüsünden kırpılıp
   `store/pawnic/feature-board.png` olarak sabitlendi. Play'de Türkçe uygulama adı "Pawnic:
   Hoppala, Başa Döndüm!" yapıldı (Kızma Birader havasında, ona benzemeyen bir ad).
+- **2026-11-21 (18):** Uygulama boyutunu (~117 MB) küçültme işinden vazgeçildi. Ödüllü reklam
+  eklendi: oyun ekranında pillerin sağında video simgeli "Kart Seç" düğmesi (solda simetri için
+  boş yer). Oyuncunun sırasında, turda bir kez, sınırsız kullanılır; reklam hazır değilse ya da
+  sıra başkasındaysa soluk durur. Reklam izlenince desteden oyuncunun işine en çok yarayacak 3
+  kart (`RewardDealer`: her farklı kart, onunla yapılabilecek en iyi hamleye göre puanlanır)
+  gösterilir; oyuncu birini seçer, sonra elindeki hangi kartın yerine geçeceğini seçer (bu sırada
+  eldeki kartlar ve seçilen teklif sol üst köşede sarı değiştir ⇄ işaretiyle, `SwapMark`, görünür;
+  teklife basılınca tekliflere dönülür). Seçimden sonra teklif kartı eldeki yere, eldeki kart da
+  teklifin yerine aynı anda çaprazlama uçar (`CardAnimator.swap_cards`, `cards.swap_sec` 0,5 sn);
+  ardından bırakılan kart kapanıp desteye gider ve desteye rastgele bir yere girer. Geri okuyla ödülden kartsız vazgeçilir. Tek cihazda, aynı
+  telefonda ve Wi-Fi oyununda çalışır; ödül sürerken sıra süresi durur, kurucunun sessizliği
+  sayılmaz ve hakem yalnızca ödül niyetlerini kabul eder. Ödül `ads.reward_wait_sec` (120 sn)
+  içinde bitmezse kartsız kapanır. `remove_ads` ödüllü reklamı kaldırmaz. Ağ protokolü 7'ye
+  çıktı (yeni niyet ve olay türleri); kayıt sürümü 4 kaldı (ödül kayda yazılmaz). Hakem testleri
+  `tests/fixtures/referee_case.gd` tabanıyla ikiye bölündü (gdlint 25 public metot sınırı).
+  `game_screen.gd` gdlint'in 1000 satır sınırına dayandığı için sonuç düğmelerini seçen kod
+  `WinOverlay.mode_for`'a taşındı.
+- **2026-11-21 (19):** Play'deki 1.6.0'da görülen ağ oyunu hatası düzeltildi: katılımcı sırası
+  gelince oyunu arka plana alıp dönünce elinde 4–5 kart görüyor, tıklamaları bir süre işlemiyordu.
+  Nedeni: ENet taşıyıcısı eş başına saniyede 20 mesaj sınırını istemcide hostun mesajlarına da
+  uyguluyordu; arka planda biriken mesajlar dönüşte topluca gelince fazlası (botun oyuncu adına
+  oynadığı hamle dahil) atılıyor, istemcinin kopyaları kayıyordu. Sınır artık yalnızca hostta,
+  katılımcılardan gelen mesajlara uygulanır. Ayrıca ekranın kopyası (`ClientSource`) bir olaya
+  uymazsa olayı ekrana vermez, `ClientSession.request_view` ile görünümün tamamını hosttan ister.
+  Ağ protokolü (7) ve kayıt sürümü (4) değişmedi.

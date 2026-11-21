@@ -224,6 +224,24 @@ func draw_count() -> int:
 	return _draw_pile.size()
 
 
+## Destedeki kartlar, çekilme sırasının tersiyle (kopya).
+func draw_cards() -> Array[Card]:
+	return _draw_pile.duplicate()
+
+
+## Sıradaki oyuncunun elindeki kartı desteden aynı türde ve değerde bir kartla değiştirir.
+## Eldeki kart desteye rastgele bir yere konur. Kart destede yoksa ya da sıra geçersizse false.
+func take_reward(card_index: int, card: Card) -> bool:
+	var hand := current_hand()
+	var pile_index := _draw_pile.find_custom(func(other: Card) -> bool: return other.same_as(card))
+	if card_index < 0 or card_index >= hand.size() or pile_index == NO_INDEX:
+		return false
+	var given: Card = hand[card_index]
+	hand[card_index] = _draw_pile.pop_at(pile_index)
+	_draw_pile.insert(_rng.randi_range(0, _draw_pile.size()), given)
+	return true
+
+
 ## Atılanlardaki kart sayısı.
 func discard_count() -> int:
 	return _discard_pile.size()
