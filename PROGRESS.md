@@ -159,6 +159,8 @@
 - Play: 6 (1.5.0) yüklenirken `android.hardware.wifi` uyarısı çıktı (Wi-Fi izinleri bu özelliği
   dolaylı zorunlu yapıyor). Aynı eklentiye bu özellik de eklendi (2026-11-20); düzeltme bir sonraki
   AAB'de (sürüm 7) geçerli olur.
+  7 (1.6.0) ağ oyununun sıra süresi, kopma/geri dönme, duraklatma, Tekrar Oyna ve kurucu kaybı
+  uyarısıyla hazırlandı (2026-11-21); telefonlarda ve Play sürümünde reklamlarla denenecek.
 - Play beyanları AdMob'a göre güncellendi (2026-11-19): Reklam kimliği "Evet" (Analiz, Reklam veya
   pazarlama, Sahtekarlığı önleme), Reklamlar "Evet", Veri güvenliği formunda yaklaşık konum,
   kilitlenme günlükleri, teşhisler, diğer performans verileri, uygulama işlemleri ve cihaz
@@ -782,3 +784,12 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-21 (13):** Modlar her yerde Botlara Karşı, Aynı Wi-Fi'da, Aynı Telefonda sırasıyla
   anlatılır (Wi-Fi oyunu öne çıksın diye; kurulum ekranındaki sekmelerle aynı sıra). Nasıl Oynanır
   ekranının Oyun Kurulumu grubu bu sıraya getirildi.
+- **2026-11-21 (14):** Kurucu aniden kaybolursa (Wi-Fi kopması, uygulamanın kapanması) katılımcı
+  `host_lost_sec` (30 sn) boyunca yeniden bağlanmayı dener, sonra "Kurucuya ulaşılamadı, oyun
+  sona erdi." uyarısıyla oyundan çıkar (`GuestRoom`). Kurucu oyundan çıktıktan sonra `HostSession`
+  kare döngüsünde kalıyor ve konuğun bekleme süresi dolunca silinmiş hakeme erişiyordu;
+  `close()` artık döngüden çıkıyor. Tablet ve PC ile Wi-Fi'da denendi: katılma, kart ve taş,
+  duraklatma, süre dolunca otomatik hamle, yeniden bağlanma, düzgün kapatma, ani kurucu kaybı,
+  oyun sonu ve Tekrar Oyna (aynı odada yeni oyun) çalışıyor.
+- **2026-11-21 (15):** Sürüm 7 (1.6.0): üç ön ayarda sürüm yükseltildi; mağaza metinlerine (tr-TR,
+  en-US) 1.6.0 sürüm notu eklendi. AAB Play'e, Gradle'lı APK tablete.

@@ -39,6 +39,16 @@ RAHAT OYNA
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.6.0)
+
+- Wi-Fi oyununda 20 saniyelik sıra süresi; süre dolunca hamle kendiliğinden yapılır.
+- Bağlantısı kopan oyuncu oyuna geri dönebilir; kurucuya uzun süre ulaşılamazsa uyarı çıkar.
+- Wi-Fi oyununda duraklatma ve Tekrar Oyna.
+- Oyun bulunamazsa ne yapılacağını anlatan uyarı.
+- Kurada ses ve çark gibi yavaşlama.
+- "Nasıl Oynanır" bölümü açılır gruplara ayrıldı, Wi-Fi oyunu anlatıldı.
+- Hata düzeltmeleri.
+
 ## Sürüm notu (1.5.0)
 
 - Yeni: Aynı Wi-Fi ağındaki arkadaşlarınla oyna. Bir kişi oyunu kurar, diğerleri oda koduyla katılır.

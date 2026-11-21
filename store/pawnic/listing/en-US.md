@@ -39,6 +39,16 @@ PLAY AT YOUR PACE
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.6.0)
+
+- Wi-Fi games now have a 20-second turn timer; when time runs out, a move is made automatically.
+- Players who lose connection can rejoin; a warning appears if the host can't be reached for a long time.
+- Pause and Play Again in Wi-Fi games.
+- A hint explains what to do when no game is found.
+- Sound and a slowing wheel effect for the turn order draw.
+- "How to Play" is now split into expandable groups and covers Wi-Fi games.
+- Bug fixes.
+
 ## Sürüm notu (1.5.0)
 
 - New: Play with friends on the same Wi-Fi network. One player hosts, others join with the room code.
