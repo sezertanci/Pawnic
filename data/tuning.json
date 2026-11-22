@@ -1,6 +1,21 @@
 {
 	"board": {
-		"layout": "res://data/boards/classic.json"
+		"boards": [
+			{
+				"id": "classic",
+				"layout": "res://data/boards/classic.json",
+				"name": "BOARD_CLASSIC",
+				"preview": "res://assets/images/board_preview_classic.png",
+				"needs_unlock": false
+			},
+			{
+				"id": "four_leaf",
+				"layout": "res://data/boards/four_leaf.json",
+				"name": "BOARD_FOUR_LEAF",
+				"preview": "res://assets/images/board_preview_four_leaf.png",
+				"needs_unlock": true
+			}
+		]
 	},
 	"rules": {
 		"hand_size": 3,

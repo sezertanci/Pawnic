@@ -1,8 +1,9 @@
 class_name SetupScreen
-extends MarginContainer
+extends Control
 ## Yeni oyun ekranı: oyun modu, oyuncu ve taş sayısı seçimi; tek oyunculu modda oyuncunun rengi
 ## ve bot zorluğu. Ağ modunda seçenekler yerine oyun kurma ve katılma düğmeleri görünür; ağ
-## oyununun ayarları lobide seçilir.
+## oyununun ayarları lobide seçilir. Tahta seçimi her modda görünür; ağ modunda kurulan oyunun
+## tahtasıdır. Kilitli tahta ödüllü reklamla açılır.
 
 signal start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
 signal back_requested
@@ -21,9 +22,13 @@ const HINT_KEYS := {
 const COUNT_KEYS := {Mode.SINGLE: "SET_BOTS", Mode.MULTI: "SET_PLAYERS"}
 ## Tek oyunculu modda sayı seçici bot sayısını gösterir; insan oyuncu bir kişidir.
 const HUMAN_SEATS := 1
+const UNLOCK_PLACEMENT := "unlock_board"
+const UNLOCK_ASK_KEY := "BOARD_UNLOCK_ASK"
 
 var _mode := Mode.SINGLE
 var _player_count := 0
+var _board_cards: Dictionary[String, BoardCard] = {}
+var _unlock: RewardedUnlock
 
 @onready var _mode_hint: Label = %ModeHint
 @onready var _game_options: Control = %GameOptions
@@ -35,6 +40,7 @@ var _player_count := 0
 @onready var _color_box: Control = %ColorBox
 @onready var _colors: HBoxContainer = %Colors
 @onready var _levels: HBoxContainer = %Levels
+@onready var _board_list: HBoxContainer = %BoardCards
 
 
 func _ready() -> void:
@@ -51,6 +57,10 @@ func _ready() -> void:
 	_start.pressed.connect(_on_start_pressed)
 	_build_color_buttons()
 	_build_level_buttons()
+	_unlock = RewardedUnlock.new(
+		%ConfirmOverlay as ConfirmOverlay, UNLOCK_PLACEMENT, UNLOCK_ASK_KEY
+	)
+	_build_board_cards()
 	_refresh_mode()
 
 
@@ -102,6 +112,40 @@ func _build_level_buttons() -> void:
 		)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.pressed.connect(Difficulty.select.bind(level))
+
+
+func _build_board_cards() -> void:
+	var group := ButtonGroup.new()
+	for entry: BoardEntry in Boards.entries():
+		var card := BoardCard.new(entry, group)
+		card.pressed.connect(_on_board_pressed.bind(entry.id))
+		_board_list.add_child(card)
+		_board_cards[entry.id] = card
+	_refresh_boards()
+
+
+func _refresh_boards() -> void:
+	for id: String in _board_cards:
+		var card := _board_cards[id]
+		card.set_pressed_no_signal(id == Boards.current_id)
+		card.locked = Boards.is_locked(id)
+
+
+## Açık tahta hemen seçilir. Kilitli tahtada seçim eski karta döner ve reklam önerilir.
+func _on_board_pressed(id: String) -> void:
+	var locked := Boards.is_locked(id)
+	if not locked:
+		Boards.select(id)
+	_refresh_boards()
+	if locked:
+		_unlock.request(_on_board_unlocked.bind(id))
+
+
+## Reklam ödülü verdi: tahta açılıp seçilir.
+func _on_board_unlocked(id: String) -> void:
+	Boards.unlock(id)
+	Boards.select(id)
+	_refresh_boards()
 
 
 ## Ağ sekmesini seçili gösterir (ağ oyunu bitince buraya dönülür).

@@ -10,11 +10,15 @@ const QUARTER_TURNS := 4
 const CELL_CENTER := Vector2(0.5, 0.5)
 
 
-## Koltuğun başlangıç alanını en alta getiren saat yönündeki çeyrek tur sayısı (0-3).
+## Koltuğun başlangıç alanını en alta getiren saat yönündeki çeyrek tur sayısı (0-3). Kare
+## olmayan tahtada en ve boy yer değiştirmesin diye yalnızca yarım turlar (0 ya da 2) denenir.
 static func turns_to_bottom(layout: BoardLayout, seat: int) -> int:
-	var away := layout.bases[seat] - Vector2(layout.grid_size) / 2.0
+	var size := layout.grid_size
+	var away := layout.bases[seat] - size / 2.0
 	var best := 0
 	for turns: int in range(1, QUARTER_TURNS):
+		if grid(size, turns) != size:
+			continue
 		if _rotate(away, turns).y > _rotate(away, best).y:
 			best = turns
 	return best
@@ -36,7 +40,7 @@ static func point(cell: Vector2, size: Vector2, turns: int) -> Vector2:
 ## konur. Böylece döndürülmüş tahta döndürülmemiş tahtayla aynı görünür. Denk gelen çıkış karesi
 ## yoksa (tahta bu dönüşte kendisiyle örtüşmüyorsa) tepsinin kendi yeri döndürülür.
 static func base_center(layout: BoardLayout, seat: int, turns: int) -> Vector2:
-	var size := Vector2(layout.grid_size)
+	var size := layout.grid_size
 	var start := point(_start_center(layout, seat), size, turns)
 	for other: int in range(layout.seat_count()):
 		if grid(size, turns) == size and start.is_equal_approx(_start_center(layout, other)):
@@ -51,7 +55,7 @@ static func rect(area: Rect2, size: Vector2, turns: int) -> Rect2:
 
 
 static func _start_center(layout: BoardLayout, seat: int) -> Vector2:
-	return Vector2(layout.cells[layout.starts[seat]]) + CELL_CENTER
+	return layout.cells[layout.starts[seat]] + CELL_CENTER
 
 
 ## Ekranda (y aşağı) saat yönünde çeyrek turlar: yukarı sağa, sağ aşağıya döner.

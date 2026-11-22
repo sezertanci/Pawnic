@@ -1,0 +1,6 @@
+{
+	"square_shape": "hexagon",
+	"paths": [{ "id": "ring", "points": [[0, 0], [3, 0], [3, 3], [0, 3]], "loop": true }],
+	"safe": ["ring:1"],
+	"seats": [{ "start": "ring:1", "home": "ring:5", "base": [1.5, 1.5] }]
+}

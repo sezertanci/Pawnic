@@ -68,7 +68,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 7
+const PROTOCOL_VERSION := 8
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
@@ -76,6 +76,8 @@ const KEY_DIGEST := "digest"
 const KEY_REASON := "reason"
 const KEY_PORT := "port"
 const KEY_PLAYERS := "players"
+## Duyuruda hostun oyununun tahtası (GameSettings.board.id).
+const KEY_BOARD := "board"
 const KEY_CODE := "code"
 const KEY_COLOR := "color"
 ## Görünümle birlikte giden, hostun oyun hızı seviyesi (GameSpeed.Level).
@@ -191,9 +193,10 @@ static func refused(reason: Refusal) -> Dictionary:
 	return make(Type.REFUSED, {KEY_REASON: reason})
 
 
-static func announce(port: int, players: int) -> Dictionary:
+static func announce(port: int, players: int, board: String) -> Dictionary:
 	return make(
-		Type.ANNOUNCE, {KEY_PROTOCOL: PROTOCOL_VERSION, KEY_PORT: port, KEY_PLAYERS: players}
+		Type.ANNOUNCE,
+		{KEY_PROTOCOL: PROTOCOL_VERSION, KEY_PORT: port, KEY_PLAYERS: players, KEY_BOARD: board}
 	)
 
 

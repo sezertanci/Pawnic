@@ -10,7 +10,8 @@ extends CanvasGroup
 const ARC_COUNT := 4
 const GAP_ANGLE := PI / 5.0
 const HEAD_TRIM := 0.2
-## Yay yarıçapı, çizgi kalınlığı ve ok başının yarı genişliği (bitiş alanının yarı boyuna oranla).
+## Varsayılan yay yarıçapı, çizgi kalınlığı ve ok başının yarı genişliği (bitiş alanının yarı
+## boyuna oranla). Tahta dosyası yarıçap oranını değiştirebilir.
 const RADIUS_RATIO := 1.55
 const LINE_RATIO := 0.1
 const HEAD_RATIO := 0.18
@@ -34,6 +35,14 @@ var half := 0.0:
 		half = value
 		_arrows.queue_redraw()
 
+## Yay yarıçapının bitiş alanının yarı boyuna oranı.
+var radius_ratio := RADIUS_RATIO:
+	set(value):
+		if is_equal_approx(radius_ratio, value):
+			return
+		radius_ratio = value
+		_arrows.queue_redraw()
+
 var _arrows := Node2D.new()
 
 
@@ -50,7 +59,7 @@ func _process(delta: float) -> void:
 func _draw_arrows() -> void:
 	if half > 0.0:
 		draw_arrows(
-			_arrows, Vector2.ZERO, half * RADIUS_RATIO, half * LINE_RATIO, half * HEAD_RATIO, color
+			_arrows, Vector2.ZERO, half * radius_ratio, half * LINE_RATIO, half * HEAD_RATIO, color
 		)
 
 

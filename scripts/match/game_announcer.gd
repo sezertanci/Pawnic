@@ -1,8 +1,9 @@
 class_name GameAnnouncer
 extends RefCounted
 ## Hostun oyun bulma yayıncısı: belli aralıkla yerel ağa "burada oyun var" yayını (UDP) gönderir.
-## Yayında yalnızca protokol sürümü, oyun portu ve oyuncu sayısı vardır; oda kodu ve kişisel bilgi
-## yoktur. Yayın hostun özel ağ adresinden çıkar. Gönderim her karede zamanı gelince yapılır.
+## Yayında yalnızca protokol sürümü, oyun portu, oyuncu sayısı ve tahtanın kimliği vardır; oda
+## kodu ve kişisel bilgi yoktur. Yayın hostun özel ağ adresinden çıkar. Gönderim her karede
+## zamanı gelince yapılır.
 
 ## Yerel ağın tamamına yayın adresi.
 const BROADCAST := "255.255.255.255"
@@ -48,5 +49,5 @@ func _tick() -> void:
 	if _socket == null or now < _next_msec:
 		return
 	_next_msec = now + _settings.announce_interval_ms
-	var message := MatchMessage.announce(_settings.network_port, player_count)
+	var message := MatchMessage.announce(_settings.network_port, player_count, _settings.board.id)
 	_socket.put_packet(var_to_bytes(message))

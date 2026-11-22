@@ -116,7 +116,7 @@ func _on_demo_closed() -> void:
 
 func _on_start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level) -> void:
 	SaveStore.clear_match()
-	var game := GameMatch.create(Tuning.settings, bot_flags, pawns, _rng)
+	var game := GameMatch.create(Boards.settings(), bot_flags, pawns, _rng)
 	game.bot_level = bot_level
 	_choose_colors(game)
 	MatchStarter.choose(game, _rng)
@@ -136,7 +136,9 @@ func _choose_colors(game: GameMatch) -> void:
 
 
 func _on_resume_requested() -> void:
-	var game := GameMatch.from_dict(Tuning.settings, SaveStore.load_match(), _rng)
+	var data := SaveStore.load_match()
+	var settings := Tuning.for_board(GameMatch.board_id_of(data))
+	var game := GameMatch.from_dict(settings, data, _rng)
 	if game == null:
 		push_warning("Kayıtlı oyun okunamadı, siliniyor.")
 		SaveStore.clear_match()

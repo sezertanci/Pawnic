@@ -2,7 +2,9 @@ extends SceneTree
 ## Arayüzü açıp birkaç hamle oynatır ve ekran görüntüleri kaydeder (görsel kontrol için).
 ## Seçim anı son hamlede kaydedilir; o sırada yolda taş olduğundan yoldaki vurgu da görünür.
 ## Çalıştırma: godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör> [kaplama]
-## Kaplama verilirse (ör. wood) kilidi açılır ve görüntüler o kaplamayla alınır. Son görüntüdeki
+## [tahta]
+## Kaplama verilirse (ör. wood) kilidi açılır ve görüntüler o kaplamayla alınır. Tahta verilirse
+## (ör. four_leaf) o da açılıp seçilir. Son görüntüdeki
 ## tahta ayrıca kırpılıp board_preview.png olarak kaydedilir; bu, görünüm ekranındaki kartın
 ## görselidir.
 
@@ -26,6 +28,9 @@ func _run() -> void:
 	if args.size() > 1:
 		root.get_node("Skins").call("unlock", args[1])
 		root.get_node("Skins").call("select", args[1])
+	if args.size() > 2:
+		root.get_node("Boards").call("unlock", args[2])
+		root.get_node("Boards").call("select", args[2])
 	var main: Control = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await _frames()

@@ -28,6 +28,8 @@ extends Resource
 @export var square_top := 0.0
 ## Kare dokusu (taş); ev yolu da aynı dokuyu sahibinin rengine boyanmış olarak kullanır.
 @export var track_texture: Texture2D
+## Çember kareli tahtalarda kare dokusu; oranları track_texture ile aynıdır.
+@export var round_track_texture: Texture2D
 ## Kare yüzüne boyanmadan çizilen süs (ör. elmas kakma); işaretli karelerde çizilmez. Boş olabilir.
 @export var inlay_texture: Texture2D
 ## Görünüm ekranındaki kartta gösterilen tahta görseli (tools/screenshot.gd çıktısındaki

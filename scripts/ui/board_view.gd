@@ -24,6 +24,8 @@ const NUMBER_SCALE := 1.25
 const LINE_WIDTH := BoardPainter.LINE_WIDTH
 const HIGHLIGHT_WIDTH := 4.0
 const CENTER := BoardTurn.CELL_CENTER
+## İki kare merkezi arasındaki bu uzaklığı (hücre) aşan bağlantılar çizgiyle gösterilir.
+const ADJACENT_REACH := 1.5
 ## Gölge elipsinin dikey basıklığı.
 const SHADOW_FLATTEN := 0.45
 ## Karedeki sembollerin (kalkan, ev) yarı genişliği ve yarı yüksekliği (yarıçapa oranla).
@@ -107,9 +109,11 @@ func _draw() -> void:
 	var active := _active_seats()
 	_draw_links(active)
 	_draw_home_tray(active)
-	var area := _home_area()
-	_spinner.position = area.get_center()
-	_spinner.half = area.size.x / 2.0
+	var outline := _home_outline()
+	_spinner.position = HomeTray.center_of(outline)
+	_spinner.half = HomeTray.inner_reach(outline, _home_sides())
+	var ratio := board.layout.spinner_ratio
+	_spinner.radius_ratio = ratio if ratio > 0.0 else TurnSpinner.RADIUS_RATIO
 	for square: int in range(board.layout.square_count()):
 		if _is_visible(square, active):
 			_draw_square(square, active)
@@ -199,7 +203,7 @@ func _update_turns() -> void:
 
 
 func _cell_size() -> float:
-	var grid := BoardTurn.grid(Vector2(board.layout.grid_size), _turns)
+	var grid := BoardTurn.grid(board.layout.grid_size, _turns)
 	return minf(size.x / grid.x, size.y / grid.y)
 
 
@@ -217,23 +221,23 @@ func _grid_origin() -> Vector2:
 
 ## Döndürülmüş tahtanın piksel boyutu.
 func _grid_pixels() -> Vector2:
-	return BoardTurn.grid(Vector2(board.layout.grid_size), _turns) * _cell_size()
+	return BoardTurn.grid(board.layout.grid_size, _turns) * _cell_size()
 
 
 ## Hücre cinsinden bir noktanın ekrandaki yeri (döndürme dahil).
 func _to_pixels(cell: Vector2) -> Vector2:
-	var turned := BoardTurn.point(cell, Vector2(board.layout.grid_size), _turns)
+	var turned := BoardTurn.point(cell, board.layout.grid_size, _turns)
 	return _grid_origin() + turned * _cell_size()
 
 
 ## Hücre cinsinden bir alanın ekrandaki karşılığı (döndürme dahil).
 func _area_to_pixels(area: Rect2) -> Rect2:
-	var turned := BoardTurn.rect(area, Vector2(board.layout.grid_size), _turns)
+	var turned := BoardTurn.rect(area, board.layout.grid_size, _turns)
 	return Rect2(_grid_origin() + turned.position * _cell_size(), turned.size * _cell_size())
 
 
-func _cell_rect(cell: Vector2i) -> Rect2:
-	return _area_to_pixels(Rect2(Vector2(cell), Vector2.ONE))
+func _cell_rect(cell: Vector2) -> Rect2:
+	return _area_to_pixels(Rect2(cell, Vector2.ONE))
 
 
 func _active_seats() -> Array[int]:
@@ -253,11 +257,13 @@ func _is_visible(square: int, active: Array[int]) -> bool:
 func _draw_square(square: int, active: Array[int]) -> void:
 	var layout := board.layout
 	var skin := Skins.current
-	var rect := _cell_rect(layout.cells[square])
+	var cell_rect := _cell_rect(layout.cells[square])
+	var rect := cell_rect
+	var texture := skin.round_track_texture if _is_round() else skin.track_texture
 	var owner := layout.owners[square]
 	if owner != BoardLayout.NO_SEAT and layout.homes[owner] == square:
 		if selectable_squares.has(square):
-			_draw_wave_frame(rect)
+			_draw_square_frame(cell_rect, rect)
 		return
 	var shortcut_seat := _shortcut_seat(square, active)
 	if owner == BoardLayout.NO_SEAT:
@@ -267,10 +273,10 @@ func _draw_square(square: int, active: Array[int]) -> void:
 		for seat: int in active:
 			if layout.starts[seat] == square:
 				color = skin.track_color.lerp(_seat_color(seat), skin.start_tint)
-		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, color)
+		rect = BoardPainter.draw_tile(self, rect, texture, color)
 	else:
 		var tint := skin.track_color.lerp(_seat_color(owner), skin.lane_tint)
-		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
+		rect = BoardPainter.draw_tile(self, rect, texture, tint)
 	if shortcut_seat == BoardLayout.NO_SEAT and not _has_mark(square):
 		BoardPainter.draw_inlay(self, rect)
 	_draw_mark(square, rect)
@@ -281,27 +287,40 @@ func _draw_square(square: int, active: Array[int]) -> void:
 		var fill := _seat_color(shortcut_seat)
 		CardSymbol.draw_house(self, bounds, fill, skin.outline_color, line)
 	if selectable_squares.has(square):
-		_draw_wave_frame(rect)
+		_draw_square_frame(cell_rect, rect)
+
+
+func _is_round() -> bool:
+	return board.layout.square_shape == BoardLayout.SquareShape.CIRCLE
+
+
+## Seçilebilir karenin dalga çerçevesi: çember karede bütün hücreyi saran çember, kare
+## karede yüzün çevresi.
+func _draw_square_frame(cell_rect: Rect2, face: Rect2) -> void:
+	if _is_round():
+		_draw_wave_frame(cell_rect, cell_rect.size.x / 2.0)
+	else:
+		_draw_wave_frame(face)
 
 
 ## Ortadaki bitiş alanı (HomeTray); bitiş kareleri kendi kare olarak çizilmez. Oyunda olmayan
 ## koltukların yamukları işaret rengindedir.
 func _draw_home_tray(active: Array[int]) -> void:
 	var skin := Skins.current
-	var sides: Array[Vector2] = []
 	var colors: Array[Color] = []
 	var glows: Array[float] = []
 	for seat: int in range(board.layout.homes.size()):
-		sides.append(_home_side(seat))
 		colors.append(_seat_color(seat) if active.has(seat) else skin.mark_color)
 		glows.append(_glows.get(seat, 0.0))
-	HomeTray.draw(self, _home_area(), sides, colors, glows, skin, _cell_size())
+	HomeTray.draw(self, _home_outline(), _home_sides(), colors, glows, skin, _cell_size())
 
 
 func _draw_home_halos() -> void:
+	var outline := _home_outline()
+	var sides := _home_sides()
 	for seat: int in _glows:
-		var color := _seat_color(seat)
-		HomeTray.draw_halo(self, _home_area(), _home_side(seat), color, _glows[seat], _cell_size())
+		var glow: float = _glows[seat]
+		HomeTray.draw_halo(self, outline, sides, seat, _seat_color(seat), glow, _cell_size())
 
 
 ## Koltuğun bitiş yamuğu bir anda parlar ve ayardaki sürede söner; animasyondan bağımsızdır,
@@ -325,22 +344,32 @@ func _update_spinner() -> void:
 		_spinner.color = _seat_color(turn_seat)
 
 
-## Bitiş karelerinin hücrelerini kapsayan alan (piksel).
-func _home_area() -> Rect2:
-	var homes := board.layout.homes
-	var area := Rect2i(board.layout.cells[homes[0]], Vector2i.ONE)
-	for home: int in homes:
-		area = area.merge(Rect2i(board.layout.cells[home], Vector2i.ONE))
-	return _area_to_pixels(Rect2(area))
+## Ortadaki bitiş alanının dış çizgisi (piksel): tahta dosyasında verilmişse o, yoksa bitiş
+## karelerinin hücrelerini kapsayan kare alan.
+func _home_outline() -> PackedVector2Array:
+	var layout := board.layout
+	var outline := PackedVector2Array()
+	if not layout.center_outline.is_empty():
+		for point: Vector2 in layout.center_outline:
+			outline.append(_to_pixels(point))
+		return outline
+	var area := Rect2(layout.cells[layout.homes[0]], Vector2.ONE)
+	for home: int in layout.homes:
+		area = area.merge(Rect2(layout.cells[home], Vector2.ONE))
+	for corner: Vector2 in [area.position, area.position + Vector2(area.size.x, 0.0)]:
+		outline.append(_to_pixels(corner))
+	for corner: Vector2 in [area.end, area.position + Vector2(0.0, area.size.y)]:
+		outline.append(_to_pixels(corner))
+	return outline
 
 
-## Koltuğun bitiş yamuğunun dışa bakan birim yönü: bitiş hücresinin alan merkezine göre yönü.
-func _home_side(seat: int) -> Vector2:
-	var cell := _square_center(board.layout.homes[seat])
-	var away := cell - _home_area().get_center()
-	if absf(away.x) > absf(away.y):
-		return Vector2.RIGHT if away.x > 0.0 else Vector2.LEFT
-	return Vector2.DOWN if away.y > 0.0 else Vector2.UP
+## Her koltuğun bitiş bölgesinin yönü: alanın ortasından bitiş karesine birim yön.
+func _home_sides() -> Array[Vector2]:
+	var center := HomeTray.center_of(_home_outline())
+	var sides: Array[Vector2] = []
+	for home: int in board.layout.homes:
+		sides.append(center.direction_to(_square_center(home)))
+	return sides
 
 
 ## Kare oyundaki bir koltuğun kısayol karesiyse o koltuğu, değilse BoardLayout.NO_SEAT döner.
@@ -371,11 +400,10 @@ func _draw_links(active: Array[int]) -> void:
 	for link: BoardLayout.Link in layout.links:
 		var from := layout.cells[link.from]
 		var to := layout.cells[link.to]
-		var gap := (to - from).abs()
-		if maxi(gap.x, gap.y) <= 1 or not active.any(link.allows):
+		if from.distance_to(to) <= ADJACENT_REACH or not active.any(link.allows):
 			continue
-		var start := _to_pixels(Vector2(from) + CENTER)
-		var end := _to_pixels(Vector2(to) + CENTER)
+		var start := _to_pixels(from + CENTER)
+		var end := _to_pixels(to + CENTER)
 		draw_line(start, end, Skins.current.mark_color, LINE_WIDTH)
 
 
@@ -389,7 +417,8 @@ func _draw_previews() -> void:
 		if path.is_empty():
 			continue
 		var target := path[path.size() - 1]
-		PathPreview.draw_target(self, _cell_rect(board.layout.cells[target]), color, cell)
+		var rect := _cell_rect(board.layout.cells[target])
+		PathPreview.draw_target(self, rect, color, cell, _is_round())
 		var centers: Array[Vector2] = []
 		for index: int in range(path.size() - 1):
 			centers.append(_square_center(path[index]))
@@ -417,11 +446,20 @@ func _draw_sockets(seat: int) -> void:
 
 ## Başlangıç alanından çıkış karesine uzanan patika; alandan taş seçilebiliyorsa üstünde ışık akar.
 func _draw_base_link(seat: int) -> void:
-	var start := _cell_rect(board.layout.cells[board.layout.starts[seat]])
+	var cell := board.layout.cells[board.layout.starts[seat]]
+	var start := _cell_rect(cell)
 	var skin := Skins.current
 	var flowing := _base_pawn(seat) != Move.NO_PAWN
 	var color := _seat_color(seat)
-	BaseLink.draw(self, _base_rect(seat), start, color, skin, _cell_size(), flowing)
+	var approach := _approach_pixels(cell, board.layout.base_approaches[seat])
+	BaseLink.draw(self, _base_rect(seat), start, color, skin, _cell_size(), flowing, approach)
+
+
+## Tahta yönündeki varış yönünü ekran yönüne çevirir (tahta döndürülmüş olabilir); boşsa boş kalır.
+func _approach_pixels(cell: Vector2, direction: Vector2) -> Vector2:
+	if direction == Vector2.ZERO:
+		return direction
+	return (_to_pixels(cell + direction) - _to_pixels(cell)).normalized()
 
 
 ## radius verilirse çerçevenin köşeleri yuvarlatılır (başlangıç tepsisinin şekli için).
@@ -456,8 +494,8 @@ func _layout_pawns() -> void:
 	var count := board.positions.size()
 	_centers.resize(count)
 	_radii.resize(count)
-	# Hücre -> o hücredeki taşlar (Array[int]).
-	var groups: Dictionary[Vector2i, Array] = {}
+	# Kare -> o karedeki taşlar (Array[int]).
+	var groups: Dictionary[int, Array] = {}
 	var base_slots: Dictionary[int, int] = {}
 	_update_home_order()
 	for pawn: int in range(count):
@@ -468,13 +506,13 @@ func _layout_pawns() -> void:
 			base_slots[seat] = slot + 1
 			_centers[pawn] = _base_slot_center(seat, slot)
 		else:
-			var cell := board.layout.cells[board.positions[pawn]]
-			if not groups.has(cell):
+			var square := board.positions[pawn]
+			if not groups.has(square):
 				var pawns: Array[int] = []
-				groups[cell] = pawns
-			groups[cell].append(pawn)
-	for cell: Vector2i in groups:
-		_spread(cell, groups[cell])
+				groups[square] = pawns
+			groups[square].append(pawn)
+	for square: int in groups:
+		_spread(square, groups[square])
 
 
 ## Başlangıç tepsisindeki yerin merkezi (piksel). Tepsi tahtayla dönmez, hep yatay dizilir.
@@ -492,13 +530,13 @@ func _base_offset(slot: int) -> Vector2:
 	return Vector2(column, row) * BASE_SPREAD + Vector2.UP * BASE_LIFT
 
 
-## Aynı hücredeki taşları hücre merkezinin çevresine dağıtır; evdeki taşlar küçülüp
+## Aynı karedeki taşları kare merkezinin çevresine dağıtır; evdeki taşlar küçülüp
 ## eve geliş sırasıyla bitiş yamuğuna dizilir.
-func _spread(cell: Vector2i, pawns: Array[int]) -> void:
+func _spread(square: int, pawns: Array[int]) -> void:
 	if _is_home(pawns[0]):
 		_spread_at_home(pawns)
 		return
-	var center := _to_pixels(Vector2(cell) + CENTER)
+	var center := _square_center(square)
 	for index: int in range(pawns.size()):
 		var pawn := pawns[index]
 		if pawns.size() == 1:
@@ -510,11 +548,12 @@ func _spread(cell: Vector2i, pawns: Array[int]) -> void:
 
 
 func _spread_at_home(pawns: Array[int]) -> void:
-	var side := _home_side(board.owners[pawns[0]])
+	var outline := _home_outline()
+	var side := _home_sides()[board.owners[pawns[0]]]
 	var ordered := _home_order.filter(func(pawn: int) -> bool: return pawns.has(pawn))
 	for index: int in range(ordered.size()):
 		var pawn: int = ordered[index]
-		var place := HomeTray.place(_home_area(), side, index, ordered.size(), _cell_size())
+		var place := HomeTray.place(outline, side, index, ordered.size(), _cell_size())
 		_centers[pawn] = place
 		_radii[pawn] *= board.settings.home_pawn_scale
 
@@ -660,4 +699,4 @@ func _set_time(time: float) -> void:
 
 
 func _square_center(square: int) -> Vector2:
-	return _to_pixels(Vector2(board.layout.cells[square]) + CENTER)
+	return _to_pixels(board.layout.cells[square] + CENTER)

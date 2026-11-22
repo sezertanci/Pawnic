@@ -2,7 +2,9 @@ class_name BaseLink
 extends RefCounted
 ## Başlangıç alanından çıkış karesine uzanan kavisli patika; taşların nereden yola çıkacağını
 ## gösterir. Patika alanın çıkış karesine bakan kenarının ortasının biraz önünden dik çıkar,
-## yumuşak bir S çizerek karenin biraz önüne dik varır; iki ucu da kenarlara değmez. İki yan
+## yumuşak bir S çizerek karenin biraz önüne dik varır; iki ucu da kenarlara değmez. Tahta
+## dosyası varış yönü (approach) verdiyse patika kareye o yönden varır; böylece dışa şişen tek
+## bir kavisle halkanın dışından dolanır. İki yan
 ## çizgiden ve aralarındaki daha soluk dolgudan oluşur; başına, ortasına ve sonuna yakın üç ok
 ## işareti (>) yönü gösterir. Renkler zemine yumuşakça karışan, kenarsız ve opak tonlardır;
 ## karışma oranları temadan (BoardSkin) gelir.
@@ -22,6 +24,8 @@ const ARROW_LINE_RATIO := 0.1
 const END_GAP := 0.12
 ## Kavis kollarının uzunluğu, iki uç arasındaki dik mesafeye oranla.
 const BEND := 0.6
+## Varış yönü verilen patikada iki kolun, iki uç arasındaki uzaklığa oranı.
+const APPROACH_BEND := 0.35
 const CURVE_POINTS := 64
 ## Akan ışığın bir turu (saniye), patika boyuna oranla genişliği, ön ucunun yumuşak açılma
 ## uzunluğu ve rengin beyaza yaklaşması.
@@ -40,13 +44,10 @@ static func draw(
 	color: Color,
 	skin: BoardSkin,
 	cell: float,
-	flowing: bool
+	flowing: bool,
+	approach := Vector2.ZERO
 ) -> void:
-	var normal := _facing(base, start.get_center())
-	var gap := Vector2.ONE * cell * END_GAP
-	var from := base.get_center() + normal * (base.size / 2.0 + gap)
-	var to := start.get_center() - normal * (start.size / 2.0 + gap)
-	var points := _curve(from, to, normal)
+	var points := _path(base, start, cell, approach)
 	var half := cell * WIDTH_RATIO / 2.0
 	var rails: Array[PackedVector2Array] = [_offset(points, half), _offset(points, -half)]
 	var line := cell * LINE_RATIO
@@ -66,6 +67,29 @@ static func draw(
 		var index := _arrow_index(points, at)
 		var arrow := _arrow(points, index, half * 2.0 * ARROW_SIZE)
 		SmoothDraw.stroke(canvas, arrow, arrow_colors[index], cell * ARROW_LINE_RATIO)
+
+
+## Patikanın orta çizgisi. Varış yönü yoksa alanın kareye bakan kenarından S çizer; varsa alanın
+## kareye bakan uzun kenarından çıkıp kareye approach yönünden varır.
+static func _path(base: Rect2, start: Rect2, cell: float, approach: Vector2) -> PackedVector2Array:
+	var gap := Vector2.ONE * cell * END_GAP
+	if approach == Vector2.ZERO:
+		var normal := _facing(base, start.get_center())
+		var from := base.get_center() + normal * (base.size / 2.0 + gap)
+		return _curve(from, start.get_center() - normal * (start.size / 2.0 + gap), normal)
+	var side := _long_side(base, start.get_center())
+	var exit := base.get_center() + side * (base.size / 2.0 + gap)
+	var to := start.get_center() + approach * (start.size.x / 2.0 + gap.x)
+	var arm := exit.distance_to(to) * APPROACH_BEND
+	return _approach_curve(exit, to, side * arm, approach * arm)
+
+
+## Alanın uzun kenarlarından point'e bakanının dışa dönük birim yönü.
+static func _long_side(rect: Rect2, point: Vector2) -> Vector2:
+	var center := rect.get_center()
+	if rect.size.x >= rect.size.y:
+		return Vector2.UP if point.y < center.y else Vector2.DOWN
+	return Vector2.LEFT if point.x < center.x else Vector2.RIGHT
 
 
 ## Eğrinin at oranına (nokta sırasına göre) denk gelen noktasının sırası.
@@ -94,10 +118,23 @@ static func _facing(rect: Rect2, point: Vector2) -> Vector2:
 ## Uçlarda normal yönünde duran kollarıyla kübik Bézier eğrisinin noktaları.
 static func _curve(from: Vector2, to: Vector2, normal: Vector2) -> PackedVector2Array:
 	var arm := normal * (to - from).dot(normal) * BEND
+	return _bezier(from, from + arm, to - arm, to)
+
+
+## Alandan from_arm yönünde çıkıp çıkış karesine to_arm yönünden varan kübik Bézier eğrisi.
+static func _approach_curve(
+	from: Vector2, to: Vector2, from_arm: Vector2, to_arm: Vector2
+) -> PackedVector2Array:
+	return _bezier(from, from + from_arm, to + to_arm, to)
+
+
+static func _bezier(
+	from: Vector2, from_control: Vector2, to_control: Vector2, to: Vector2
+) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	for index: int in range(CURVE_POINTS + 1):
 		var t := float(index) / CURVE_POINTS
-		points.append(from.bezier_interpolate(from + arm, to - arm, to, t))
+		points.append(from.bezier_interpolate(from_control, to_control, to, t))
 	return points
 
 

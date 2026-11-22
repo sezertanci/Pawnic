@@ -2,6 +2,7 @@ class_name BoardLayout
 extends RefCounted
 ## Tahtanın yapısı: kareler, kareler arasındaki bağlantılar ve koltuklar.
 ## data/boards/*.json dosyasından okunur; tahta tasarımı değişince yalnızca dosya değişir.
+## Kareler düz yollarla (points) ya da tek tek yazılmış ondalık yerlerle (squares) verilir.
 ## Kare kimlikleri "yol:sıra" biçimindedir (ör. "ring:8"). Dosya biçimi README'de anlatılır.
 
 ## Bağlantının ne zaman kullanılacağı:
@@ -9,6 +10,8 @@ extends RefCounted
 ## CHOICE: taş kareden geçerken ya da kareden başlarken oyuncu yolu seçer.
 ## EXACT: bağlantıya yalnızca hamleye bu karede duran taş girebilir; oyuncu yolu seçer.
 enum LinkMode { FORCED, CHOICE, EXACT }
+## Karelerin çizimdeki biçimi; kural motoru kullanmaz.
+enum SquareShape { SQUARE, CIRCLE }
 
 const NO_SQUARE := -1
 const NO_SEAT := -1
@@ -17,8 +20,13 @@ const MODE_BY_NAME := {
 	"choice": LinkMode.CHOICE,
 	"exact": LinkMode.EXACT,
 }
+const SHAPE_BY_NAME := {
+	"square": SquareShape.SQUARE,
+	"circle": SquareShape.CIRCLE,
+}
 const KEY_PATHS := "paths"
 const KEY_SEATS := "seats"
+const KEY_SQUARES := "squares"
 
 
 ## İki kare arasındaki ek yol.
@@ -34,7 +42,14 @@ class Link:
 
 
 var names: Array[String] = []
-var cells: Array[Vector2i] = []
+## Karelerin hücre cinsinden sol üst köşeleri; her kare bir hücre boyundadır. Düz yollarda tam
+## sayı, serbest yerleşimde (squares) ondalık olabilir.
+var cells: Array[Vector2] = []
+var square_shape := SquareShape.SQUARE
+## Ortadaki bitiş alanının hücre cinsinden dış çizgisi; boşsa bitiş karelerini kapsayan kare alan.
+var center_outline := PackedVector2Array()
+## Dönen okun yarıçapının bitiş alanının yarı boyuna oranı; 0 ise arayüzün varsayılanı kullanılır.
+var spinner_ratio := 0.0
 ## Yalnızca bir koltuğa ait karelerde (ör. ev yolu) o koltuk, ortak karelerde NO_SEAT.
 var owners: Array[int] = []
 var safe: Array[bool] = []
@@ -49,7 +64,12 @@ var homes: Array[int] = []
 var shortcuts: Array[int] = []
 ## Başlangıç alanlarının hücre cinsinden merkezleri.
 var bases: Array[Vector2] = []
-var grid_size := Vector2i.ZERO
+## Patikanın çıkış karesine vardığı yön (hücre cinsinden birim yön, kareden dışarı bakar); dosyada
+## approach verilmemişse Vector2.ZERO ve patika alandan kareye düz bir S çizer. Yalnızca çizim
+## kullanır.
+var base_approaches: Array[Vector2] = []
+## Tahtanın hücre cinsinden boyu: dosyada size verilmişse o, yoksa kareleri kapsayan alan.
+var grid_size := Vector2.ZERO
 
 var _index_by_name: Dictionary[String, int] = {}
 ## Koltuk başına, kareden eve en kısa adım sayısı.
@@ -74,6 +94,7 @@ static func load_from(path: String) -> BoardLayout:
 	layout._set_speeds(root.get("speed", {}))
 	for seat_data: Dictionary in root[KEY_SEATS]:
 		layout._add_seat(seat_data)
+	layout._read_drawing(root)
 	layout._check_safe_starts()
 	if layout._failed:
 		return null
@@ -129,13 +150,7 @@ func home_distance(seat: int, square: int) -> int:
 
 func _add_path(data: Dictionary) -> void:
 	var loop := bool(data.get("loop", false))
-	var points: Array = data["points"].duplicate()
-	if loop:
-		# Son noktadan ilk noktaya dönen kenar da açılır; ilk hücre iki kez yazılmaz.
-		points.append(points[0])
-	var path_cells := _expand(points)
-	if loop:
-		path_cells.pop_back()
+	var path_cells := _path_cells(data, loop)
 	var owner := int(data.get("owner", NO_SEAT))
 	var first := names.size()
 	for index: int in range(path_cells.size()):
@@ -149,7 +164,24 @@ func _add_path(data: Dictionary) -> void:
 		prev_squares[first] = last
 
 
-func _append_square(square_name: String, cell: Vector2i, owner: int) -> void:
+## Yolun hücreleri: squares verilmişse tek tek yazılmış yerler, yoksa points köşelerinin açılımı.
+func _path_cells(data: Dictionary, loop: bool) -> Array[Vector2]:
+	if data.has(KEY_SQUARES):
+		var cells_list: Array[Vector2] = []
+		for point: Array in data[KEY_SQUARES]:
+			cells_list.append(_vector(point))
+		return cells_list
+	var points: Array = data["points"].duplicate()
+	if loop:
+		# Son noktadan ilk noktaya dönen kenar da açılır; ilk hücre iki kez yazılmaz.
+		points.append(points[0])
+	var expanded := _expand(points)
+	if loop:
+		expanded.pop_back()
+	return expanded
+
+
+func _append_square(square_name: String, cell: Vector2, owner: int) -> void:
 	_index_by_name[square_name] = names.size()
 	names.append(square_name)
 	cells.append(cell)
@@ -193,8 +225,28 @@ func _add_seat(data: Dictionary) -> void:
 	starts.append(_require(data["start"]))
 	homes.append(_require(data["home"]))
 	shortcuts.append(_require(data["shortcut"]) if data.has("shortcut") else NO_SQUARE)
-	var base: Array = data["base"]
-	bases.append(Vector2(float(base[0]), float(base[1])))
+	bases.append(_vector(data["base"]))
+	base_approaches.append(_vector(data["approach"]) if data.has("approach") else Vector2.ZERO)
+
+
+## Çizimle ilgili isteğe bağlı alanlar: kare biçimi, tahta boyu, bitiş alanının çizgisi ve dönen
+## okun yarıçap oranı.
+func _read_drawing(root: Dictionary) -> void:
+	var shape_name: String = root.get("square_shape", "square")
+	if not SHAPE_BY_NAME.has(shape_name):
+		push_error("Tahta dosyasında tanımsız kare biçimi: %s" % shape_name)
+		_failed = true
+		return
+	square_shape = SHAPE_BY_NAME[shape_name]
+	if root.has("size"):
+		grid_size = _vector(root["size"])
+	for point: Array in root.get("center", []):
+		center_outline.append(_vector(point))
+	spinner_ratio = float(root.get("spinner_ratio", 0.0))
+
+
+static func _vector(point: Array) -> Vector2:
+	return Vector2(float(point[0]), float(point[1]))
 
 
 func _require(square_name: Variant) -> int:
@@ -215,8 +267,9 @@ func _check_safe_starts() -> void:
 
 
 func _finish() -> void:
-	for cell: Vector2i in cells:
-		grid_size = grid_size.max(cell + Vector2i.ONE)
+	if grid_size == Vector2.ZERO:
+		for cell: Vector2 in cells:
+			grid_size = grid_size.max(cell + Vector2.ONE)
 	for seat: int in range(seat_count()):
 		_home_distances.append(_distances_to(seat, homes[seat]))
 
@@ -244,17 +297,20 @@ func _distances_to(seat: int, home: int) -> Dictionary[int, int]:
 
 ## Köşe noktalarını sırayla birleştirip yolun hücrelerini çıkarır.
 ## Ardışık noktalar yatay, dikey ya da tam çapraz hizada olmalıdır.
-static func _expand(points: Array) -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
+static func _expand(points: Array) -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	var last := Vector2i.ZERO
 	for point: Array in points:
 		var corner := Vector2i(int(point[0]), int(point[1]))
 		if result.is_empty():
-			result.append(corner)
+			last = corner
+			result.append(Vector2(corner))
 			continue
-		var delta: Vector2i = corner - result.back()
+		var delta: Vector2i = corner - last
 		if delta.x != 0 and delta.y != 0 and absi(delta.x) != absi(delta.y):
 			push_error("Yol noktaları düz hizada değil: %s" % [points])
 			return result
-		while result.back() != corner:
-			result.append(result.back() + delta.sign())
+		while last != corner:
+			last += delta.sign()
+			result.append(Vector2(last))
 	return result

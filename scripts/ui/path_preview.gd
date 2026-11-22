@@ -31,11 +31,13 @@ static func draw_dots(
 
 
 ## Varış karesini yarı saydam doldurur, çevresine dışa doğru solan ışık çizer; saydamlık nabız
-## gibi GLOW_MIN ile GLOW_MAX arasında gidip gelir.
-static func draw_target(canvas: CanvasItem, rect: Rect2, color: Color, cell: float) -> void:
+## gibi GLOW_MIN ile GLOW_MAX arasında gidip gelir. round true ise kare çemberdir.
+static func draw_target(
+	canvas: CanvasItem, rect: Rect2, color: Color, cell: float, round: bool
+) -> void:
 	var pulse := (1.0 - cos(TAU * PulseWave.phase(PULSE_PERIOD))) / 2.0
 	var lit := Color(color.lightened(LIGHTEN), lerpf(GLOW_MIN, GLOW_MAX, pulse))
-	var radius := cell * GLOW_CORNER
+	var radius := rect.size.x / 2.0 if round else cell * GLOW_CORNER
 	var spread := cell * GLOW_SPREAD
 	var inner := SmoothDraw.rounded_rect(rect, radius)
 	var outer := SmoothDraw.rounded_rect(rect.grow(spread), radius + spread)

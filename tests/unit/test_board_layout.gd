@@ -4,6 +4,11 @@ extends GutTest
 const FIXTURE := "res://tests/fixtures/branch_board.json"
 ## Çıkış karesi güvenli kareler listesinde olmayan tahta.
 const UNSAFE_START_FIXTURE := "res://tests/fixtures/unsafe_start_board.json"
+## Kareleri tek tek ondalık yerlerle yazılmış, çember kareli tahta.
+const FREE_FIXTURE := "res://tests/fixtures/free_board.json"
+## Tanımsız kare biçimli tahta.
+const BAD_SHAPE_FIXTURE := "res://tests/fixtures/bad_shape_board.json"
+const FOUR_LEAF := "res://data/boards/four_leaf.json"
 const FORWARD := Card.Type.FORWARD
 
 var _board: BoardState
@@ -21,8 +26,8 @@ func test_load_from_expands_paths_into_squares() -> void:
 	var layout := _board.layout
 
 	assert_eq(layout.square_count(), 24 + 2 + 3 + 2)
-	assert_eq(layout.cells[layout.index_of("ring:6")], Vector2i(6, 0))
-	assert_eq(layout.grid_size, Vector2i(7, 7))
+	assert_eq(layout.cells[layout.index_of("ring:6")], Vector2(6, 0))
+	assert_eq(layout.grid_size, Vector2(7, 7))
 
 
 func test_load_from_rejects_unsafe_start() -> void:
@@ -30,6 +35,48 @@ func test_load_from_rejects_unsafe_start() -> void:
 
 	assert_null(layout)
 	assert_push_error("çıkış karesi güvenli değil")
+
+
+func test_load_from_reads_free_squares() -> void:
+	var layout := BoardLayout.load_from(FREE_FIXTURE)
+
+	assert_eq(layout.square_count(), 6 + 2)
+	assert_eq(layout.cells[layout.index_of("ring:1")], Vector2(1.2, 0.4))
+	assert_eq(layout.next_squares[layout.index_of("ring:5")], layout.index_of("ring:0"))
+
+
+func test_load_from_reads_drawing_fields() -> void:
+	var layout := BoardLayout.load_from(FREE_FIXTURE)
+
+	assert_eq(layout.square_shape, BoardLayout.SquareShape.CIRCLE)
+	assert_eq(layout.grid_size, Vector2(5, 4))
+	assert_eq(layout.center_outline.size(), 3)
+	assert_almost_eq(layout.spinner_ratio, 1.2, 0.001)
+	assert_eq(layout.base_approaches, [Vector2(0, -1)] as Array[Vector2])
+
+
+func test_load_from_defaults_to_square_shape() -> void:
+	assert_eq(_board.layout.square_shape, BoardLayout.SquareShape.SQUARE)
+	assert_true(_board.layout.center_outline.is_empty())
+	assert_eq(_board.layout.spinner_ratio, 0.0)
+	assert_true(
+		_board.layout.base_approaches.all(func(d: Vector2) -> bool: return d == Vector2.ZERO)
+	)
+
+
+func test_load_from_rejects_unknown_shape() -> void:
+	var layout := BoardLayout.load_from(BAD_SHAPE_FIXTURE)
+
+	assert_null(layout)
+	assert_push_error("kare biçimi")
+
+
+func test_four_leaf_board_loads_with_every_seat() -> void:
+	var layout := BoardLayout.load_from(FOUR_LEAF)
+
+	assert_not_null(layout)
+	assert_eq(layout.seat_count(), 4)
+	assert_eq(layout.square_count(), 56 + 4 * 6)
 
 
 func test_home_distance_follows_forced_link() -> void:

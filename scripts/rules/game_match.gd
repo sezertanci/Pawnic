@@ -9,10 +9,12 @@ const NO_WINNER := -1
 ## Array.find bulamadığında döner.
 const NO_INDEX := -1
 ## Kayıt biçimi değişirse artırılır; eski biçimdeki kayıtlar yüklenmez.
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
 ## Kayıt sözlüğünün anahtarları.
 const KEY_VERSION := "version"
 const KEY_BOARD := "board"
+## Oyunun oynandığı tahtanın kimliği (GameSettings.board.id).
+const KEY_BOARD_ID := "board_id"
 const KEY_SEATS := "seats"
 const KEY_BOTS := "bots"
 const KEY_HANDS := "hands"
@@ -94,11 +96,19 @@ static func create(
 	return game
 
 
-## Kayıttan oyunu kurar; kayıt eski ya da bozuksa null döner.
+## Kayıttaki oyunun tahtasının kimliği; ayarlar bu tahtayla okunup from_dict'e verilir.
+static func board_id_of(data: Dictionary) -> String:
+	var id: Variant = data.get(KEY_BOARD_ID)
+	return id if id is String else ""
+
+
+## Kayıttan oyunu kurar; kayıt eski, başka bir tahtanın ya da bozuksa null döner.
 static func from_dict(
 	game_settings: GameSettings, data: Dictionary, rng: RandomNumberGenerator
 ) -> GameMatch:
 	if int(data.get(KEY_VERSION, 0)) != SAVE_VERSION:
+		return null
+	if board_id_of(data) != game_settings.board.id:
 		return null
 	var game := GameMatch.new(game_settings, rng)
 	var board_data: Variant = data.get(KEY_BOARD)
@@ -144,6 +154,7 @@ func to_dict() -> Dictionary:
 		saved_hands.append(Card.write_all(hand))
 	return {
 		KEY_VERSION: SAVE_VERSION,
+		KEY_BOARD_ID: settings.board.id,
 		KEY_BOARD: board.to_dict(),
 		KEY_SEATS: seats,
 		KEY_BOTS: bots,

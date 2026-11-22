@@ -35,6 +35,8 @@ var _room: GuestRoom
 ## Odanın oyun kaynağı; oyun başlamadan önce kurulur ki ilk görünüm ve olaylar kaçmasın.
 var _source: ClientSource
 var _address := ""
+## Seçilen oyunun tahtası; misafir hostun tahtasının ayarlarıyla bağlanır.
+var _board := ""
 ## Arama süresi oyun bulunmadan doldu; arama yazısının yerine uyarı gösterilir.
 var _not_found := false
 
@@ -118,7 +120,7 @@ func _show_games() -> void:
 		var button := Button.new()
 		button.theme_type_variation = ChoiceButtons.BUTTON_TYPE
 		button.text = tr("FOUND_GAME") % [index + 1, found[index].players]
-		button.pressed.connect(_on_game_chosen.bind(found[index].address))
+		button.pressed.connect(_on_game_chosen.bind(found[index]))
 		_games.add_child(button)
 
 
@@ -144,8 +146,9 @@ func _on_search_again_pressed() -> void:
 	_show_games()
 
 
-func _on_game_chosen(address: String) -> void:
-	_address = address
+func _on_game_chosen(game: FoundGame) -> void:
+	_address = game.address
+	_board = game.board
 	_code_field.clear()
 	_join.disabled = true
 	_show_message("")
@@ -160,7 +163,7 @@ func _on_code_changed(text: String) -> void:
 ## Eski oda yenisi kurulunca bırakılır; kendi sinyali içindeyken bırakılmaz.
 func _on_join_pressed() -> void:
 	_show_message("")
-	_room = GuestRoom.new(Tuning.settings)
+	_room = GuestRoom.new(Tuning.for_board(_board))
 	_room.refused.connect(_on_refused)
 	_room.lost.connect(_on_lost)
 	_room.session.lobby_changed.connect(_on_lobby_changed)

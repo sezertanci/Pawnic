@@ -3,6 +3,7 @@
 Kare dokusu renksizdir (gri tonlu): oyunda kaplamadaki renkle çarpılarak boyanır. Parlak bir
 kenar çizgisi, dışında saydam zemine yayılan ışıma, içinde kenardan içeri sönen hafif bir ışık
 ve daha koyu bir yüz vardır; böylece kenar aynı rengin en parlak tonu olur.
+Çember kare dokusu aynı karedir, köşe yuvarlaklığı kenarın yarısıdır.
 Pillow ve numpy gerekir.
 
 Kullanım:
@@ -22,6 +23,8 @@ SUPERSAMPLE = 4
 # Kare: dış ışıma payı, köşe yuvarlaklığı ve kenar çizgisi kalınlığı (kenar uzunluğuna oran).
 GLOW_MARGIN = 0.03
 CORNER = 0.16
+# Çember karenin köşe yuvarlaklığı.
+ROUND_CORNER = 0.5
 EDGE_LINE = 0.04
 # Kenara yakın keskin ışık ve dışa yayılan geniş hale: yayılma (kenar uzunluğuna oran) ve güç.
 GLOW_BLUR = 0.007
@@ -39,10 +42,10 @@ def glow(mask, blur, strength):
     return np.clip(np.maximum(soft * strength, np.array(mask, dtype=float) / 255), 0, 1)
 
 
-def tile():
+def tile(corner):
     big = SIZE * SUPERSAMPLE
     margin = round(big * GLOW_MARGIN)
-    radius = round(big * CORNER)
+    radius = round(big * corner)
     line = round(big * EDGE_LINE)
     box = (margin, margin, big - 1 - margin, big - 1 - margin)
     edge = Image.new("L", (big, big), 0)
@@ -65,4 +68,5 @@ def tile():
 if __name__ == "__main__":
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
-    tile().save(os.path.join(out, "tile_neon.png"))
+    tile(CORNER).save(os.path.join(out, "tile_neon.png"))
+    tile(ROUND_CORNER).save(os.path.join(out, "tile_neon_round.png"))

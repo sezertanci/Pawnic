@@ -1,6 +1,7 @@
 extends SceneTree
 ## Botları birbirine karşı oynatıp kural motorunun takılmadan bittiğini denetler.
-## Çalıştırma: godot --headless --path . -s tools/simulate.gd
+## Çalıştırma: godot --headless --path . -s tools/simulate.gd [-- <tahta kimliği>]
+## Tahta verilmezse ayar dosyasındaki ilk tahta kullanılır.
 
 const BotRunner := preload("res://tools/bot_runner.gd")
 const GAMES_PER_SETUP := 50
@@ -10,7 +11,10 @@ const PAWN_COUNTS: Array[int] = [2, 4, 5]
 
 
 func _initialize() -> void:
-	var settings := GameSettings.load_from(GameSettings.DEFAULT_PATH)
+	var args := OS.get_cmdline_user_args()
+	var board_id: String = args[0] if not args.is_empty() else ""
+	var settings := GameSettings.load_from(GameSettings.DEFAULT_PATH, board_id)
+	print("Tahta: %s" % settings.board.id)
 	var failed := false
 	for players: int in PLAYER_COUNTS:
 		for pawns: int in PAWN_COUNTS:

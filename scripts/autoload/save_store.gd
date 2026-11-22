@@ -51,6 +51,21 @@ func set_preference(key: String, value: Variant) -> void:
 	_write()
 
 
+## Liste tercihi (ör. açılan temalar); kayıtlı değer liste değilse boş liste. Dönen liste
+## kopyadır.
+func get_list_preference(key: String) -> Array:
+	var value: Variant = get_preference(key, [])
+	return (value as Array).duplicate() if value is Array else []
+
+
+## Değeri liste tercihine ekler; listede zaten varsa bir şey yapmaz.
+func add_to_list_preference(key: String, value: Variant) -> void:
+	var list := get_list_preference(key)
+	if not list.has(value):
+		list.append(value)
+		set_preference(key, list)
+
+
 func has_match() -> bool:
 	return not _section(MATCH_KEY).is_empty()
 

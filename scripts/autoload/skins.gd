@@ -39,15 +39,12 @@ func ids() -> PackedStringArray:
 func is_locked(id: String) -> bool:
 	if not ResourceLoader.exists(_path(id)):
 		return false
-	return find(id).needs_unlock and not _unlocked().has(id)
+	return find(id).needs_unlock and not SaveStore.get_list_preference(UNLOCKED_KEY).has(id)
 
 
 ## Temanın kilidini kalıcı olarak kaldırır.
 func unlock(id: String) -> void:
-	var unlocked := _unlocked()
-	if not unlocked.has(id):
-		unlocked.append(id)
-		SaveStore.set_preference(UNLOCKED_KEY, unlocked)
+	SaveStore.add_to_list_preference(UNLOCKED_KEY, id)
 
 
 ## Kimliği verilen temayı seçmeden yükler (ör. önizleme görseli için).
@@ -69,12 +66,6 @@ func _load(id: String) -> bool:
 	RenderingServer.set_default_clear_color(current.background_color)
 	changed.emit()
 	return found
-
-
-## Açılan temaların kimlikleri; kayıttaki değer liste değilse boş liste.
-func _unlocked() -> Array:
-	var value: Variant = SaveStore.get_preference(UNLOCKED_KEY, [])
-	return (value as Array).duplicate() if value is Array else []
 
 
 func _path(id: String) -> String:

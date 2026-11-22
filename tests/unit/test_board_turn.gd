@@ -32,7 +32,7 @@ func test_turns_to_bottom_turns_other_seats_down() -> void:
 
 
 func test_point_puts_chosen_base_below_middle() -> void:
-	var size := Vector2(_layout.grid_size)
+	var size := _layout.grid_size
 	var below: Array[bool] = []
 
 	for seat: int in [SEAT_TOP, SEAT_RIGHT, SEAT_BOTTOM, SEAT_LEFT]:
@@ -46,7 +46,7 @@ func test_point_puts_chosen_base_below_middle() -> void:
 func test_point_puts_top_base_where_bottom_base_was() -> void:
 	var turns := BoardTurn.turns_to_bottom(_layout, SEAT_TOP)
 
-	var turned := BoardTurn.point(_layout.bases[SEAT_TOP], Vector2(_layout.grid_size), turns)
+	var turned := BoardTurn.point(_layout.bases[SEAT_TOP], _layout.grid_size, turns)
 
 	assert_almost_eq(turned, _layout.bases[SEAT_BOTTOM], Vector2.ONE * PRECISION)
 
@@ -101,7 +101,7 @@ func test_base_center_takes_bottom_tray_place_when_turned_down() -> void:
 
 func test_base_center_turns_own_base_when_no_start_matches() -> void:
 	var layout := BoardLayout.load_from(BRANCH_BOARD)
-	var size := Vector2(layout.grid_size)
+	var size := layout.grid_size
 
 	var center := BoardTurn.base_center(layout, 0, 1)
 

@@ -39,6 +39,7 @@ func test_announced_game_is_found() -> void:
 	assert_eq(game.address, LocalAddress.LOOPBACK)
 	assert_eq(game.port, _settings.network_port)
 	assert_eq(game.players, 1)
+	assert_eq(game.board, _settings.board.id)
 
 
 func test_player_count_change_updates_list() -> void:
@@ -65,15 +66,21 @@ func test_silent_game_drops_from_list() -> void:
 
 
 func test_bad_announcements_are_ignored() -> void:
-	var other_protocol := MatchMessage.announce(_settings.network_port, 1)
+	var board := _settings.board.id
+	var other_protocol := MatchMessage.announce(_settings.network_port, 1, board)
+	var no_board := MatchMessage.announce(_settings.network_port, 1, board)
+	no_board[MatchMessage.KEY_DATA][MatchMessage.KEY_BOARD] = 1
 	other_protocol[MatchMessage.KEY_DATA][MatchMessage.KEY_PROTOCOL] = (
 		MatchMessage.PROTOCOL_VERSION + 1
 	)
 	var packets: Array[PackedByteArray] = [
 		var_to_bytes(other_protocol),
-		var_to_bytes(MatchMessage.announce(0, 1)),
-		var_to_bytes(MatchMessage.announce(_settings.network_port, _settings.max_players + 1)),
-		var_to_bytes(MatchMessage.announce(_settings.network_port, 0)),
+		var_to_bytes(no_board),
+		var_to_bytes(MatchMessage.announce(0, 1, board)),
+		var_to_bytes(
+			MatchMessage.announce(_settings.network_port, _settings.max_players + 1, board)
+		),
+		var_to_bytes(MatchMessage.announce(_settings.network_port, 0, board)),
 		var_to_bytes(MatchMessage.welcome("")),
 		var_to_bytes([1, 2, 3]),
 		var_to_bytes({"x": "y".repeat(_settings.max_message_bytes)}),

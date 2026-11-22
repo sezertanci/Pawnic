@@ -5,6 +5,7 @@ böylece dama düzenindeki açık ve koyu kareler ile ev yollarının rengi kapl
 Üstte ince bir kenar, altta karenin kalınlığını gösteren koyu bir şerit vardır; oranları
 kaplamadaki square_top ve square_depth ile aynı olmalıdır.
 Kakma görseli saydam zeminde beyaz, içi boş bir elmastır; boyanmadan karenin yüzüne çizilir.
+Çember kare dokusu aynı karedir, köşe yuvarlaklığı kenarın yarısıdır.
 Masa görseli tek parça damarlı ahşaptır, yan yana döşenebilir (kenarları birbirini tutar).
 Pillow ve numpy gerekir.
 
@@ -25,6 +26,8 @@ SEED = 7
 
 # Kare: köşe yuvarlaklığı, çerçeve kalınlığı, üst kenar ve alt kalınlık (boya oranları).
 CORNER = 0.16
+# Çember karenin köşe yuvarlaklığı.
+ROUND_CORNER = 0.5
 BORDER = 0.035
 TOP = 0.05
 DEPTH = 0.07
@@ -62,9 +65,9 @@ def grain(width, height, rng):
     return np.clip((rings + noise) * 0.5 + 0.5, 0, 1)
 
 
-def tile(rng):
+def tile(rng, corner):
     big = SIZE * SUPERSAMPLE
-    radius = round(big * CORNER)
+    radius = round(big * corner)
     mask = Image.new("L", (big, big), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, big - 1, big - 1), radius, fill=255)
     border = round(big * BORDER)
@@ -142,6 +145,7 @@ def table(rng):
 if __name__ == "__main__":
     out = sys.argv[1]
     os.makedirs(out, exist_ok=True)
-    tile(np.random.default_rng(SEED)).save(os.path.join(out, "tile_wood.png"))
+    tile(np.random.default_rng(SEED), CORNER).save(os.path.join(out, "tile_wood.png"))
+    tile(np.random.default_rng(SEED), ROUND_CORNER).save(os.path.join(out, "tile_wood_round.png"))
     inlay().save(os.path.join(out, "tile_inlay_diamond.png"))
     table(np.random.default_rng(SEED)).save(os.path.join(out, "table_wood.png"))

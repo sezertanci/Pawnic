@@ -17,12 +17,14 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
 - Godot düzenleyicisinde projeyi açıp F5 ile çalıştırın.
 - Birim testleri: `godot --headless --path . -s addons/gut/gut_cmdln.gd`
 - Bot simülasyonu (kural motorunun takılmadan bittiğini denetler):
-  `godot --headless --path . -s tools/simulate.gd`
-- Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör> [kaplama]`
-  (kaplama verilirse, ör. `wood` ya da `neon`, görüntüler o kaplamayla alınır). Son görüntüdeki
+  `godot --headless --path . -s tools/simulate.gd [-- <tahta>]` (tahta verilmezse ilk tahta)
+- Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör> [kaplama] [tahta]`
+  (kaplama verilirse, ör. `wood` ya da `neon`, görüntüler o kaplamayla alınır; tahta verilirse,
+  ör. `four_leaf`, o tahtayla). Son görüntüdeki
   tahta ayrıca kırpılıp `board_preview.png` olarak kaydedilir; bu dosya
   `assets/images/skin_preview_<kaplama>.png` adıyla kopyalanınca görünüm ekranındaki kartın
-  görseli olur (kaplamanın `preview_texture` alanı)
+  görseli olur (kaplamanın `preview_texture` alanı). Tahta kartının görseli de aynı yolla
+  klasik kaplamayla alınır (`assets/images/board_preview_<tahta>.png`, tahtanın `preview` alanı).
 - Biçim ve lint: `gdformat scripts tools tests` ve `gdlint scripts tools tests`
 - Simgesiz yeşil menü düğmesi (`assets/images/button_green_plain.png`, Tamam düğmelerinde):
   `python tools/make_plain_button.py assets/images/button_green.png assets/images/button_green_plain.png` (Pillow gerekir)
@@ -112,10 +114,14 @@ Mağaza dosyaları `store/pawnic/` altındadır:
 
 ## Tahta dosyası
 Tahta bir ızgara üzerindeki kareler ve aralarındaki bağlantılardan oluşur; kod tahtanın şeklini
-bilmez. Kullanılan dosya `data/tuning.json` içindeki `board.layout` ayarıyla seçilir.
+bilmez. Oyundaki tahtalar `data/tuning.json` içindeki `board.boards` listesinde durur; her
+girdinin kimliği (`id`), dosyası (`layout`), ad anahtarı (`name`), Yeni oyun ekranındaki kartın
+görseli (`preview`) ve ödüllü reklamla açılıp açılmadığı (`needs_unlock`) vardır. Listedeki ilk
+tahta varsayılandır. Seçilen tahta yarım kalan oyunun kaydına ve ağ oyununun duyurusuna yazılır.
 
 - `paths`: kare dizileri. `points` köşe hücreleridir; aradaki hücreler kendiliğinden doldurulur
-  (ardışık noktalar yatay, dikey ya da tam çapraz hizada olmalıdır). `loop: true` yolu kapatır.
+  (ardışık noktalar yatay, dikey ya da tam çapraz hizada olmalıdır). Kıvrımlı yollarda `points`
+  yerine `squares` ile her karenin sol üst köşesi tek tek ve ondalık olarak yazılır. `loop: true` yolu kapatır.
   `owner` verilen yol yalnızca o koltuğa aittir (ev yolu gibi). Kareler `"yol:sıra"` diye anılır,
   sıra 0'dan başlar (ör. `"ring:8"`).
 - `links`: yollar arası geçişler. `seats` boşsa herkes kullanır. `mode`:
@@ -128,7 +134,15 @@ bilmez. Kullanılan dosya `data/tuning.json` içindeki `board.layout` ayarıyla 
   eksi değerde o kadar geri gider (geri giderken sahibinin çıkış karesinde durur). Bir hız karesinden
   zıplayan taş başka bir hız karesine düşmemelidir; birim test bunu denetler.
 - `seats`: her koltuğun çıkış (`start`), ev (`home`) ve kısayol (`shortcut`) karesi ile başlangıç
-  alanının hücre cinsinden merkezi (`base`).
+  alanının hücre cinsinden merkezi (`base`). İsteğe bağlı `approach`, başlangıç alanından gelen
+  patikanın çıkış karesine vardığı yöndür (kareden dışarı bakan birim yön, ör. `[0.45, -0.89]`);
+  verilirse patika alanın uzun kenarından çıkıp halkanın dışından tek kavisle dolanır, yoksa
+  alanın kareye bakan kenarından S çizerek gelir.
+- İsteğe bağlı çizim alanları (kural motoru kullanmaz): `square_shape` karelerin biçimi
+  (`square` ya da `circle`, varsayılan `square`), `size` tahtanın hücre cinsinden boyu (yoksa
+  kareleri kapsayan alan), `center` ortadaki bitiş alanının dış çizgisi (hücre cinsinden nokta
+  listesi; yoksa bitiş karelerini kapsayan kare alan), `spinner_ratio` dönen okların yarıçapının
+  bitiş alanının yarı boyuna oranı (yoksa arayüzün varsayılanı).
 
 Geri hareketler yolun önceki karesine, yolun ilk karesinden ise ona gelen bağlantının kaynağına
 gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahtada seçer.
@@ -140,6 +154,7 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `SaveStore` | Tercihleri ve yarım kalan oyunu `user://save.json` dosyasında tutar |
 | `Localization` | Dili seçer ve saklar (ayarlar penceresinden değiştirilir) |
 | `Skins` | Tahta görünümünü seçer ve saklar; `themes/skins/` klasöründeki temaları görünüm ekranı için listeler; `needs_unlock` işaretli temalar (neon, ahşap) ödüllü reklam izlenince kalıcı olarak açılır ve açılanlar `unlocked_themes` tercihinde tutulur (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
+| `Boards` | Yeni oyunun tahtasını seçer ve saklar (`board` tercihi); `needs_unlock` işaretli tahtalar (Dört yaprak) ödüllü reklam izlenince kalıcı olarak açılır ve açılanlar `unlocked_boards` tercihinde tutulur. Ağ oyununda kilit yalnızca oyunu kuranın seçimini sınırlar; katılan oyuncunun tahtayı açmış olması gerekmez |
 | `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
 | `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
 | `PlayerColor` | Tek oyunculu oyunda oyuncunun seçtiği rengi saklar (varsayılan yeşil); botlar kalan renkleri alır |

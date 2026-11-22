@@ -1,0 +1,13 @@
+{
+	"square_shape": "circle",
+	"size": [5, 4],
+	"center": [[1.5, 1.5], [2.5, 1.5], [2.0, 2.5]],
+	"spinner_ratio": 1.2,
+	"paths": [
+		{ "id": "ring", "squares": [[0, 0], [1.2, 0.4], [2.5, 0.2], [3.4, 1.1], [2.2, 2.6], [0.6, 1.8]], "loop": true },
+		{ "id": "lane0", "squares": [[1.5, 1.0], [1.9, 1.6]], "owner": 0 }
+	],
+	"links": [{ "from": "ring:0", "to": "lane0:0", "seats": [0], "mode": "forced" }],
+	"safe": ["ring:1"],
+	"seats": [{ "start": "ring:1", "home": "lane0:1", "base": [4.2, 3.2], "approach": [0, -1] }]
+}

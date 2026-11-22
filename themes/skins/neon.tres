@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BoardSkin" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="BoardSkin" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/board_skin.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/tile_neon_round.png" id="round"]
 [ext_resource type="Texture2D" path="res://assets/images/tile_neon.png" id="tile"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_red.png" id="pawn_red"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_blue.png" id="pawn_blue"]
@@ -26,6 +27,7 @@ shadow_color = Color(0, 0, 0, 0.5)
 square_depth = 0.0
 square_top = 0.0
 track_texture = ExtResource("tile")
+round_track_texture = ExtResource("round")
 preview_texture = ExtResource("preview")
 pawn_textures = Array[Texture2D]([ExtResource("pawn_red"), ExtResource("pawn_blue"), ExtResource("pawn_green"), ExtResource("pawn_yellow")])
 home_letter_texture = ExtResource("home_letter")

@@ -78,20 +78,26 @@ func _read(address: String, bytes: PackedByteArray) -> bool:
 		data, MatchMessage.KEY_PLAYERS, 1, _settings.max_players + 1
 	)
 	var protocol := MessageData.read_int(data, MatchMessage.KEY_PROTOCOL)
+	var board: Variant = data.get(MatchMessage.KEY_BOARD)
 	if protocol != MatchMessage.PROTOCOL_VERSION or MessageData.INVALID in [port, players]:
 		return false
-	return _record(address, port, players)
+	if not board is String:
+		return false
+	return _record(address, port, players, board)
 
 
-func _record(address: String, port: int, players: int) -> bool:
+func _record(address: String, port: int, players: int, board: String) -> bool:
 	var game: FoundGame = _games.get(address)
-	var changed := game == null or game.port != port or game.players != players
+	var changed := (
+		game == null or game.port != port or game.players != players or game.board != board
+	)
 	if game == null:
 		game = FoundGame.new()
 		game.address = address
 		_games[address] = game
 	game.port = port
 	game.players = players
+	game.board = board
 	game.seen_msec = Time.get_ticks_msec()
 	return changed
 

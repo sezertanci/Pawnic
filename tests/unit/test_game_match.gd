@@ -98,6 +98,14 @@ func test_from_dict_with_other_version_returns_null() -> void:
 	assert_null(GameMatch.from_dict(_settings, saved, _rng()))
 
 
+func test_from_dict_with_other_board_returns_null() -> void:
+	var saved := _new_game([false, true]).to_dict()
+	var leaf := GameSettings.load_from(GameSettings.DEFAULT_PATH, "four_leaf")
+
+	assert_eq(GameMatch.board_id_of(saved), _settings.board.id)
+	assert_null(GameMatch.from_dict(leaf, saved, _rng()))
+
+
 func test_from_dict_with_unknown_card_returns_null() -> void:
 	var saved := _new_game([false, true]).to_dict()
 	(saved[GameMatch.KEY_DRAW] as Array).append({"type": "teleport", "value": 0})

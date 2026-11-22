@@ -170,7 +170,25 @@
   yayında (`pawnic/privacy.html`).
 - (Kapandı) İki oyunculu oyunda ilk oynayanın küçük avantajı (2026-11-18 ölçümü: %52,8'e %47,2)
   artık sorun değil: başlayan oyuncu hem yerel hem ağ oyununda kurayla seçiliyor (`MatchStarter`).
-- Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
+- İkinci tahta (karar 2026-11-22): **Dört yaprak**. Kareler çember, halka dört yaprak gibi dışa
+  çıkar (r = 1 + 0,22·cos4t, x ölçeği 0,6). Ev yolları yaprak ucundan girip kıvrılarak iner;
+  taş evleri yaprak aralarındaki dış ceplerde, merkez alanı yol uçlarından geçen yumuşak bir şekil.
+  Halka 56 kareyle başlar, ekranda görülünce gerekirse değişir. Özel kareler klasik tahtadaki
+  sırayla dizilir (her renk için kısayol karesi yaprak ucunda; ondan 1 sonra çıkış, 4 sonra hız,
+  8 sonra güvenli, 11 sonra hız; hız değerleri klasikteki sırayla); kare sayısı değişirse konumlar ona
+  göre kayar. Tahta Yeni oyun ekranında seçilir ve ödüllü
+  reklamla kalıcı açılır; ileride satın alma eklenebilir. Ek kararlar: bu tahtada yalnızca 180°
+  dönüş vardır; çember kare görselleri Python betikleriyle üretilir; ağ oyununda kilit yalnızca
+  oyunu kuranın seçimini sınırlar, tahtayı açmamış oyuncu da katılabilir; seçim Zorluk'un altında
+  "Tahta" başlıklı bölümde kartlarla yapılır (küçük görsel ve ad; kilitlide video simgesi ve
+  "Aç", seçilide mavi çerçeve ve "Seçili") ve bu bölüm ağ sekmesinde de görünür. Tablette
+  görüldükten sonra (günlük 35): merkez yuvarlak, halka ona değdiği yerlerde yapboz gibi içe
+  yuva açar; ev yolları düz iner; halka 56 karede kaldı (kare aralığı `RING_STEP` 1,08); dönen
+  okların yarıçapı tahtaya özel (`spinner_ratio`). Tepsiler yaprak aralarındaki girintiyle
+  tahtanın köşesi arasında ortada durur; patika yalnızca bu tahtada tepsinin uzun kenarından
+  çıkıp halkanın dışından tek kavisle dolanır ve çıkış karesine dışarıdan varır (`approach`).
+  Kırmızı ve sarıda ekran kenarı dar olduğu için kavis daha diktir; bu kabul edildi.
+  Uygulama `feature/four-leaf-board` dalında (günlük 34, 35).
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
 
@@ -930,3 +948,27 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-22 (33):** `feature/wood-theme` main'e birleştirildi. Sürüm 9 (1.8.0): üç ön ayarda sürüm
   yükseltildi; mağaza metinlerine (tr-TR, en-US) 1.8.0 sürüm notu eklendi (görünüm ekranı, ahşap ve
   neon temalar, arka plan müziği, yeni sesler ve eve giriş parlaması).
+- **2026-11-22 (34):** `feature/four-leaf-board` dalında ikinci tahta "Dört yaprak" eklendi.
+  `BoardLayout` kıvrımlı yollar için ondalık kare yerlerini (`squares`), çember kareleri
+  (`square_shape`), tahta boyunu (`size`) ve bitiş alanının çizgisini (`center`) okur; tahta
+  dosyasını `tools/make_four_leaf.gd`, çember kare görsellerini `tools/make_round_stone.py` ve
+  ahşap/neon betikleri üretir. Tahtalar `tuning.json`'daki `board.boards` listesinde durur
+  (`BoardEntry`); seçim ve kilit `Boards` autoload'undadır (`board`, `unlocked_boards`
+  tercihleri). Yeni oyun ekranında "Tahta" bölümü `BoardCard` kartlarıyla çizilir; kilitli
+  tahta ödüllü reklamla açılır (yer `unlock_board`). Tema ve tahta kilidi ortak
+  `RewardedUnlock` sınıfını kullanır. Yarım oyun kaydına tahta kimliği yazılır
+  (`SAVE_VERSION` 5); başka tahtanın kaydı devam ettirilmez. Ağ duyurusu tahta kimliğini taşır
+  (`PROTOCOL_VERSION` 8); katılan oyuncu kurucunun tahtasıyla oynar. `simulate.gd` ve
+  `screenshot.gd` tahta kimliği alır. Simülasyon iki tahtada da bitmeyen oyunsuz; Dört yaprak
+  klasikle aynı bağlantı yapısında olduğundan sonuçlar birebir aynı.
+- **2026-11-22 (35):** Dört yaprak tahtası tablette düzeltildi: yuvarlak merkez ve halkada yapboz
+  yuvaları, düz ev yolları, tahtaya özel dönen ok oranı (`spinner_ratio`). Tepsiler girintiyle
+  köşe arasına alındı (`BASE_CORNER_SHARE` 0,5). Tahta dosyasındaki koltuklara isteğe bağlı
+  `approach` (varış yönü) eklendi; `BoardLayout.base_approaches` okur, `BaseLink` verilmişse
+  patikayı tepsinin uzun kenarından çıkarıp kareye bu yönden vardırır (kollar uzaklığa oranlı,
+  `APPROACH_BEND` 0,35). Klasik tahtanın patikası değişmedi. Ara noktalı patika denemesi geri
+  alındı.
+- **2026-11-22 (36):** Genel kontrol yapıldı. Tahta kartlarının görselleri yeniden üretildi:
+  klasik tahta tema önizlemesi yerine kendi görselini (`board_preview_classic.png`) kullanır,
+  Dört yaprak görseli son düzenle güncellendi. Reklam hazır değil metninin anahtarı tema ve
+  tahta için ortak olduğundan `AD_NOT_READY` olarak adlandırıldı.

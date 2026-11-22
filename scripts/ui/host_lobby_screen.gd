@@ -44,7 +44,7 @@ func open() -> void:
 	_referee.in_game_ads = not Ads.are_ads_removed()
 	_referee.turn_time_limit = Tuning.settings.turn_time_limit
 	add_child(_referee)
-	_room = HostRoom.new(Tuning.settings, _referee, _rng)
+	_room = HostRoom.new(Boards.settings(), _referee, _rng)
 	var opened := _room.open(LocalAddress.wifi_address())
 	_room_box.visible = opened
 	_failed.visible = not opened

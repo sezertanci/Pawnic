@@ -17,8 +17,8 @@ const KEY_UI := "ui"
 const KEY_ADS := "ads"
 const KEY_NETWORK := "network"
 const KEY_AUDIO := "audio"
-## Tahta bölümünde tahta dosyasının yolunun anahtarı.
-const KEY_LAYOUT := "layout"
+## Tahta bölümünde tahta listesinin anahtarı; listenin ilk tahtası varsayılandır.
+const KEY_BOARDS := "boards"
 const REQUIRED_KEYS: Array[String] = [
 	KEY_BOARD,
 	KEY_RULES,
@@ -36,6 +36,10 @@ const REQUIRED_KEYS: Array[String] = [
 ## Ayar ve tahta dosyalarının içeriğinden alınan özet; ağ oyununda iki cihazın aynı kurallarla
 ## oynadığı bununla denetlenir.
 var digest := ""
+## Ayar dosyasındaki bütün tahtalar, dosyadaki sırayla; ilki varsayılandır.
+var boards: Array[BoardEntry] = []
+## Bu ayarların tahtası ve o tahtanın dosyadan okunan şekli.
+var board: BoardEntry
 var board_layout: BoardLayout
 var hand_size := 0
 var exit_value := 0
@@ -192,13 +196,14 @@ var music_duck_time := 0.0
 var music_unduck_time := 0.0
 
 
-## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
-static func load_from(path: String) -> GameSettings:
+## Ayarları kimliği verilen tahtayla okur; kimlik listede yoksa varsayılan tahta kullanılır.
+## Dosya ya da tahta dosyası bozuksa null döner.
+static func load_from(path: String, board_id := "") -> GameSettings:
 	var root := JsonData.read(path, REQUIRED_KEYS)
 	if root.is_empty():
 		return null
 	var settings := GameSettings.new()
-	settings._read_board(root[KEY_BOARD])
+	settings._read_boards(root[KEY_BOARD], board_id)
 	if settings.board_layout == null:
 		return null
 	settings._read_rules(root[KEY_RULES])
@@ -212,12 +217,20 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_audio(root[KEY_AUDIO])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
-	var board_path: String = root[KEY_BOARD][KEY_LAYOUT]
+	var board_path := settings.board.layout_path
 	settings.digest = (
 		(FileAccess.get_file_as_string(path) + FileAccess.get_file_as_string(board_path))
 		. sha256_text()
 	)
 	return settings
+
+
+## Kimliği verilen tahta; listede yoksa null.
+func find_board(id: String) -> BoardEntry:
+	for entry: BoardEntry in boards:
+		if entry.id == id:
+			return entry
+	return null
 
 
 ## Destedeki toplam kart sayısı.
@@ -228,8 +241,13 @@ func deck_size() -> int:
 	return total
 
 
-func _read_board(board: Dictionary) -> void:
-	board_layout = BoardLayout.load_from(board[KEY_LAYOUT])
+func _read_boards(section: Dictionary, board_id: String) -> void:
+	for data: Dictionary in section[KEY_BOARDS]:
+		boards.append(BoardEntry.from_dict(data))
+	board = find_board(board_id)
+	if board == null:
+		board = boards[0]
+	board_layout = BoardLayout.load_from(board.layout_path)
 
 
 func _read_rules(rules: Dictionary) -> void:
