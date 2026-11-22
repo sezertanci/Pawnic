@@ -168,8 +168,8 @@
   Hedef kitle 13 ve üstü. `store/pawnic/privacy.html` bunlara göre yeniden yazıldı (AdMob, Play
   satın alması, Gizlilik Seçenekleri). Yeni sayfa sezertanci.github.io reposundan
   yayında (`pawnic/privacy.html`).
-- İki oyunculu oyunda ilk oynayanın küçük bir avantajı var (2026-11-18 ölçümü: %52,8'e %47,2).
-  Şimdilik dokunulmadı; gerekirse ilk oyuncu kura ile seçilebilir.
+- (Kapandı) İki oyunculu oyunda ilk oynayanın küçük avantajı (2026-11-18 ölçümü: %52,8'e %47,2)
+  artık sorun değil: başlayan oyuncu hem yerel hem ağ oyununda kurayla seçiliyor (`MatchStarter`).
 - Yeni tahta tasarımları (ör. köşeden eve bağlantı) ve birden fazla tahta olup olmayacağı belli değil.
 - Kısayol kartı tahtada tanımlı kısayol karesine götürür; dallanan tahtalarda anlamı yeniden
   düşünülmeli.
@@ -885,3 +885,8 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   (250 Hz üstü ~2,7 dB). Menü müziği ayrı bir düzey aldı: `audio.menu_music_volume_db` -20 dB
   (oyun müziği `music_volume_db` -15 dB'de kaldı). -17 ve -18 dB kulakla denendi, menü yüksek
   geldi. Parçanın düzeyini `Music.volume_of` seçer.
+- **2026-11-22 (26):** Kullanılmayan dosyalar silindi: eski yazılı ikon (`assets/icon/text/`,
+  4 dosya), açılış görseli klasöründeki yan ürünler (`assets/icon/frame/` altında `icon_192`,
+  `icon_foreground`, `icon_background`) ve dilsiz eski öne çıkan görsel
+  (`store/pawnic/feature-1024x500.png`). İkonlar dışa aktarmada bütün kaynaklar alındığı için
+  APK'ya da giriyordu (~0,3 MB). Ses, müzik ve `assets/images/` dosyalarının hepsi kullanılıyor.

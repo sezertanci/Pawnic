@@ -30,10 +30,11 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
   döngüsü (`menu.wav`) ve oyun müziği (`game.wav`) notalardan hesaplanır; tek kanal, 16 kHz
   yazılır, Godot QOA ile sıkıştırıp döngü olarak içe aktarır.
 - İkonlar (`assets/icon/`): `python tools/make_icon.py assets/images assets/icon` (Pillow gerekir).
-  Önceki yazılı ikon `assets/icon/text/` altında saklanır:
-  `python tools/make_icon.py assets/images assets/icon/text --design text`.
+  Önceki yazılı ikon depoda tutulmaz, gerekirse `--design text` ile yeniden üretilir.
   Açılış ekranının görseli (`assets/icon/frame/icon.png`):
-  `python tools/make_icon.py assets/images assets/icon/frame --design frame --size 1024`
+  `python tools/make_icon.py assets/images assets/icon/frame --design frame --size 1024`.
+  Bu komutun ürettiği diğer dosyalar (`icon_192.png`, `icon_foreground.png`,
+  `icon_background.png`) kullanılmaz; APK'ya girmemesi için silinir.
 - Play Store öne çıkan görseli (`store/pawnic/feature-1024x500-<tr-TR|en-US>.png`, dil başına
   sloganlı, Pillow gerekir). Tahta `store/pawnic/feature-board.png` dosyasından alınır. Önce kartlar
   çizilir (pencereli çalışır, `--headless` olmaz), sonra görseller birleştirilir:
