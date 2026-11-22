@@ -98,8 +98,8 @@
 | 4 × 5 | 68 |
 
 ## Açık konular
-- Hangi ek temaların olacağı kararlaştırılmadı. Ayarlar ekranında tema seçimi yok; şimdilik tek
-  tema (`classic`) olduğu için gerek yok, ikinci tema gelince eklenecek.
+- İkinci tema ahşap masa (`wood`), üçüncüsü gece neon (`neon`), görünüm ekranıyla birlikte
+  `feature/wood-theme` dalında. Renkler tablette görülerek son kez kontrol edilecek.
 - AdMob (2026-11-19): eklenti Poing Studios `godot-admob-plugin` v5.1.0 `addons/admob` altında,
   `editor_plugins` ile açık. Android ikilileri `addons/admob/android/bin` altında (gitignore'daki
   `android/` kalıbı yüzünden depoya girmez; yeni klonda eklenti kendisi indirir). iOS kapalı;
@@ -890,3 +890,37 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   `icon_foreground`, `icon_background`) ve dilsiz eski öne çıkan görsel
   (`store/pawnic/feature-1024x500.png`). İkonlar dışa aktarmada bütün kaynaklar alındığı için
   APK'ya da giriyordu (~0,3 MB). Ses, müzik ve `assets/images/` dosyalarının hepsi kullanılıyor.
+- **2026-11-22 (27):** Ahşap tema (`themes/skins/wood.tres`) eklendi. Kareler tek renk kül beyazı
+  ahşap (dama denendi, istenmedi), üstünde içi boş beyaz elmas kakma (`BoardSkin.inlay_texture`,
+  boyanmadan çizilir). Kalkanlı, hız sayılı ve ev simgeli (kısayol) karelerde kakma yok. Ev
+  yolları tam renk (`lane_tint` 1,0). Oyun ekranının arkasında ahşap masa dokusu döşenir
+  (`BoardSkin.background_texture`, birleşim çizgisi yok; klasik temada boş). Görseller
+  `tools/make_wood_tiles.py` ile üretilir; kare ve kakma dokularında mipmap açık, tahta ve logo
+  halkası mipmap'li süzgeçle çizilir (küçük karede pürüz olmasın diye). `tools/screenshot.gd`
+  ikinci argüman olarak kaplama alır.
+- **2026-11-22 (28):** Gece neon tema (`themes/skins/neon.tres`) eklendi. Üç taslaktan B (mor
+  dolgulu kare) seçildi. Kareler koyu lacivert zeminde mor dolgulu, kenarları rengin tam
+  parlaklığında keskin ışık saçar ve dışa hafif hale yayar; ev yolları oyuncu renginde aynı
+  biçimde. Elmas kakma denendi, istenmedi (kakma yok). Kareler arası boşluk dar tutuldu
+  (dokunun ışıma payı kenarın %3'ü). Masa dokusu yok, arka plan düz renk. Kare dokusu
+  `tools/make_neon_tiles.py` ile üretilir; taşlar klasik temanınkiler.
+- **2026-11-22 (29):** Görünüm ekranı (`scenes/skin_screen.tscn`) eklendi. Ana menüde "Yeni
+  Oyun" ile "Nasıl Oynanır" arasında aynı boyda mor "Görünüm" düğmesi (mavi düğmenin tonu +60°, simgesi 2x2 küçük
+  kare: beyaz, kırmızı, mavi, beyaz). Ekranda her tema için alt alta, kaydırılan büyük kartlar;
+  kartlarda ad yok, yalnızca tahta görseli. Karta dokununca tema hemen uygulanıp kaydedilir,
+  kart sarı çerçeve ve tikle işaretlenir, ekranda kalınır; geri okla menüye dönülür. Kart
+  görselleri hazır dosyadır (`assets/images/skin_preview_<tema>.png`), `tools/screenshot.gd`'nin
+  kırptığı `board_preview.png`'den alınır. Temalar `themes/skins/` klasöründen listelenir.
+- **2026-11-22 (30):** Ahşap temada başlangıç patikası soluk kalıyordu. Patikada oyuncu
+  renginin zemine karışma oranları `BaseLink` sabitlerinden `BoardSkin`'e taşındı
+  (`link_line_tint`, `link_fill_tint`; varsayılan 0.5 / 0.2, klasik ve neon değişmedi). Ahşapta
+  çizgi 1.0, dolgu 0.65 (iki aday çizilip B seçildi).
+- **2026-11-22 (31):** Yeni temalar ödüllü reklama bağlandı. `BoardSkin.needs_unlock` işaretli
+  temalar (neon, ahşap) kilitli başlar; klasik açıktır. Görünüm ekranında kilitli kartın sol üst
+  köşesinde tikle aynı renklerde sarı daire içinde kilit çizilir, görsel karartılmaz. Karta
+  dokununca "Bu görünümü açmak için bir reklam izleyin." onayı (İzle / Vazgeç) sorulur;
+  reklam hazır değilse tek düğmeli bilgi iletisi çıkar. Ödül verilirse kilit kalıcı olarak kalkar
+  (`unlocked_themes` tercihi), tema seçilip kaydedilir. Reklam yeri `unlock_theme`. "Reklamları
+  kaldır" alanlarda da kilit durur (ödüllü reklam kaldırılmaz). Kayıtta kilitli bir tema seçili
+  kalmışsa açılışta klasiğe dönülür. `ConfirmOverlay.ask` risksiz onayda onayı yeşil, iptali
+  kırmızı yapar.

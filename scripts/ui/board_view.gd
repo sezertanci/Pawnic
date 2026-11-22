@@ -271,6 +271,8 @@ func _draw_square(square: int, active: Array[int]) -> void:
 	else:
 		var tint := skin.track_color.lerp(_seat_color(owner), skin.lane_tint)
 		rect = BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
+	if shortcut_seat == BoardLayout.NO_SEAT and not _has_mark(square):
+		BoardPainter.draw_inlay(self, rect)
 	_draw_mark(square, rect)
 	if shortcut_seat != BoardLayout.NO_SEAT:
 		var half := HOUSE_HALF * _cell_size() * MARK_RATIO
@@ -347,6 +349,11 @@ func _shortcut_seat(square: int, active: Array[int]) -> int:
 		if board.layout.shortcuts[seat] == square:
 			return seat
 	return BoardLayout.NO_SEAT
+
+
+## Kalkanlı ve hız sayılı karelerin işareti vardır; bunlara süs çizilmez.
+func _has_mark(square: int) -> bool:
+	return board.layout.safe[square] or board.layout.speed[square] != 0
 
 
 func _draw_mark(square: int, rect: Rect2) -> void:

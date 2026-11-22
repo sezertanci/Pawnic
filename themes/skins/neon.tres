@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="BoardSkin" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/board_skin.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/images/tile_neon.png" id="tile"]
+[ext_resource type="Texture2D" path="res://assets/images/pawn_red.png" id="pawn_red"]
+[ext_resource type="Texture2D" path="res://assets/images/pawn_blue.png" id="pawn_blue"]
+[ext_resource type="Texture2D" path="res://assets/images/pawn_green.png" id="pawn_green"]
+[ext_resource type="Texture2D" path="res://assets/images/pawn_yellow.png" id="pawn_yellow"]
+[ext_resource type="Texture2D" path="res://assets/images/home_letter.png" id="home_letter"]
+[ext_resource type="Texture2D" path="res://assets/images/skin_preview_neon.png" id="preview"]
+
+[resource]
+script = ExtResource("1")
+seat_colors = Array[Color]([Color(1, 0.25, 0.4, 1), Color(0.2, 0.6, 1, 1), Color(0.2, 1, 0.5, 1), Color(1, 0.85, 0.2, 1)])
+seat_name_keys = Array[String](["COLOR_RED", "COLOR_BLUE", "COLOR_GREEN", "COLOR_YELLOW"])
+background_color = Color(0.04, 0.04, 0.11, 1)
+track_color = Color(0.82, 0.64, 1, 1)
+outline_color = Color(0.05, 0.03, 0.12, 1)
+mark_color = Color(0.55, 0.4, 0.9, 1)
+safe_color = Color(0.3, 0.85, 1, 1)
+shield_color = Color(0.35, 0.9, 1, 1)
+highlight_color = Color(1, 0.9, 0.2, 1)
+level_colors = Array[Color]([Color(0.3, 0.8, 0.35, 1), Color(0.3, 0.6, 1, 1), Color(1, 0.42, 0.12, 1), Color(0.9, 0.1, 0.05, 1)])
+selected_color = Color(1, 0.55, 0.1, 1)
+shadow_color = Color(0, 0, 0, 0.5)
+square_depth = 0.0
+square_top = 0.0
+track_texture = ExtResource("tile")
+preview_texture = ExtResource("preview")
+pawn_textures = Array[Texture2D]([ExtResource("pawn_red"), ExtResource("pawn_blue"), ExtResource("pawn_green"), ExtResource("pawn_yellow")])
+home_letter_texture = ExtResource("home_letter")
+shortcut_lighten = 0.6
+lane_tint = 1.0
+start_tint = 0.55
+needs_unlock = true

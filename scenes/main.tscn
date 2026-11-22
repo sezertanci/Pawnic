@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/demo_screen.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/host_lobby_screen.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/join_screen.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/skin_screen.tscn" id="11"]
 
 [sub_resource type="ShaderMaterial" id="backdrop_blur"]
 shader = ExtResource("7")
@@ -22,6 +23,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="Table" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 1
 
 [node name="Sides" type="ColorRect" parent="."]
 layout_mode = 1
@@ -77,5 +89,9 @@ visible = false
 layout_mode = 1
 
 [node name="JoinScreen" parent="Column" instance=ExtResource("10")]
+visible = false
+layout_mode = 1
+
+[node name="SkinScreen" parent="Column" instance=ExtResource("11")]
 visible = false
 layout_mode = 1

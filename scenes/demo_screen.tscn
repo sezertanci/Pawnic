@@ -75,6 +75,7 @@ script = ExtResource("5")
 kind = 1
 
 [node name="BoardView" type="Control" parent="Margin/Box"]
+texture_filter = 4
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3

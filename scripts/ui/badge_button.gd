@@ -3,7 +3,7 @@ extends WideButton
 ## Ana ekran düğmesi: dokusunun solundaki yuvarlağın içine seçilen simgeyi çizer.
 ## Simgenin yeri ve boyu düğme yüksekliğine oranla verilir.
 
-enum Symbol { PLAY, PLUS, QUESTION, HOME }
+enum Symbol { PLAY, PLUS, QUESTION, HOME, TILES }
 
 ## Yuvarlağın merkezi ve simgenin yarı boyu (düğme yüksekliğine oranla).
 const BADGE_CENTER := Vector2(0.43, 0.41)
@@ -17,8 +17,21 @@ const PLUS_THICKNESS := 0.55
 ## Soru işaretinin yazı boyu (yarı boya oranla).
 const QUESTION_SIZE := 2.6
 const QUESTION_TEXT := "?"
+## Dört kare simgesi: kareler arası boşluk ve köşe yuvarlaklığı (kare kenarına oranla).
+const TILE_GAP := 0.25
+const TILE_CORNER := 0.3
+## Dört karenin renkleri okuma sırasıyla: beyaz, ilk oyuncu rengi, ikinci oyuncu rengi, beyaz.
+## Sayı oyuncu renginin sırasıdır; WHITE_TILE beyaz kare demektir.
+const WHITE_TILE := -1
+const TILE_COLORS: Array[int] = [WHITE_TILE, 0, 1, WHITE_TILE]
 
 @export var symbol := Symbol.PLAY
+
+
+## Simgeler temanın renklerini kullanır; tema değişince yeniden çizilir.
+func _ready() -> void:
+	super()
+	Skins.changed.connect(queue_redraw)
 
 
 func _draw() -> void:
@@ -33,6 +46,8 @@ func _draw() -> void:
 			_draw_question(center, half)
 		Symbol.HOME:
 			_draw_home(center, half)
+		Symbol.TILES:
+			_draw_tiles(center, half)
 
 
 func _draw_play(center: Vector2, half: float) -> void:
@@ -83,3 +98,24 @@ func _draw_question(center: Vector2, half: float) -> void:
 	draw_string(
 		font, baseline, QUESTION_TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, SYMBOL_COLOR
 	)
+
+
+## Dört kare: 2x2 dizili, koyu kenarlı ve köşeleri yuvarlak küçük kareler.
+func _draw_tiles(center: Vector2, half: float) -> void:
+	var side := half * 2.0 / (2.0 + TILE_GAP)
+	var step := side * (1.0 + TILE_GAP)
+	var box := StyleBoxFlat.new()
+	box.set_corner_radius_all(roundi(side * TILE_CORNER))
+	box.set_border_width_all(roundi(OUTLINE_WIDTH / 2.0))
+	box.border_color = Skins.current.outline_color
+	box.expand_margin_left = OUTLINE_WIDTH / 2.0
+	box.expand_margin_top = OUTLINE_WIDTH / 2.0
+	box.expand_margin_right = OUTLINE_WIDTH / 2.0
+	box.expand_margin_bottom = OUTLINE_WIDTH / 2.0
+	for index: int in range(TILE_COLORS.size()):
+		var color_index := TILE_COLORS[index]
+		box.bg_color = (
+			SYMBOL_COLOR if color_index == WHITE_TILE else Skins.current.seat_color(color_index)
+		)
+		var origin := center - Vector2(half, half) + Vector2(index % 2, floorf(index / 2.0)) * step
+		draw_style_box(box, Rect2(origin, Vector2(side, side)))

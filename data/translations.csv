@@ -95,6 +95,7 @@ DESC_SHORTCUT,Taşınız ev yolu girişine,Pawn jumps to the home lane entry,Fig
 DESC_JOKER,1–6 arası istediğiniz sayı,Any number from 1 to 6,Beliebige Zahl von 1 bis 6,Cualquier número del 1 al 6,N'importe quel nombre de 1 à 6,Qualsiasi numero da 1 a 6,Qualquer número de 1 a 6,Angka bebas dari 1 sampai 6
 NEW_GAME,Yeni Oyun,New Game,Neues Spiel,Nueva Partida,Nouvelle Partie,Nuova Partita,Novo Jogo,Permainan Baru
 HOW_TO_PLAY,Nasıl Oynanır,How To Play,Spielanleitung,Cómo Jugar,Comment Jouer,Come Si Gioca,Como Jogar,Cara Bermain
+APPEARANCE,Görünüm,Appearance,Aussehen,Apariencia,Apparence,Aspetto,Aparência,Tampilan
 PLAY_AGAIN,Tekrar Oyna,Play Again,Nochmal Spielen,Jugar De Nuevo,Rejouer,Gioca Ancora,Jogar De Novo,Main Lagi
 MAIN_MENU,Ana Ekran,Main Menu,Hauptmenü,Menú Principal,Menu Principal,Menu Principale,Menu Principal,Menu Utama
 SETTINGS,Ayarlar,Settings,Einstellungen,Ajustes,Paramètres,Impostazioni,Configurações,Pengaturan
@@ -159,3 +160,6 @@ PAUSE_GUEST_NOTE,Kurucunun devam etmesi bekleniyor…,Waiting for the host to co
 QUIT_MATCH,Oyundan Çık,Leave Game,Spiel Verlassen,Salir De La Partida,Quitter La Partie,Esci Dalla Partita,Sair Do Jogo,Keluar Permainan
 END_MATCH,Oyunu Bitir,End Game,Spiel Beenden,Terminar Partida,Terminer La Partie,Termina Partita,Encerrar Jogo,Akhiri Permainan
 REWARD_CARD,Kart Seç,Pick Card,Karte Wählen,Elegir Carta,Choisir Carte,Scegli Carta,Escolher Carta,Pilih Kartu
+WATCH_AD,İzle,Watch,Ansehen,Ver,Regarder,Guarda,Assistir,Tonton
+THEME_UNLOCK_ASK,Bu görünümü açmak için bir reklam izleyin.,Watch an ad to unlock this look.,"Sieh dir eine Werbung an, um dieses Aussehen freizuschalten.",Mira un anuncio para desbloquear este aspecto.,Regarde une pub pour débloquer cette apparence.,Guarda un annuncio per sbloccare questo aspetto.,Assista a um anúncio para desbloquear este visual.,Tonton iklan untuk membuka tampilan ini.
+THEME_AD_NOT_READY,"Şu an reklam yüklenemedi, sonra tekrar deneyin.","The ad couldn't load right now, try again later.","Die Werbung konnte gerade nicht geladen werden, versuch es später erneut.","No se pudo cargar el anuncio ahora, inténtalo más tarde.","La pub n'a pas pu se charger, réessaie plus tard.","Impossibile caricare l'annuncio ora, riprova più tardi.","Não foi possível carregar o anúncio agora, tente mais tarde.","Iklan tidak dapat dimuat sekarang, coba lagi nanti."

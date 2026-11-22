@@ -18,13 +18,25 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
 - Birim testleri: `godot --headless --path . -s addons/gut/gut_cmdln.gd`
 - Bot simülasyonu (kural motorunun takılmadan bittiğini denetler):
   `godot --headless --path . -s tools/simulate.gd`
-- Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör>`
+- Ekran görüntüleri: `godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör> [kaplama]`
+  (kaplama verilirse, ör. `wood` ya da `neon`, görüntüler o kaplamayla alınır). Son görüntüdeki
+  tahta ayrıca kırpılıp `board_preview.png` olarak kaydedilir; bu dosya
+  `assets/images/skin_preview_<kaplama>.png` adıyla kopyalanınca görünüm ekranındaki kartın
+  görseli olur (kaplamanın `preview_texture` alanı)
 - Biçim ve lint: `gdformat scripts tools tests` ve `gdlint scripts tools tests`
 - Simgesiz yeşil menü düğmesi (`assets/images/button_green_plain.png`, Tamam düğmelerinde):
   `python tools/make_plain_button.py assets/images/button_green.png assets/images/button_green_plain.png` (Pillow gerekir)
+- Mor menü düğmesi (`assets/images/button_purple.png`, Görünüm düğmesinde):
+  `python tools/shift_button_hue.py assets/images/button_blue.png assets/images/button_purple.png 60`
+  (Pillow gerekir)
 - Simgesiz kırmızı menü düğmesi (`assets/images/button_red_plain.png`, geri dönülmez işi onaylayan
   düğmelerde): `python tools/shift_button_hue.py assets/images/button_orange_plain.png
   assets/images/button_red_plain.png -28` (Pillow gerekir)
+- Ahşap kaplamanın kare dokusu, elmas kakması ve masa dokusu (`tile_wood.png`,
+  `tile_inlay_diamond.png`, `table_wood.png`): `python tools/make_wood_tiles.py assets/images`
+  (Pillow ve numpy gerekir)
+- Gece neon kaplamasının ışıyan kare dokusu (`tile_neon.png`):
+  `python tools/make_neon_tiles.py assets/images` (Pillow ve numpy gerekir)
 - Ses efektleri (`assets/sounds/`): `python tools/make_sounds.py assets/sounds` (yalnızca Python standart kütüphanesi)
 - Müzik (`assets/music/`): `python tools/make_music.py assets/music` (numpy gerekir). Menü
   döngüsü (`menu.wav`) ve oyun müziği (`game.wav`) notalardan hesaplanır; tek kanal, 16 kHz
@@ -127,7 +139,7 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `Tuning` | `data/tuning.json` ayarlarını yükler |
 | `SaveStore` | Tercihleri ve yarım kalan oyunu `user://save.json` dosyasında tutar |
 | `Localization` | Dili seçer ve saklar (ayarlar penceresinden değiştirilir) |
-| `Skins` | Tahta görünümünü seçer ve saklar (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
+| `Skins` | Tahta görünümünü seçer ve saklar; `themes/skins/` klasöründeki temaları görünüm ekranı için listeler; `needs_unlock` işaretli temalar (neon, ahşap) ödüllü reklam izlenince kalıcı olarak açılır ve açılanlar `unlocked_themes` tercihinde tutulur (Godot'nun yerleşik `Skin` sınıfıyla çakışmasın diye bu ad) |
 | `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
 | `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
 | `PlayerColor` | Tek oyunculu oyunda oyuncunun seçtiği rengi saklar (varsayılan yeşil); botlar kalan renkleri alır |

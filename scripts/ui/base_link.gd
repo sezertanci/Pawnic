@@ -4,7 +4,8 @@ extends RefCounted
 ## gösterir. Patika alanın çıkış karesine bakan kenarının ortasının biraz önünden dik çıkar,
 ## yumuşak bir S çizerek karenin biraz önüne dik varır; iki ucu da kenarlara değmez. İki yan
 ## çizgiden ve aralarındaki daha soluk dolgudan oluşur; başına, ortasına ve sonuna yakın üç ok
-## işareti (>) yönü gösterir. Renkler zemine yumuşakça karışan, kenarsız tonlardır.
+## işareti (>) yönü gösterir. Renkler zemine yumuşakça karışan, kenarsız ve opak tonlardır;
+## karışma oranları temadan (BoardSkin) gelir.
 ## Alandan taş seçilebiliyorsa dolgu boyunca çıkış karesine doğru > biçiminde bir ışık akar;
 ## ışık ok işaretlerinin üstünden geçerken onları da aydınlatır, böylece bölünmeden akar;
 ## bu sırada çizen düğüm her karede yeniden çizilmelidir. Uzunluklar kare boyuna oranlanır.
@@ -12,9 +13,6 @@ extends RefCounted
 ## İki yan çizgi arasındaki genişlik ve çizgi kalınlığı.
 const WIDTH_RATIO := 0.4
 const LINE_RATIO := 0.05
-## Oyuncu renginin kenar çizgilerinde ve dolguda zemine karışma oranı; renkler opak çizilir.
-const LINE_ALPHA := 0.5
-const FILL_ALPHA := 0.2
 ## Ok işaretlerinin eğri üzerindeki yerleri (eğri noktalarının sırasına oranla), kollarının
 ## uzunluğu (patika genişliğine oranla) ve çizgi kalınlığı (kare boyuna oranla).
 const ARROWS_AT: Array[float] = [0.2, 0.5, 0.8]
@@ -53,14 +51,14 @@ static func draw(
 	var rails: Array[PackedVector2Array] = [_offset(points, half), _offset(points, -half)]
 	var line := cell * LINE_RATIO
 	var ground := skin.background_color
-	var fill := ground.lerp(color, FILL_ALPHA)
+	var fill := ground.lerp(color, skin.link_fill_tint)
 	var light := color.lightened(FLOW_LIGHTEN)
 	var progress := SmoothDraw.path_progress(points)
 	var middle := _flow_colors(progress, fill, light, flowing, 0.0)
 	var edge := _flow_colors(progress, fill, light, flowing, FLOW_CHEVRON)
 	SmoothDraw.ribbon(canvas, rails[0], points, edge, middle)
 	SmoothDraw.ribbon(canvas, points, rails[1], middle, edge)
-	var ink := ground.lerp(color, LINE_ALPHA)
+	var ink := ground.lerp(color, skin.link_line_tint)
 	for rail: PackedVector2Array in rails:
 		SmoothDraw.stroke(canvas, rail, ink, line)
 	var arrow_colors := _flow_colors(progress, ink, light, flowing, 0.0)

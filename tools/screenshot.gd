@@ -1,12 +1,18 @@
 extends SceneTree
 ## Arayüzü açıp birkaç hamle oynatır ve ekran görüntüleri kaydeder (görsel kontrol için).
 ## Seçim anı son hamlede kaydedilir; o sırada yolda taş olduğundan yoldaki vurgu da görünür.
-## Çalıştırma: godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <çıktı klasörü>
+## Çalıştırma: godot --path . --resolution 720x1280 -s tools/screenshot.gd -- <klasör> [kaplama]
+## Kaplama verilirse (ör. wood) kilidi açılır ve görüntüler o kaplamayla alınır. Son görüntüdeki
+## tahta ayrıca kırpılıp board_preview.png olarak kaydedilir; bu, görünüm ekranındaki kartın
+## görselidir.
 
 const FRAMES := 10
 const HUMAN_MOVES := 15
 const PAWNS := 4
 const SAVE_PATH := "user://screenshot_save.json"
+## Görünüm ekranı kartı için kırpılan tahta görselinin genişliği (piksel).
+const PREVIEW_WIDTH := 640
+const PREVIEW_FILE := "board_preview.png"
 
 
 func _initialize() -> void:
@@ -14,12 +20,20 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var out_dir: String = OS.get_cmdline_user_args()[0]
+	var args := OS.get_cmdline_user_args()
+	var out_dir: String = args[0]
 	_use_separate_save()
+	if args.size() > 1:
+		root.get_node("Skins").call("unlock", args[1])
+		root.get_node("Skins").call("select", args[1])
 	var main: Control = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	await _frames()
 	_save(out_dir.path_join("1a_home.png"))
+	main.get_node("Column/HomeScreen").emit_signal("appearance_requested")
+	await _frames()
+	_save(out_dir.path_join("1e_appearance.png"))
+	main.get_node("Column/SkinScreen").emit_signal("back_requested")
 	main.get_node("Column/HomeScreen").emit_signal("new_game_requested")
 	await _frames()
 	_save(out_dir.path_join("1b_setup.png"))
@@ -34,6 +48,7 @@ func _run() -> void:
 		await _play_like_bot(screen, out_dir if step == HUMAN_MOVES - 1 else "")
 	await _wait_for_human(screen)
 	_save(out_dir.path_join("3_board.png"))
+	_save_board_preview(screen.get_node("%BoardView") as Control, out_dir.path_join(PREVIEW_FILE))
 	DirAccess.remove_absolute(SAVE_PATH)
 	quit()
 
@@ -94,6 +109,19 @@ func _wait_for_human(screen: Node) -> void:
 func _frames() -> void:
 	for _i: int in range(FRAMES):
 		await process_frame
+
+
+## Tahtanın ekrandaki alanını kırpıp PREVIEW_WIDTH genişliğe küçülterek kaydeder.
+func _save_board_preview(board: Control, path: String) -> void:
+	var image := root.get_texture().get_image()
+	var scale := Vector2(image.get_size()) / root.get_visible_rect().size
+	var rect := board.get_global_rect()
+	var region := Rect2i(Vector2i(rect.position * scale), Vector2i(rect.size * scale))
+	var preview := image.get_region(region)
+	var height := roundi(PREVIEW_WIDTH * float(region.size.y) / region.size.x)
+	preview.resize(PREVIEW_WIDTH, height, Image.INTERPOLATE_LANCZOS)
+	preview.save_png(path)
+	print("kaydedildi: ", path)
 
 
 func _save(path: String) -> void:

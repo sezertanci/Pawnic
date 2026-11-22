@@ -1,8 +1,9 @@
 extends Control
-## Ana sahne: ana ekran, yeni oyun ekranı, ağ lobisi ekranları, oyun ekranı ve demo arasında
-## geçişi yapar, yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede sütunun
-## yanlarını dolduran düz renk yalnızca menü ekranlarında görünür; arka plan, düğmeler öne
-## çıksın diye hafifçe bulanıklaştırılır.
+## Ana sahne: ana ekran, yeni oyun ekranı, görünüm ekranı, ağ lobisi ekranları, oyun ekranı ve
+## demo arasında geçişi yapar, yeni ya da kayıtlı oyunu başlatır. Arka plan ve geniş pencerede
+## sütunun yanlarını dolduran düz renk yalnızca menü ekranlarında görünür; arka plan, düğmeler
+## öne çıksın diye hafifçe bulanıklaştırılır. Oyun ekranında arkada kaplamanın masa dokusu (varsa)
+## döşenir.
 
 const BLUR_PARAMETER := &"blur_radius"
 
@@ -11,6 +12,7 @@ var _rng := RandomNumberGenerator.new()
 var _network := false
 
 @onready var _backdrop: TextureRect = $Column/Backdrop
+@onready var _table: TextureRect = $Table
 @onready var _sides: ColorRect = $Sides
 @onready var _column: AspectColumn = $Column
 @onready var _home: HomeScreen = $Column/HomeScreen
@@ -19,6 +21,7 @@ var _network := false
 @onready var _demo: DemoScreen = $Column/DemoScreen
 @onready var _host_lobby: HostLobbyScreen = $Column/HostLobbyScreen
 @onready var _join: JoinScreen = $Column/JoinScreen
+@onready var _skins: SkinScreen = $Column/SkinScreen
 
 
 func _ready() -> void:
@@ -28,6 +31,8 @@ func _ready() -> void:
 	_home.resume_requested.connect(_on_resume_requested)
 	_home.new_game_requested.connect(_show_only.bind(_setup))
 	_setup.back_requested.connect(_show_home)
+	_home.appearance_requested.connect(_show_only.bind(_skins))
+	_skins.back_requested.connect(_show_home)
 	_setup.start_requested.connect(_on_start_requested)
 	_setup.host_requested.connect(_on_host_requested)
 	_setup.join_requested.connect(_on_join_requested)
@@ -41,6 +46,8 @@ func _ready() -> void:
 	_game_screen.left.connect(_on_game_closed)
 	_home.demo_requested.connect(_on_demo_requested)
 	_demo.closed.connect(_on_demo_closed)
+	Skins.changed.connect(_apply_skin)
+	_apply_skin()
 	_column.bottom_inset = Ads.banner_height
 	Ads.banner_height_changed.connect(_on_banner_height_changed)
 	_show_home()
@@ -53,11 +60,16 @@ func _show_home() -> void:
 
 ## Verilen ekranı gösterir, ötekileri gizler ve ekrana uyan müziğe geçer.
 func _show_only(screen: Control) -> void:
-	for other: Control in [_home, _setup, _game_screen, _demo, _host_lobby, _join]:
+	for other: Control in [_home, _setup, _game_screen, _demo, _host_lobby, _join, _skins]:
 		other.visible = other == screen
 	_backdrop.visible = screen != _game_screen and screen != _demo
 	_sides.visible = _backdrop.visible
+	_table.visible = not _backdrop.visible
 	Music.play(Music.Track.GAME if screen == _game_screen else Music.Track.MENU)
+
+
+func _apply_skin() -> void:
+	_table.texture = Skins.current.background_texture
 
 
 func _on_banner_height_changed(height: float) -> void:

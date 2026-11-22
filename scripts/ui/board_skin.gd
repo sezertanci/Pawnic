@@ -9,6 +9,8 @@ extends Resource
 ## Renk sırasıyla oyuncu adlarının (renk adlarının) çeviri anahtarları.
 @export var seat_name_keys: Array[String] = []
 @export var background_color := Color.BLACK
+## Oyun ekranının arkasına döşenen doku (ör. ahşap masa); boşsa yalnızca background_color görünür.
+@export var background_texture: Texture2D
 @export var track_color := Color.WHITE
 @export var outline_color := Color.BLACK
 @export var mark_color := Color.GRAY
@@ -26,6 +28,11 @@ extends Resource
 @export var square_top := 0.0
 ## Kare dokusu (taş); ev yolu da aynı dokuyu sahibinin rengine boyanmış olarak kullanır.
 @export var track_texture: Texture2D
+## Kare yüzüne boyanmadan çizilen süs (ör. elmas kakma); işaretli karelerde çizilmez. Boş olabilir.
+@export var inlay_texture: Texture2D
+## Görünüm ekranındaki kartta gösterilen tahta görseli (tools/screenshot.gd çıktısındaki
+## board_preview.png).
+@export var preview_texture: Texture2D
 ## Renk sırasıyla taş görselleri.
 @export var pawn_textures: Array[Texture2D] = []
 ## Ortadaki bitiş alanının ortasındaki harf görseli (uygulama simgesindeki P).
@@ -39,6 +46,12 @@ extends Resource
 @export var lane_tint := 0.3
 ## Çıkış karesinin oyuncu rengine ne kadar boyanacağı.
 @export var start_tint := 0.5
+## Başlangıç alanından çıkan patikada oyuncu renginin zemine karışma oranı: kenar çizgileri
+## ve ok işaretleri için, aradaki dolgu için.
+@export var link_line_tint := 0.5
+@export var link_fill_tint := 0.2
+## Tema ancak ödüllü reklam izlenince açılır; açılınca kilit kalıcı olarak kalkar.
+@export var needs_unlock := false
 
 
 func seat_color(color: int) -> Color:

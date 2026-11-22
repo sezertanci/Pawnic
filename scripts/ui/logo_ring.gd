@@ -71,7 +71,8 @@ func _draw_tiles() -> void:
 		if seat >= 0:
 			tint = skin.track_color.lerp(skin.seat_color(seat), skin.start_tint)
 		var rect := Rect2(_loop[index], Vector2.ONE * _cell).grow(-TILE_GAP / 2.0)
-		BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
+		var face := BoardPainter.draw_tile(self, rect, skin.track_texture, tint)
+		BoardPainter.draw_inlay(self, face)
 
 
 ## Dört köşenin yol içindeki sırası; her köşe bir oyuncu rengini alır.

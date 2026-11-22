@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BoardSkin" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="BoardSkin" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/board_skin.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/images/tile_stone.png" id="stone"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" path="res://assets/images/pawn_green.png" id="pawn_green"]
 [ext_resource type="Texture2D" path="res://assets/images/pawn_yellow.png" id="pawn_yellow"]
 [ext_resource type="Texture2D" path="res://assets/images/home_letter.png" id="home_letter"]
+[ext_resource type="Texture2D" path="res://assets/images/skin_preview_classic.png" id="preview"]
 
 [sub_resource type="AtlasTexture" id="stone_cropped"]
 atlas = ExtResource("stone")
@@ -29,6 +30,7 @@ shadow_color = Color(0, 0, 0, 0.35)
 square_depth = 0.064
 square_top = 0.068
 track_texture = SubResource("stone_cropped")
+preview_texture = ExtResource("preview")
 pawn_textures = Array[Texture2D]([ExtResource("pawn_red"), ExtResource("pawn_blue"), ExtResource("pawn_green"), ExtResource("pawn_yellow")])
 home_letter_texture = ExtResource("home_letter")
 shortcut_lighten = 0.6

@@ -22,6 +22,13 @@ static func draw_tile(canvas: CanvasItem, rect: Rect2, texture: Texture2D, tint:
 	return face_rect(rect)
 
 
+## Kaplamada süs varsa karenin yüzüne boyanmadan çizer.
+static func draw_inlay(canvas: CanvasItem, face: Rect2) -> void:
+	var texture := Skins.current.inlay_texture
+	if texture != null:
+		canvas.draw_texture_rect(texture, face, false)
+
+
 ## Karenin üst kenarı ve alt kalınlığı hariç, işaretlerin ve taşların durduğu yüz.
 static func face_rect(rect: Rect2) -> Rect2:
 	var top := rect.size.y * Skins.current.square_top

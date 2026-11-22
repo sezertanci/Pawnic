@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/images/button_orange_plain.png" id="button_orange_plain"]
 [ext_resource type="Texture2D" path="res://assets/images/button_red_plain.png" id="button_red_plain"]
 [ext_resource type="Texture2D" path="res://assets/images/button_orange_round.png" id="button_orange_round"]
+[ext_resource type="Texture2D" path="res://assets/images/button_purple.png" id="button_purple"]
 
 [sub_resource type="StyleBoxFlat" id="overlay_style"]
 bg_color = Color(0.08, 0.08, 0.11, 0.97)
@@ -336,6 +337,60 @@ texture = ExtResource("button_blue")
 texture_margin_left = 100.0
 texture_margin_right = 50.0
 modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="menu_purple"]
+content_margin_left = 100.0
+content_margin_top = 14.0
+content_margin_right = 40.0
+content_margin_bottom = 22.0
+texture = ExtResource("button_purple")
+texture_margin_left = 100.0
+texture_margin_right = 50.0
+modulate_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="menu_purple_pressed"]
+content_margin_left = 100.0
+content_margin_top = 20.0
+content_margin_right = 40.0
+content_margin_bottom = 22.0
+texture = ExtResource("button_purple")
+texture_margin_left = 100.0
+texture_margin_right = 50.0
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxFlat" id="skin_card"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.09, 0.11, 0.25, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 0.18)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="skin_card_on"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.09, 0.11, 0.25, 0.9)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(1, 0.85, 0.2, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+corner_detail = 16
 
 [sub_resource type="StyleBoxTexture" id="menu_orange"]
 content_margin_left = 100.0
@@ -827,6 +882,29 @@ MenuBlueButton/styles/pressed = SubResource("menu_blue_pressed")
 MenuBlueButton/styles/hover_pressed = SubResource("menu_blue_pressed")
 MenuBlueButton/styles/disabled = SubResource("menu_blue")
 MenuBlueButton/styles/focus = SubResource("card_focus")
+MenuPurpleButton/base_type = &"Button"
+MenuPurpleButton/font_sizes/font_size = 36
+MenuPurpleButton/constants/outline_size = 10
+MenuPurpleButton/colors/font_outline_color = Color(0.22, 0.12, 0.3, 1)
+MenuPurpleButton/colors/font_color = Color(1, 1, 1, 1)
+MenuPurpleButton/colors/font_hover_color = Color(1, 1, 1, 1)
+MenuPurpleButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+MenuPurpleButton/colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+MenuPurpleButton/colors/font_focus_color = Color(1, 1, 1, 1)
+MenuPurpleButton/styles/normal = SubResource("menu_purple")
+MenuPurpleButton/styles/hover = SubResource("menu_purple")
+MenuPurpleButton/styles/pressed = SubResource("menu_purple_pressed")
+MenuPurpleButton/styles/hover_pressed = SubResource("menu_purple_pressed")
+MenuPurpleButton/styles/disabled = SubResource("menu_purple")
+MenuPurpleButton/styles/focus = SubResource("card_focus")
+SkinCard/base_type = &"Button"
+SkinCard/colors/badge_color = Color(1, 0.85, 0.2, 1)
+SkinCard/colors/badge_mark_color = Color(0.12, 0.13, 0.17, 1)
+SkinCard/styles/normal = SubResource("skin_card")
+SkinCard/styles/hover = SubResource("skin_card")
+SkinCard/styles/pressed = SubResource("skin_card_on")
+SkinCard/styles/hover_pressed = SubResource("skin_card_on")
+SkinCard/styles/focus = SubResource("card_focus")
 MenuOrangeButton/base_type = &"Button"
 MenuOrangeButton/font_sizes/font_size = 36
 MenuOrangeButton/constants/outline_size = 10
