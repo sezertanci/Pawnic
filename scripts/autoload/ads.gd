@@ -13,6 +13,9 @@ signal rewarded_completed(placement: String, granted: bool)
 signal banner_height_changed(height: float)
 ## Geçiş reklamı kapanınca ya da gösterilemeyince gelir.
 signal interstitial_closed
+## Tam ekran (geçiş ya da ödüllü) reklam açılmak üzereyken gelir; ardından her durumda
+## interstitial_closed ya da rewarded_completed gelir.
+signal full_screen_started
 
 const CONFIG_PATH := "res://data/ads_config.tres"
 
@@ -41,6 +44,7 @@ func is_rewarded_ready() -> bool:
 
 
 func show_rewarded(placement: String) -> void:
+	full_screen_started.emit()
 	_backend.show_rewarded(placement)
 
 
@@ -49,6 +53,7 @@ func show_interstitial() -> void:
 	if are_ads_removed():
 		interstitial_closed.emit.call_deferred()
 		return
+	full_screen_started.emit()
 	_backend.show_interstitial()
 
 

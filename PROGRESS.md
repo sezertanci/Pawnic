@@ -844,3 +844,44 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-22 (21):** Sürüm 8 (1.7.0): üç ön ayarda sürüm yükseltildi; mağaza metinlerine (tr-TR,
   en-US) 1.7.0 sürüm notu eklendi (ödüllü reklamla "Kart Seç", ağ oyununda kayan kopyanın
   düzeltilmesi). AAB Play'e, Gradle'lı APK tablete.
+- **2026-11-22 (22):** Arka plan müziği eklendi (`Music` autoload'u, `tools/make_music.py`).
+  Menüde kalimbalı ~23 sn'lik sakin döngü, oyunda ~5 dk 48 sn'lik tek parça çalar. Oyun müziği
+  beğenilen iki tarzın birleşimidir: "Oyunbaz" (Fa, Si bemol, Do) ve "Ada" (Sol, Do, Re). Tempo
+  ikisinde de 116 BPM'dir. Bölümler sıradaki tona götüren geçiş akoruyla, iki tarzın ek yerleri
+  ayrıca yumuşak bir yaygı akoruyla bağlanır. Tizler 2600 Hz'de kesilir, ritim yükselmez. Dosyalar
+  tek kanal ve 16 kHz; QOA ile APK'da oyun müziği ~2,2 MB, menü ~150 KB. Ayarlarda ayrı "Müzik"
+  anahtarı var: ilk açılışta açık, tercih saklanır. Ses efektleri anahtarından bağımsızdır (ayrı
+  `Effects` ve `Music` ses yolları, `default_bus_layout.tres`); "Ses" anahtarının adı "Ses
+  Efektleri" oldu. Müzik düzeyi `tuning.json`'da `audio.music_volume_db` (-15 dB), ekran
+  geçişindeki kısıp açma süresi `music_fade_sec` (1,5 sn). Açık konu: müzik düzeyi tablette
+  denenip gerekirse ayarlanacak.
+- **2026-11-22 (23):** Tam ekran reklamda müzik: `Ads.full_screen_started` sinyali geçiş ya da
+  ödüllü reklam açılmadan hemen önce gelir. `Music` o anda parçayı olduğu yerde duraklatır ve
+  müzik ses yolunu susturur. Reklam kapanınca (`interstitial_closed` / `rewarded_completed`) parça
+  kaldığı yerden sürer, ses yolu `music_fade_sec` boyunca yumuşakça açılır. Reklam hemen tam
+  ekran açıldığı için kısma beklenmez. Gerçek AdMob reklamıyla tablette denenmedi.
+- **2026-11-22 (24):** Eve giren taş ve kutlama sesleri: taş evine (ortadaki yamuğa) indiği anda
+  "sihirli parıltı" (`Sound.HOME`: hızla yükselen arp dizisi ve üstüne serpilen tiz ışıltılar;
+  ilk denenen üç notalı çan bildirim sesine benzediği için değiştirildi) çalar ve sahibinin yamuğu kendi renginin tam tonuna boyanıp
+  çevresine aynı renkte bir ışık halesi yayar (`HomeTray.draw_halo`); ikisi
+  `animation.home_glow_sec` (1,5 sn) içinde söner; botlar dahil her oyuncuda.
+  Oyun sonu (oyuncu bitirince ve sonuç ekranında) için ses denendi ama beğenilmedi ve
+  kaldırıldı; şimdilik zafer sesi yok, güzel bir ses bulununca eklenecek. Denenip beğenilmeyenler:
+  sentetik alkış, üflemeli "ta-ta-ta-taaa" fanfarı, sentetik kalabalık "oley"i ve stadyum
+  uğultusu, parti düdüğü, 8-bit melodi, çıtırtılı ya da tok havai fişek, zafer çanları, konfeti
+  patlaması, 5 sn orkestral ve 5 sn synth çanlı casual zafer sesi. Çıtırtıya benzeyen sesler
+  (tane tane kıvılcım, kâğıt hışırtısı) hiç kullanılmamalı. Yeni ses eklenince `Sound.DUCKING`
+  listesine de konmalı. Sesler `tools/make_sounds.py` ile üretildi (`home.wav`); eski sesler
+  değişmedi. Taş kırılınca başlangıca uçarken iki notalı,
+  inen ve titreyen bir "ops" sesi (`Sound.CAPTURE`, `capture.wav`) bir kez çalar. Yalnızca rakip
+  taşı başlangıca dönerse çalar; taş çıkarınca başlangıçta kalan taşların kayması sayılmaz.
+  Başarı sesi müziğin altında kaldığı için çalarken müzik `Music.duck` ile
+  kısılır (`audio.music_duck_db` -12 dB, 0,15 sn'de iner), ses bitince 0,6 sn'de açılır; efektler
+  kapalıysa ya da reklam açıkken kısılmaz. Tablette dinlenip düzeyleri gerekirse
+  ayarlanacak.
+- **2026-11-22 (25):** Menü müziği oyundakinden yüksek geliyordu. Ölçüm: `menu.wav` K ağırlıklı
+  -15,3 LUFS, `game.wav` -17,2 LUFS (ilk 30 sn -19,0); menü enerjisi kulağın duyarlı olduğu orta
+  frekanslarda, oyun müziğininki basta, küçük hoparlörde bas duyulmadığı için fark büyüyor
+  (250 Hz üstü ~2,7 dB). Menü müziği ayrı bir düzey aldı: `audio.menu_music_volume_db` -20 dB
+  (oyun müziği `music_volume_db` -15 dB'de kaldı). -17 ve -18 dB kulakla denendi, menü yüksek
+  geldi. Parçanın düzeyini `Music.volume_of` seçer.

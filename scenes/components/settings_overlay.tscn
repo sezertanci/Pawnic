@@ -61,6 +61,24 @@ size_flags_vertical = 4
 theme_type_variation = &"ToggleSwitch"
 script = ExtResource("switch")
 
+[node name="MusicRow" type="HBoxContainer" parent="Margin/Box/Panel/Box"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MusicLabel" type="Label" parent="Margin/Box/Panel/Box/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RuleLabel"
+text = "MUSIC"
+
+[node name="MusicSwitch" type="Button" parent="Margin/Box/Panel/Box/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 64)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"ToggleSwitch"
+script = ExtResource("switch")
+
 [node name="SpeedLabel" type="Label" parent="Margin/Box/Panel/Box"]
 layout_mode = 2
 theme_type_variation = &"RuleLabel"

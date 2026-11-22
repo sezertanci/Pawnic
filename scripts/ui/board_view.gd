@@ -82,6 +82,8 @@ var _turns := 0
 var _base_centers: Array[Vector2] = []
 var _tween: Tween
 var _time := 0.0
+## Koltuk -> bitiş yamuğunun parlaklığı (1 tam parlak, 0 normal); taş eve girince 1'den söner.
+var _glows: Dictionary[int, float] = {}
 
 
 func _ready() -> void:
@@ -111,6 +113,7 @@ func _draw() -> void:
 	for square: int in range(board.layout.square_count()):
 		if _is_visible(square, active):
 			_draw_square(square, active)
+	_draw_home_halos()
 	for seat: int in active:
 		_draw_base_link(seat)
 		_draw_base(seat)
@@ -285,10 +288,31 @@ func _draw_home_tray(active: Array[int]) -> void:
 	var skin := Skins.current
 	var sides: Array[Vector2] = []
 	var colors: Array[Color] = []
+	var glows: Array[float] = []
 	for seat: int in range(board.layout.homes.size()):
 		sides.append(_home_side(seat))
 		colors.append(_seat_color(seat) if active.has(seat) else skin.mark_color)
-	HomeTray.draw(self, _home_area(), sides, colors, skin, _cell_size())
+		glows.append(_glows.get(seat, 0.0))
+	HomeTray.draw(self, _home_area(), sides, colors, glows, skin, _cell_size())
+
+
+func _draw_home_halos() -> void:
+	for seat: int in _glows:
+		var color := _seat_color(seat)
+		HomeTray.draw_halo(self, _home_area(), _home_side(seat), color, _glows[seat], _cell_size())
+
+
+## Koltuğun bitiş yamuğu bir anda parlar ve ayardaki sürede söner; animasyondan bağımsızdır,
+## taş durduktan sonra da sönmeyi sürdürür.
+func _flash_home(seat: int) -> void:
+	var tween := create_tween().set_speed_scale(speed_scale)
+	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_method(_set_glow.bind(seat), 1.0, 0.0, board.settings.home_glow_time)
+
+
+func _set_glow(glow: float, seat: int) -> void:
+	_glows[seat] = glow
+	queue_redraw()
 
 
 ## Dönen oku sıradaki oyuncunun rengine boyar; sıra kimsede değilse gizler.
@@ -622,6 +646,8 @@ func _selectable_at(point: Vector2) -> int:
 func _set_time(time: float) -> void:
 	for cue: StringName in _animation.cues_between(_time, time):
 		Sound.play(cue)
+	for seat: int in _animation.flashes_between(_time, time):
+		_flash_home(seat)
 	_time = time
 	queue_redraw()
 

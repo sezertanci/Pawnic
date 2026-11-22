@@ -5,6 +5,8 @@ extends RefCounted
 ## ortadaki karede uygulama simgesindeki P harfi durur. Evdeki taşlar yamukta iki sırada
 ## dizilir: ilk NEAR_COUNT taş P'ye yakın sırada, kalanlar geniş dış kenardaki sırada; her sıra
 ## kendi içinde ortalanır.
+## Taş eve girince o oyuncunun yamuğu kendi renginin tam tonuna boyanır, çevresine aynı renkte
+## bir ışık halesi yayılır ve ikisi birlikte söner.
 ## Uzunluklar kare boyuna, yerler alanın yarı boyuna oranlanır.
 
 ## Ortadaki karenin yarı boyu (alanın yarı boyuna oranla).
@@ -23,27 +25,54 @@ const LINE_RATIO := 0.05
 const GAP_RATIO := 0.06
 ## Harf görselinin ortadaki kareyi kaplama oranı.
 const LETTER_RATIO := 0.9
+## Hale: yamuğun çevresine yayılma uzaklığı (kare boyuna oranla), üst üste binen katman sayısı
+## ve tam parlamada en içteki katmanların toplam saydamsızlığı.
+const HALO_SPREAD := 0.9
+const HALO_LAYERS := 8
+const HALO_ALPHA := 0.7
 
 
 ## Dört yamuğu ve ortadaki P harfini çizer. sides her oyuncunun yamuğunun dışa bakan birim
-## yönü, colors aynı sırayla renkleridir.
+## yönü, colors aynı sırayla renkleri, glows parlaklıklarıdır (0 normal, 1 dolgu tam renkte).
 static func draw(
 	canvas: Control,
 	area: Rect2,
 	sides: Array[Vector2],
 	colors: Array[Color],
+	glows: Array[float],
 	skin: BoardSkin,
 	cell: float
 ) -> void:
 	for index: int in range(sides.size()):
 		var shape := _trapezoid(area, sides[index])
-		var points: PackedVector2Array = (
-			Geometry2D.offset_polygon(shape, -cell * GAP_RATIO / 2.0)[0]
-		)
+		var points := _shrunk(shape, cell)
 		var fill := skin.background_color.lerp(colors[index], FILL_ALPHA)
+		fill = fill.lerp(colors[index], glows[index])
 		SmoothDraw.outlined(canvas, points, fill, colors[index], cell * LINE_RATIO)
 	if skin.home_letter_texture != null:
 		_draw_letter(canvas, area, skin.home_letter_texture)
+
+
+## side yamuğunun çevresine color renginde, dışa doğru incelen ışık halesi çizer; glow 0 ise
+## çizmez. Hale komşu karelerin üstüne taşsın diye tahta karelerinden sonra çizilir.
+static func draw_halo(
+	canvas: Control, area: Rect2, side: Vector2, color: Color, glow: float, cell: float
+) -> void:
+	if glow <= 0.0:
+		return
+	var points := _shrunk(_trapezoid(area, side), cell)
+	var layer := Color(color, glow * HALO_ALPHA / HALO_LAYERS)
+	for step: int in range(HALO_LAYERS, 0, -1):
+		var spread := cell * HALO_SPREAD * step / HALO_LAYERS
+		for ring: PackedVector2Array in Geometry2D.offset_polygon(
+			points, spread, Geometry2D.JOIN_ROUND
+		):
+			canvas.draw_colored_polygon(ring, layer)
+
+
+## Komşu yamuklar arasında boşluk kalsın diye köşeleri içe çeker.
+static func _shrunk(shape: PackedVector2Array, cell: float) -> PackedVector2Array:
+	return Geometry2D.offset_polygon(shape, -cell * GAP_RATIO / 2.0)[0]
 
 
 ## Harf görselini, oranını bozmadan ortadaki karenin ortasına sığdırır.

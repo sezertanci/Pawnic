@@ -26,6 +26,9 @@ Fransızca, İtalyanca, Portekizce ve Endonezce.
   düğmelerde): `python tools/shift_button_hue.py assets/images/button_orange_plain.png
   assets/images/button_red_plain.png -28` (Pillow gerekir)
 - Ses efektleri (`assets/sounds/`): `python tools/make_sounds.py assets/sounds` (yalnızca Python standart kütüphanesi)
+- Müzik (`assets/music/`): `python tools/make_music.py assets/music` (numpy gerekir). Menü
+  döngüsü (`menu.wav`) ve oyun müziği (`game.wav`) notalardan hesaplanır; tek kanal, 16 kHz
+  yazılır, Godot QOA ile sıkıştırıp döngü olarak içe aktarır.
 - İkonlar (`assets/icon/`): `python tools/make_icon.py assets/images assets/icon` (Pillow gerekir).
   Önceki yazılı ikon `assets/icon/text/` altında saklanır:
   `python tools/make_icon.py assets/images assets/icon/text --design text`.
@@ -127,4 +130,5 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
 | `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
 | `PlayerColor` | Tek oyunculu oyunda oyuncunun seçtiği rengi saklar (varsayılan yeşil); botlar kalan renkleri alır |
-| `Sound` | Ses efektlerini çalar; her düğmeye dokunma sesini kendiliğinden bağlar, sesin açık/kapalı tercihini saklar |
+| `Sound` | Ses efektlerini `Effects` ses yolunda çalar; her düğmeye dokunma sesini kendiliğinden bağlar, efektlerin açık/kapalı tercihini saklar |
+| `Music` | Arka plan müziğini `Music` ses yolunda çalar (menüde menü döngüsü, oyunda oyun müziği, geçişte kısıp açar); müziğin açık/kapalı tercihini efektlerden ayrı saklar. Ses düzeyi `tuning.json`'daki `audio` bölümündedir |

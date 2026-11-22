@@ -64,3 +64,10 @@ func test_trail_shrinks_after_slide_ends() -> void:
 		_animation.trail_points(0, 1.5, 8.0, 1.0), [Vector2(10, 0), Vector2(6, 0)] as Array[Vector2]
 	)
 	assert_true(_animation.trail_points(0, 2.0, 8.0, 1.0).is_empty())
+
+
+func test_flashes_between_returns_seats_in_window() -> void:
+	_animation.add_flash(HOP, 2)
+
+	assert_eq(_animation.flashes_between(0.0, HOP), [2] as Array[int])
+	assert_true(_animation.flashes_between(HOP, HOP * 2.0).is_empty())

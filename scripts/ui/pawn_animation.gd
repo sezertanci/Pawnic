@@ -33,6 +33,12 @@ class Cue:
 	var sound: StringName
 
 
+## Belli bir anda koltuğun bitiş yamuğunun parlaması (taş eve girdi).
+class Flash:
+	var time: float
+	var seat: int
+
+
 ## Taş -> o taşın hareketleri (Array[Segment]), zaman sırasıyla.
 var _segments: Dictionary[int, Array] = {}
 var _resizes: Dictionary[int, Resize] = {}
@@ -40,6 +46,7 @@ var _resizes: Dictionary[int, Resize] = {}
 var _trails: Dictionary[int, Vector2] = {}
 var _duration := 0.0
 var _cues: Array[Cue] = []
+var _flashes: Array[Flash] = []
 
 
 func add_segment(
@@ -125,6 +132,23 @@ func cues_between(from: float, to: float) -> Array[StringName]:
 	for cue: Cue in _cues:
 		if cue.time > from and cue.time <= to:
 			result.append(cue.sound)
+	return result
+
+
+## time anında seat koltuğunun bitiş yamuğunun parlamasını ister.
+func add_flash(time: float, seat: int) -> void:
+	var flash := Flash.new()
+	flash.time = time
+	flash.seat = seat
+	_flashes.append(flash)
+
+
+## from'dan sonra, to'ya kadar (to dahil) parlayacak koltuklar.
+func flashes_between(from: float, to: float) -> Array[int]:
+	var result: Array[int] = []
+	for flash: Flash in _flashes:
+		if flash.time > from and flash.time <= to:
+			result.append(flash.seat)
 	return result
 
 

@@ -51,12 +51,13 @@ func _show_home() -> void:
 	_show_only(_home)
 
 
-## Verilen ekranı gösterir, ötekileri gizler.
+## Verilen ekranı gösterir, ötekileri gizler ve ekrana uyan müziğe geçer.
 func _show_only(screen: Control) -> void:
 	for other: Control in [_home, _setup, _game_screen, _demo, _host_lobby, _join]:
 		other.visible = other == screen
 	_backdrop.visible = screen != _game_screen and screen != _demo
 	_sides.visible = _backdrop.visible
+	Music.play(Music.Track.GAME if screen == _game_screen else Music.Track.MENU)
 
 
 func _on_banner_height_changed(height: float) -> void:

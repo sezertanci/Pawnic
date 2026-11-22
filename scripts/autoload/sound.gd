@@ -1,7 +1,7 @@
 extends Node
 ## Ses efektlerini çalar. Ağaca eklenen her düğmeye dokunma sesi kendiliğinden bağlanır.
-## Sesin açık ya da kapalı olduğu oyuncu tercihi olarak saklanır;
-## kapalıyken ana ses yolu susturulur.
+## Efektlerin açık ya da kapalı olduğu oyuncu tercihi olarak saklanır; kapalıyken yalnızca efekt
+## ses yolu susturulur, müzik (Music) bundan etkilenmez.
 ## Ses dosyaları tools/make_sounds.py ile üretilir.
 
 const TAP := &"tap"
@@ -15,21 +15,30 @@ const TICK := &"tick"
 const SPIN := &"spin"
 ## Başlangıç kurası başlayanda durunca çan.
 const STARTER := &"starter"
+## Taş evine (tahtanın ortasındaki yamuğa) girince sihirli parıltı (yükselen arp ve ışıltılar).
+const HOME := &"home"
+## Taş kırılıp başlangıca dönerken "ops" sesi.
+const CAPTURE := &"capture"
+## Çalarken arka plan müziğini kısan kutlama sesleri (müziğin altında kalmasınlar).
+const DUCKING: Array[StringName] = [HOME]
 const SOUNDS_DIR := "res://assets/sounds/"
 const SOUND_EXTENSION := ".wav"
 ## Aynı sesin üst üste binebilecek en çok kopyası (art arda zıplamalar için).
 const POLYPHONY := 4
 const PREFERENCE_KEY := "sound"
-const MASTER_BUS := &"Master"
+const BUS := &"Effects"
 
 var _players: Dictionary[StringName, AudioStreamPlayer] = {}
 
 
 func _ready() -> void:
-	for sound: StringName in [TAP, STEP, TELEPORT, DRAW, SHUFFLE, TICK, SPIN, STARTER]:
+	for sound: StringName in [
+		TAP, STEP, TELEPORT, DRAW, SHUFFLE, TICK, SPIN, STARTER, HOME, CAPTURE
+	]:
 		var player := AudioStreamPlayer.new()
 		player.stream = load(SOUNDS_DIR + sound + SOUND_EXTENSION)
 		player.max_polyphony = POLYPHONY
+		player.bus = BUS
 		add_child(player)
 		_players[sound] = player
 	get_tree().node_added.connect(_on_node_added)
@@ -37,7 +46,10 @@ func _ready() -> void:
 
 
 func play(sound: StringName) -> void:
-	_players[sound].play()
+	var player := _players[sound]
+	player.play()
+	if sound in DUCKING and is_enabled():
+		Music.duck(player.stream.get_length())
 
 
 func is_enabled() -> bool:
@@ -51,7 +63,7 @@ func set_enabled(enabled: bool) -> void:
 
 
 func _apply(enabled: bool) -> void:
-	AudioServer.set_bus_mute(AudioServer.get_bus_index(MASTER_BUS), not enabled)
+	AudioServer.set_bus_mute(AudioServer.get_bus_index(BUS), not enabled)
 
 
 func _on_node_added(node: Node) -> void:

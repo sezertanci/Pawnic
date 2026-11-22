@@ -44,6 +44,7 @@
 		"capture_height": 1.5,
 		"settle_sec": 0.2,
 		"home_shrink_sec": 0.3,
+		"home_glow_sec": 1.5,
 		"starter_spin_rounds": 3,
 		"starter_spin_first_step_sec": 0.08,
 		"starter_spin_last_step_sec": 0.5,
@@ -82,6 +83,14 @@
 		"shared_ad_wait_sec": 30,
 		"reward_offer_count": 3,
 		"reward_wait_sec": 120
+	},
+	"audio": {
+		"music_volume_db": -15.0,
+		"menu_music_volume_db": -20.0,
+		"music_fade_sec": 1.5,
+		"music_duck_db": -12.0,
+		"music_duck_sec": 0.15,
+		"music_unduck_sec": 0.6
 	},
 	"network": {
 		"port": 24680,

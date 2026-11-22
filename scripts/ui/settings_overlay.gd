@@ -1,14 +1,15 @@
 class_name SettingsOverlay
 extends Button
-## Ayarlar katmanı: ses açma/kapama anahtarı, oyun hızı ve dil seçimi. Dışına ya da Tamam'a
-## dokununca kapanır. Hız düğmeleri GameSpeed.Level, dil düğmeleri Localization.SUPPORTED
-## sırasıyla kurulur; her dil kendi adıyla yazılır. Reklamları Kaldır düğmesi ürün alınınca
-## gizlenir. Gizlilik Seçenekleri düğmesi yalnızca reklam rızasının gerektiği bölgelerde (ör. AB)
-## görünür.
+## Ayarlar katmanı: ses efekti ve müzik açma/kapama anahtarları, oyun hızı ve dil seçimi.
+## Dışına ya da Tamam'a dokununca kapanır. Hız düğmeleri GameSpeed.Level, dil düğmeleri
+## Localization.SUPPORTED sırasıyla kurulur; her dil kendi adıyla yazılır. Reklamları Kaldır
+## düğmesi ürün alınınca gizlenir. Gizlilik Seçenekleri düğmesi yalnızca reklam rızasının
+## gerektiği bölgelerde (ör. AB) görünür.
 
 const LANGUAGE_KEY_PREFIX := "LANG_"
 
 @onready var _sound_switch: ToggleSwitch = %SoundSwitch
+@onready var _music_switch: ToggleSwitch = %MusicSwitch
 @onready var _speeds: HBoxContainer = %Speeds
 @onready var _languages: GridContainer = %Languages
 @onready var _privacy_button: Button = %PrivacyButton
@@ -21,6 +22,8 @@ func _ready() -> void:
 	visibility_changed.connect(_on_visibility_changed)
 	_sound_switch.set_pressed_no_signal(Sound.is_enabled())
 	_sound_switch.toggled.connect(Sound.set_enabled)
+	_music_switch.set_pressed_no_signal(Music.is_enabled())
+	_music_switch.toggled.connect(Music.set_enabled)
 	_build_speed_buttons()
 	_build_language_buttons()
 	hide()

@@ -16,6 +16,7 @@ const KEY_EFFECTS := "effects"
 const KEY_UI := "ui"
 const KEY_ADS := "ads"
 const KEY_NETWORK := "network"
+const KEY_AUDIO := "audio"
 ## Tahta bölümünde tahta dosyasının yolunun anahtarı.
 const KEY_LAYOUT := "layout"
 const REQUIRED_KEYS: Array[String] = [
@@ -29,6 +30,7 @@ const REQUIRED_KEYS: Array[String] = [
 	KEY_UI,
 	KEY_ADS,
 	KEY_NETWORK,
+	KEY_AUDIO,
 ]
 
 ## Ayar ve tahta dosyalarının içeriğinden alınan özet; ağ oyununda iki cihazın aynı kurallarla
@@ -74,6 +76,8 @@ var capture_height := 0.0
 var settle_time := 0.0
 ## Eve giren taşın bitiş karesindeki küçük cama girerken küçülme süresi.
 var home_shrink_time := 0.0
+## Taş eve girince o oyuncunun bitiş yamuğunun parlayıp sönme süresi.
+var home_glow_time := 0.0
 ## Başlangıç kurası: adım sayısının oyuncu sayısına oranı (kaç tur), ilk ve son adımın süresi
 ## (ok giderek yavaşlar) ve başlayanda durduktan sonra bekleme süresi.
 var starter_spin_rounds := 0
@@ -175,6 +179,17 @@ var host_lost_wait_time := 0.0
 var turn_time_limit := 0.0
 ## Sıra süresinin son bu kadar saniyesinde süre çubuğu uyarı rengine döner ve tik sesi çalar.
 var turn_warning_time := 0.0
+## Oyun müziğinin ses düzeyi (dB); efektlerin altında, geri planda kalır.
+var music_volume_db := 0.0
+## Menü müziğinin ses düzeyi (dB); oyun müziğinden biraz kısık.
+var menu_music_volume_db := 0.0
+## Menü ve oyun müziği arasındaki geçişte birinin kısılıp ötekinin açılma süresi (saniye).
+var music_fade_time := 0.0
+## Kutlama sesi (başarı sesi) çalarken müziğin kısılma miktarı (dB), kısılma ve
+## ses bitince yeniden açılma süreleri (saniye).
+var music_duck_db := 0.0
+var music_duck_time := 0.0
+var music_unduck_time := 0.0
 
 
 ## Ayarları dosyadan okur; dosya ya da içindeki tahta dosyası bozuksa null döner.
@@ -194,6 +209,7 @@ static func load_from(path: String) -> GameSettings:
 	settings._read_ui(root[KEY_UI])
 	settings._read_ads(root[KEY_ADS])
 	settings._read_network(root[KEY_NETWORK])
+	settings._read_audio(root[KEY_AUDIO])
 	for entry: Dictionary in root[KEY_DECK]:
 		settings.deck.append(entry)
 	var board_path: String = root[KEY_BOARD][KEY_LAYOUT]
@@ -251,6 +267,7 @@ func _read_animation(animation: Dictionary) -> void:
 	capture_height = float(animation["capture_height"])
 	settle_time = float(animation["settle_sec"])
 	home_shrink_time = float(animation["home_shrink_sec"])
+	home_glow_time = float(animation["home_glow_sec"])
 	starter_spin_rounds = int(animation["starter_spin_rounds"])
 	starter_spin_first_step = float(animation["starter_spin_first_step_sec"])
 	starter_spin_last_step = float(animation["starter_spin_last_step_sec"])
@@ -320,3 +337,12 @@ func _read_network(network: Dictionary) -> void:
 	host_lost_wait_time = float(network["host_lost_sec"])
 	turn_time_limit = float(network["turn_time_sec"])
 	turn_warning_time = float(network["turn_warning_sec"])
+
+
+func _read_audio(audio: Dictionary) -> void:
+	music_volume_db = float(audio["music_volume_db"])
+	menu_music_volume_db = float(audio["menu_music_volume_db"])
+	music_fade_time = float(audio["music_fade_sec"])
+	music_duck_db = float(audio["music_duck_db"])
+	music_duck_time = float(audio["music_duck_sec"])
+	music_unduck_time = float(audio["music_unduck_sec"])

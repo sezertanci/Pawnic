@@ -25,8 +25,17 @@ func _init(
 func build(move: Move, path: Array[int], before: Array[Vector2]) -> PawnAnimation:
 	var animation := PawnAnimation.new()
 	var landed := _add_mover(animation, move, path, before)
-	_add_followers(animation, before, landed)
+	_add_followers(animation, before, landed, _board.owners[move.pawn])
+	_add_home_arrival(animation, move.pawn, landed)
 	return animation
+
+
+## Taş eve girdiyse indiği anda başarı sesi çalar ve sahibinin bitiş yamuğu parlar.
+func _add_home_arrival(animation: PawnAnimation, pawn: int, landed: float) -> void:
+	if not _is_home(pawn):
+		return
+	animation.add_cue(landed, Sound.HOME)
+	animation.add_flash(landed, _board.owners[pawn])
 
 
 ## Oynanan taşı kare kare zıplatır; her inişte adım sesi çalar, hız karesinde kısa durur,
@@ -57,10 +66,14 @@ func _add_mover(
 		if path[index] == move.destination and not last:
 			time += settings.boost_pause
 		from = to
-	if _board.positions[pawn] == _board.layout.homes[_board.owners[pawn]]:
+	if _is_home(pawn):
 		var large := 1.0 / settings.home_pawn_scale
 		animation.add_resize(pawn, time - settings.hop_time, settings.home_shrink_time, large)
 	return time
+
+
+func _is_home(pawn: int) -> bool:
+	return _board.positions[pawn] == _board.layout.homes[_board.owners[pawn]]
 
 
 ## Taş zıplamadan, yol üstündeki karelerden geçerek kayar ve arkasında ışık kuyruğu bırakır.
@@ -79,13 +92,19 @@ func _add_slide(animation: PawnAnimation, pawn: int, path: Array[int], start: Ve
 	return slide_time
 
 
-## Taş indikten sonra çarpılan taşlar başlangıca uçar, aynı karedeki taşlar yeniden dizilir.
-func _add_followers(animation: PawnAnimation, before: Array[Vector2], start: float) -> void:
+## Taş indikten sonra çarpılan taşlar başlangıca uçar ("ops" sesi bir kez çalar), aynı
+## karedeki ve başlangıçtaki taşlar yeniden dizilir. Kırılan taş hep rakibindir (seat oynayan
+## koltuk); oynayanın başlangıcındaki taşların kayması (taş çıkarınca) kırılma sayılmaz.
+func _add_followers(
+	animation: PawnAnimation, before: Array[Vector2], start: float, seat: int
+) -> void:
 	var settings := _board.settings
+	var captured := false
 	for pawn: int in range(_after.size()):
 		if animation.has(pawn) or before[pawn].is_equal_approx(_after[pawn]):
 			continue
 		if _board.positions[pawn] == BoardState.BASE:
+			captured = captured or _board.owners[pawn] != seat
 			var height := settings.capture_height * _cell_size
 			animation.add_segment(
 				pawn, before[pawn], _after[pawn], start, settings.capture_time, height
@@ -94,6 +113,8 @@ func _add_followers(animation: PawnAnimation, before: Array[Vector2], start: flo
 			animation.add_segment(
 				pawn, before[pawn], _after[pawn], start, settings.settle_time, 0.0
 			)
+	if captured:
+		animation.add_cue(start, Sound.CAPTURE)
 
 
 func _center_of(square: int) -> Vector2:
