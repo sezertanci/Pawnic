@@ -46,6 +46,13 @@ RAHAT OYNAYIN
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.8.0)
+
+- Yeni: "Görünüm" ekranı. Ahşap ve Neon tahta temaları eklendi; bir reklam izleyerek kalıcı olarak açın.
+- Yeni: Arka plan müziği. Ayarlardan açıp kapatabilirsiniz.
+- Taş eve girince ve rakip taşı kırınca yeni sesler, eve girişte parlama efekti.
+- Hata düzeltmeleri.
+
 ## Sürüm notu (1.7.0)
 
 - Yeni: "Kart Seç". Sıranız gelince kısa bir reklam izleyin, desteden önerilen 3 karttan birini seçip elinizdeki bir kartla değiştirin.

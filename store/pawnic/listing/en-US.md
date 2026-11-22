@@ -46,6 +46,13 @@ PLAY AT YOUR PACE
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.8.0)
+
+- New: "Appearance" screen. Wood and Neon board themes added; watch an ad to unlock them for good.
+- New: Background music. Turn it on or off in settings.
+- New sounds when a pawn gets home or captures an opponent, plus a glow effect on reaching home.
+- Bug fixes.
+
 ## Sürüm notu (1.7.0)
 
 - New: "Pick Card". On your turn, watch a short ad, pick one of 3 suggested cards from the deck and swap it with a card in your hand.

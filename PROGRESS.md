@@ -927,3 +927,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-22 (32):** Tema kilidi inceleme düzeltmeleri: reklam sonucu beklenirken yeni kilit
   açma isteği yok sayılır ve yalnızca `unlock_theme` yerinin sonucu kabul edilir; olmayan tema
   kilitli sayılmaz; görünüm ekranı `Skins.changed` ile yenilenir; testler gerçek kayda yazmaz.
+- **2026-11-22 (33):** `feature/wood-theme` main'e birleştirildi. Sürüm 9 (1.8.0): üç ön ayarda sürüm
+  yükseltildi; mağaza metinlerine (tr-TR, en-US) 1.8.0 sürüm notu eklendi (görünüm ekranı, ahşap ve
+  neon temalar, arka plan müziği, yeni sesler ve eve giriş parlaması).
