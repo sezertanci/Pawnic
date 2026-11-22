@@ -14,6 +14,8 @@ var _group := ButtonGroup.new()
 var _cards: Dictionary[String, SkinCard] = {}
 ## Onay bekleyen kilitli temanın kimliği; bilgi iletisinde boştur.
 var _pending_id := NO_THEME
+## Kilit açma reklamının sonucu beklenirken yeni kilit açma isteği yok sayılır.
+var _watching := false
 
 @onready var _list: VBoxContainer = %Cards
 @onready var _confirm: ConfirmOverlay = %ConfirmOverlay
@@ -22,6 +24,7 @@ var _pending_id := NO_THEME
 func _ready() -> void:
 	(%BackButton as Button).pressed.connect(back_requested.emit)
 	_confirm.confirmed.connect(_watch_unlock_ad)
+	Skins.changed.connect(_refresh)
 	for id: String in Skins.ids():
 		_add_card(id)
 	_refresh()
@@ -42,6 +45,8 @@ func _on_card_pressed(id: String) -> void:
 		Skins.select(id)
 		return
 	_refresh()
+	if _watching:
+		return
 	if not Ads.is_rewarded_ready():
 		_pending_id = NO_THEME
 		_confirm.ask("THEME_AD_NOT_READY", "OK")
@@ -54,10 +59,14 @@ func _on_card_pressed(id: String) -> void:
 func _watch_unlock_ad() -> void:
 	var id := _pending_id
 	_pending_id = NO_THEME
-	if id == NO_THEME:
+	if id == NO_THEME or _watching:
 		return
+	_watching = true
 	Ads.show_rewarded(UNLOCK_PLACEMENT)
 	var result: Array = await Ads.rewarded_completed
+	while result[0] != UNLOCK_PLACEMENT:
+		result = await Ads.rewarded_completed
+	_watching = false
 	var granted: bool = result[1]
 	if granted:
 		Skins.unlock(id)

@@ -35,8 +35,10 @@ func ids() -> PackedStringArray:
 	return PackedStringArray(found)
 
 
-## Tema kilitliyse ve henüz açılmadıysa true döner.
+## Tema kilitliyse ve henüz açılmadıysa true döner; olmayan tema kilitli sayılmaz.
 func is_locked(id: String) -> bool:
+	if not ResourceLoader.exists(_path(id)):
+		return false
 	return find(id).needs_unlock and not _unlocked().has(id)
 
 

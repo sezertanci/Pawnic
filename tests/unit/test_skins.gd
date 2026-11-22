@@ -6,6 +6,7 @@ const TEST_PATH := "user://test_skins_save.json"
 const LOCKED_ID := "wood"
 const LOCKED_IDS: Array[String] = ["neon", "wood"]
 const NOT_A_LIST := "wood"
+const MISSING_ID := "no_such_theme"
 
 var _saved_path: String
 var _saved_id: String
@@ -18,11 +19,13 @@ func before_each() -> void:
 	SaveStore.reload()
 
 
+## Kaydedilen tema, gerçek kayda yazılmasın diye yol geri alınmadan önce test kaydında seçilir.
 func after_each() -> void:
+	Skins.unlock(_saved_id)
+	Skins.select(_saved_id)
 	DirAccess.remove_absolute(TEST_PATH)
 	SaveStore.path = _saved_path
 	SaveStore.reload()
-	Skins.select(_saved_id)
 
 
 func test_ids_lists_default_first_then_others_by_name() -> void:
@@ -65,6 +68,10 @@ func test_select_unlocked_theme_applies_it() -> void:
 	Skins.select(LOCKED_ID)
 
 	assert_eq(Skins.current_id, LOCKED_ID)
+
+
+func test_missing_theme_is_not_locked() -> void:
+	assert_false(Skins.is_locked(MISSING_ID))
 
 
 func test_corrupt_unlock_record_keeps_theme_locked() -> void:

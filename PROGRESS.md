@@ -924,3 +924,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   kaldır" alanlarda da kilit durur (ödüllü reklam kaldırılmaz). Kayıtta kilitli bir tema seçili
   kalmışsa açılışta klasiğe dönülür. `ConfirmOverlay.ask` risksiz onayda onayı yeşil, iptali
   kırmızı yapar.
+- **2026-11-22 (32):** Tema kilidi inceleme düzeltmeleri: reklam sonucu beklenirken yeni kilit
+  açma isteği yok sayılır ve yalnızca `unlock_theme` yerinin sonucu kabul edilir; olmayan tema
+  kilitli sayılmaz; görünüm ekranı `Skins.changed` ile yenilenir; testler gerçek kayda yazmaz.
