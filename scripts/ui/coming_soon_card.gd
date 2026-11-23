@@ -2,9 +2,9 @@ class_name ComingSoonCard
 extends Button
 ## Listelerin sonundaki "Yakında" kartı: yeni tahtaların ya da görünümlerin geleceğini haber
 ## verir. Mor zeminde altın parıltı simgesi, "Yakında" başlığı ve listeye göre bir alt yazı
-## vardır. Tahta listesinde tahta kartı gibi yan yana, görünüm listesinde alt alta ve ortalanmış
-## dizilir. Seçilemez; dokununca kısa bir sallanma yapar. Renkler arayüz temasındaki
-## ComingSoonCard türlerinden gelir.
+## vardır. Tahta listesinde simgeyle başlık üstte yan yana, alt yazı altta durur; görünüm
+## listesinde hepsi alt alta ve ortalanmış dizilir. Seçilemez; dokununca kısa bir sallanma
+## yapar. Renkler arayüz temasındaki ComingSoonCard türlerinden gelir.
 
 const BOARD_TYPE := &"ComingSoonCard"
 const SKIN_TYPE := &"ComingSoonSkinCard"
@@ -21,6 +21,8 @@ const TITLE_KEY := "COMING_SOON"
 const BOARD_NOTE_KEY := "COMING_SOON_BOARDS"
 const SKIN_NOTE_KEY := "COMING_SOON_THEMES"
 const SPARKLE := preload("res://assets/images/icon_sparkle.svg")
+## Tahta listesindeki kartın simge kutusunun boyu.
+const BOARD_ICON_SIZE := Vector2(64.0, 64.0)
 ## Görünüm listesindeki kartın simge kutusunun boyu; kartın yüksekliğini listedeki öteki kartlar
 ## belirler.
 const SKIN_ICON_SIZE := Vector2(240.0, 240.0)
@@ -35,7 +37,7 @@ const SHAKE_DEGREES := 3.0
 const SHAKE_STEP := 0.06
 const SHAKE_SWINGS := 4
 
-var _box: BoxContainer
+var _box: VBoxContainer
 var _sparkle: TextureRect
 ## Parmak karta değdiğinde kartın ekrandaki yeri; bırakınca farklıysa dokunuş kaydırmadır.
 var _down_at := Vector2.ZERO
@@ -51,12 +53,7 @@ func _init(stacked: bool) -> void:
 	size_flags_horizontal = SIZE_EXPAND_FILL
 	if not stacked:
 		custom_minimum_size.y = BoardCard.MIN_HEIGHT
-	_box = VBoxContainer.new() if stacked else HBoxContainer.new()
-	_box.mouse_filter = MOUSE_FILTER_IGNORE
-	_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	_box.add_theme_constant_override(SEPARATION, SKIN_GAP if stacked else GAP)
-	_box.add_child(_icon(stacked))
-	_box.add_child(_texts(stacked))
+	_box = _stacked_content() if stacked else _board_content()
 	add_child(_box)
 	button_down.connect(_on_down)
 	pressed.connect(_on_pressed)
@@ -69,34 +66,55 @@ func _notification(what: int) -> void:
 		_sparkle.modulate = get_theme_color(SPARKLE_COLOR)
 
 
-## Ortasında parıltı olan yuvarlak köşeli kutu; tahta listesinde tahta görseli boyundadır.
-func _icon(stacked: bool) -> PanelContainer:
+## Görünüm listesinde: parıltı kutusu üstte, başlık ve alt yazı altında, hepsi ortalanmış.
+func _stacked_content() -> VBoxContainer:
+	var texts := _column()
+	texts.add_child(_label(TITLE_KEY, SKIN_TITLE_TYPE, HORIZONTAL_ALIGNMENT_CENTER))
+	texts.add_child(_label(SKIN_NOTE_KEY, SKIN_NOTE_TYPE, HORIZONTAL_ALIGNMENT_CENTER))
+	var box := _column()
+	box.add_theme_constant_override(SEPARATION, SKIN_GAP)
+	box.add_child(_icon(SKIN_ICON_TYPE, SKIN_ICON_SIZE))
+	box.add_child(texts)
+	return box
+
+
+## Tahta listesinde: üstte parıltı kutusu ile başlık yan yana, altta kartın genişliğince alt yazı.
+func _board_content() -> VBoxContainer:
+	var top := HBoxContainer.new()
+	top.mouse_filter = MOUSE_FILTER_IGNORE
+	top.add_theme_constant_override(SEPARATION, GAP)
+	top.add_child(_icon(BOARD_ICON_TYPE, BOARD_ICON_SIZE))
+	var title := _label(TITLE_KEY, TITLE_TYPE, HORIZONTAL_ALIGNMENT_LEFT)
+	title.size_flags_horizontal = SIZE_EXPAND_FILL
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	top.add_child(title)
+	var box := _column()
+	box.add_theme_constant_override(SEPARATION, GAP)
+	box.add_child(top)
+	box.add_child(_label(BOARD_NOTE_KEY, NOTE_TYPE, HORIZONTAL_ALIGNMENT_LEFT))
+	return box
+
+
+func _column() -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.mouse_filter = MOUSE_FILTER_IGNORE
+	return column
+
+
+## Ortasında parıltı olan yuvarlak köşeli kutu.
+func _icon(type: StringName, icon_size: Vector2) -> PanelContainer:
 	var holder := PanelContainer.new()
-	holder.theme_type_variation = SKIN_ICON_TYPE if stacked else BOARD_ICON_TYPE
-	holder.custom_minimum_size = SKIN_ICON_SIZE if stacked else BoardCard.THUMB_SIZE
+	holder.theme_type_variation = type
+	holder.custom_minimum_size = icon_size
 	holder.size_flags_horizontal = SIZE_SHRINK_CENTER
 	holder.size_flags_vertical = SIZE_SHRINK_CENTER
 	holder.mouse_filter = MOUSE_FILTER_IGNORE
-	_sparkle = Nodes.picture(SPARKLE, holder.custom_minimum_size * SPARKLE_SCALE)
+	_sparkle = Nodes.picture(SPARKLE, icon_size * SPARKLE_SCALE)
 	_sparkle.size_flags_horizontal = SIZE_SHRINK_CENTER
 	_sparkle.size_flags_vertical = SIZE_SHRINK_CENTER
 	holder.add_child(_sparkle)
 	return holder
-
-
-func _texts(stacked: bool) -> VBoxContainer:
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = SIZE_FILL if stacked else SIZE_EXPAND_FILL
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.mouse_filter = MOUSE_FILTER_IGNORE
-	var align := HORIZONTAL_ALIGNMENT_CENTER if stacked else HORIZONTAL_ALIGNMENT_LEFT
-	if stacked:
-		column.add_child(_label(TITLE_KEY, SKIN_TITLE_TYPE, align))
-		column.add_child(_label(SKIN_NOTE_KEY, SKIN_NOTE_TYPE, align))
-	else:
-		column.add_child(_label(TITLE_KEY, TITLE_TYPE, align))
-		column.add_child(_label(BOARD_NOTE_KEY, NOTE_TYPE, align))
-	return column
 
 
 func _label(key: String, type: StringName, align: HorizontalAlignment) -> Label:

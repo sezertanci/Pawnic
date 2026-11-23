@@ -1030,4 +1030,5 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   listesi yatay kaydırılır (`BoardScroll`); kartlar alanın 1/2,2'si genişliğindedir, böylece
   üçüncü kart kenardan taşar ve listenin kaydığı anlaşılır. Kaydırma sırasında kalkan parmak
   tahta seçmez. Kartların çevresinde (`BoardRoom`) sallanan kartın köşelerine yer bırakılır.
-  Görünüm listesindeki Yakında kartı önündeki görünüm kartıyla aynı boydadır.
+  Görünüm listesindeki Yakında kartı önündeki görünüm kartıyla aynı boydadır. Tahta listesindeki
+  kartta parıltı kutusu ile başlık üstte yan yana, alt yazı altta tam genişliktedir.
