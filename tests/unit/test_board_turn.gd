@@ -1,8 +1,10 @@
 extends GutTest
-## Tahtanın çeyrek turlarla döndürülmesi: istenen koltuğun başlangıç alanı alta gelir, noktalar
-## ve alanlar tahtanın ortası çevresinde saat yönünde döner.
+## Tahtanın çeyrek turlarla döndürülmesi: istenen koltuğun çıkış karesi alta gelir (tepsileri
+## köşedeki tahtada da), noktalar ve alanlar tahtanın ortası çevresinde saat yönünde döner.
 
 const CLASSIC := "res://data/boards/classic.json"
+## Tepsileri köşelerde, çıkış kareleri kenarların ortasında duran tahta.
+const FOUR_LEAF := "res://data/boards/four_leaf.json"
 ## İki koltuklu, dönünce kendisiyle örtüşmeyen test tahtası.
 const BRANCH_BOARD := "res://tests/fixtures/branch_board.json"
 ## Karşılaştırmada yuvarlama adımı (Vector2 tek duyarlıklıdır).
@@ -29,6 +31,20 @@ func test_turns_to_bottom_turns_other_seats_down() -> void:
 		turns.append(BoardTurn.turns_to_bottom(_layout, seat))
 
 	assert_eq(turns, [2, 1, 3])
+
+
+func test_turns_to_bottom_puts_start_below_middle_with_corner_trays() -> void:
+	var layout := BoardLayout.load_from(FOUR_LEAF)
+	var size := layout.grid_size
+	var below: Array[bool] = []
+
+	for seat: int in range(layout.seat_count()):
+		var turns := BoardTurn.turns_to_bottom(layout, seat)
+		var start := layout.cells[layout.starts[seat]] + BoardTurn.CELL_CENTER
+		var away := BoardTurn.point(start, size, turns) - size / 2.0
+		below.append(away.y > absf(away.x))
+
+	assert_eq(below, [true, true, true, true])
 
 
 func test_point_puts_chosen_base_below_middle() -> void:

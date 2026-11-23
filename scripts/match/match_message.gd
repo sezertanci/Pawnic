@@ -48,6 +48,8 @@ enum Type {
 	PAUSED,
 	## Hosttan istemciye: host oyunu moladan çıkardı. İçerik boştur.
 	RESUMED,
+	## Hosttan istemciye: host oyun sırasında hızı değiştirdi; içerik yeni hız seviyesidir.
+	SPEED,
 }
 
 ## El sıkışmanın reddedilme nedeni.
@@ -68,7 +70,7 @@ enum Refusal {
 const NO_REFUSAL := -1
 
 ## Mesaj biçimi değişince artırılır; farklı sürümler birbirine bağlanmaz.
-const PROTOCOL_VERSION := 9
+const PROTOCOL_VERSION := 10
 const KEY_TYPE := "t"
 const KEY_DATA := "d"
 const KEY_PROTOCOL := "protocol"
@@ -181,6 +183,10 @@ static func paused() -> Dictionary:
 
 static func resumed() -> Dictionary:
 	return make(Type.RESUMED, {})
+
+
+static func speed(level: int) -> Dictionary:
+	return make(Type.SPEED, {KEY_SPEED: level})
 
 
 ## İçerikteki yeniden katılma anahtarı; yoksa ya da metin değilse boş.

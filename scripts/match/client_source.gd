@@ -56,6 +56,7 @@ func _init(room: GuestRoom) -> void:
 	_session.intent_rejected.connect(_on_intent_rejected)
 	_session.turn_timer_started.connect(_on_turn_timer_started)
 	_session.pause_changed.connect(_on_pause_changed)
+	_session.speed_changed.connect(speed_changed.emit)
 	_room.lost.connect(_on_lost)
 	_room.connection_changed.connect(_on_connection_changed)
 
@@ -122,6 +123,7 @@ func detach() -> void:
 	_session.intent_rejected.disconnect(_on_intent_rejected)
 	_session.turn_timer_started.disconnect(_on_turn_timer_started)
 	_session.pause_changed.disconnect(_on_pause_changed)
+	_session.speed_changed.disconnect(speed_changed.emit)
 	_room.lost.disconnect(_on_lost)
 	_room.connection_changed.disconnect(_on_connection_changed)
 

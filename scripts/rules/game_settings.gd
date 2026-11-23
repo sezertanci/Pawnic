@@ -49,6 +49,8 @@ var max_players := 0
 var min_pawns := 0
 var max_pawns := 0
 var default_pawns := 0
+## Tek oyunculu modda yeni oyunun bot sayısı.
+var default_bots := 0
 ## Her öğe: {"type": String, "value": int, "count": int}
 var deck: Array[Dictionary] = []
 var bot_delay := 0.0
@@ -259,6 +261,7 @@ func _read_rules(rules: Dictionary) -> void:
 	min_pawns = int(rules["min_pawns"])
 	max_pawns = int(rules["max_pawns"])
 	default_pawns = int(rules["default_pawns"])
+	default_bots = int(rules["default_bots"])
 
 
 func _read_bot(bot: Dictionary) -> void:

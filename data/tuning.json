@@ -25,7 +25,8 @@
 		"max_players": 4,
 		"min_pawns": 2,
 		"max_pawns": 6,
-		"default_pawns": 4
+		"default_pawns": 4,
+		"default_bots": 3
 	},
 	"deck": [
 		{ "type": "forward", "value": 1, "count": 3 },

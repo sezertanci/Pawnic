@@ -1,8 +1,8 @@
 class_name GameMenuButton
 extends Button
 ## Oyun ekranının menü tuşu: ayarlar katmanını açar. Yerel oyun menü açıkken durur (saat, sıra
-## süresi, bot), menü kapanınca sürer. Ağ oyunu durmaz; hız hostun lobide seçtiği olduğu için
-## ağ oyununda hız satırı gösterilmez.
+## süresi, bot), menü kapanınca sürer. Ağ oyunu durmaz; hızı yalnızca host değiştirir (yeni hız
+## herkese gider), katılan oyuncunun menüsünde hız satırı gösterilmez.
 
 @export var overlay: SettingsOverlay
 
@@ -22,7 +22,7 @@ func _ready() -> void:
 
 
 func _open() -> void:
-	overlay.show_speed(not source.is_networked())
+	overlay.show_speed(not source.is_networked() or source.is_host())
 	overlay.show()
 
 

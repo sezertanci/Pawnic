@@ -3,7 +3,9 @@ extends Control
 ## Yeni oyun ekranı: oyun modu, oyuncu ve taş sayısı seçimi; tek oyunculu modda oyuncunun rengi
 ## ve bot zorluğu. Ağ modunda seçenekler yerine oyun kurma ve katılma düğmeleri görünür; ağ
 ## oyununun ayarları lobide seçilir. Tahta seçimi her modda görünür; ağ modunda kurulan oyunun
-## tahtasıdır. Kilitli tahta ödüllü reklamla açılır.
+## tahtasıdır. Kilitli tahta ödüllü reklamla açılır. Tahta kartları yatay kaydırılır; sonda
+## "Yakında" kartı durur. Kartların üstünde, altında ve sağında (`BoardRoom`) Yakında kartının
+## sallanırken taşan köşelerine yer bırakılır; yoksa kaydırma alanı onları keser.
 
 signal start_requested(bot_flags: Array[bool], pawns: int, bot_level: Bot.Level)
 signal back_requested
@@ -24,11 +26,17 @@ const COUNT_KEYS := {Mode.SINGLE: "SET_BOTS", Mode.MULTI: "SET_PLAYERS"}
 const HUMAN_SEATS := 1
 const UNLOCK_PLACEMENT := "unlock_board"
 const UNLOCK_ASK_KEY := "BOARD_UNLOCK_ASK"
+## Tahta listesinde aynı anda görünen kart sayısı; tam sayı olmadığından sondaki kart kenardan
+## taşar ve listenin kaydığı anlaşılır.
+const BOARD_CARDS_IN_VIEW := 2.2
 
 var _mode := Mode.SINGLE
-var _player_count := 0
+## Her modun seçili oyuncu sayısı (insan ve bot birlikte); modlar birbirini etkilemez.
+var _player_counts: Dictionary[Mode, int] = {}
 var _board_cards: Dictionary[String, BoardCard] = {}
 var _unlock: RewardedUnlock
+## Parmak tahta kartına değdiğindeki kaydırma konumu; bırakınca farklıysa dokunuş kaydırmadır.
+var _board_scroll_at_down := 0
 
 @onready var _mode_hint: Label = %ModeHint
 @onready var _game_options: Control = %GameOptions
@@ -41,11 +49,14 @@ var _unlock: RewardedUnlock
 @onready var _colors: HBoxContainer = %Colors
 @onready var _levels: HBoxContainer = %Levels
 @onready var _board_list: HBoxContainer = %BoardCards
+@onready var _board_scroll: ScrollContainer = %BoardScroll
 
 
 func _ready() -> void:
 	var settings := Tuning.settings
-	_player_count = settings.min_players
+	_player_counts = {
+		Mode.SINGLE: settings.default_bots + HUMAN_SEATS, Mode.MULTI: settings.min_players
+	}
 	_pawns.configure("SET_PAWNS", settings.min_pawns, settings.max_pawns, settings.default_pawns)
 	(%BackButton as Button).pressed.connect(back_requested.emit)
 	(%SingleTab as Button).pressed.connect(_set_mode.bind(Mode.SINGLE))
@@ -83,7 +94,7 @@ func _refresh_options() -> void:
 		COUNT_KEYS[_mode],
 		settings.min_players - offset,
 		settings.max_players - offset,
-		_player_count - offset,
+		_player_counts[_mode] - offset,
 		offset
 	)
 
@@ -118,10 +129,19 @@ func _build_board_cards() -> void:
 	var group := ButtonGroup.new()
 	for entry: BoardEntry in Boards.entries():
 		var card := BoardCard.new(entry, group)
+		card.button_down.connect(_on_board_down)
 		card.pressed.connect(_on_board_pressed.bind(entry.id))
 		_board_list.add_child(card)
 		_board_cards[entry.id] = card
+	_board_list.add_child(ComingSoonCard.new(false))
+	_board_scroll.resized.connect(_fit_board_cards)
 	_refresh_boards()
+
+
+func _fit_board_cards() -> void:
+	var width := _board_scroll.size.x / BOARD_CARDS_IN_VIEW
+	for card: Control in _board_list.get_children():
+		card.custom_minimum_size.x = width
 
 
 func _refresh_boards() -> void:
@@ -131,8 +151,16 @@ func _refresh_boards() -> void:
 		card.locked = Boards.is_locked(id)
 
 
+func _on_board_down() -> void:
+	_board_scroll_at_down = _board_scroll.scroll_horizontal
+
+
 ## Açık tahta hemen seçilir. Kilitli tahtada seçim eski karta döner ve reklam önerilir.
+## Dokunuş liste kaydırmasıysa seçim değişmez.
 func _on_board_pressed(id: String) -> void:
+	if _board_scroll.scroll_horizontal != _board_scroll_at_down:
+		_refresh_boards()
+		return
 	var locked := Boards.is_locked(id)
 	if not locked:
 		Boards.select(id)
@@ -160,11 +188,11 @@ func _set_mode(mode: Mode) -> void:
 
 
 func _on_count_changed(value: int) -> void:
-	_player_count = value + _count_offset()
+	_player_counts[_mode] = value + _count_offset()
 
 
 func _on_start_pressed() -> void:
 	var bot_flags: Array[bool] = []
-	for index: int in range(_player_count):
+	for index: int in range(_player_counts[_mode]):
 		bot_flags.append(_mode == Mode.SINGLE and index >= HUMAN_SEATS)
 	start_requested.emit(bot_flags, _pawns.value, Difficulty.current())

@@ -1,7 +1,9 @@
 extends Node
 ## Oyuncunun seçtiği oyun hızı: kart uçuşları ve taş yürüyüşü bu hızla oynatılır. Seçim oyuncu
 ## tercihi olarak saklanır; seviyelerin çarpanları data/tuning.json içindedir. Botun bekleme
-## süreleri hızdan etkilenmez.
+## süreleri hızdan etkilenmez. Seçim değişince changed yayılır; süren oyun yeni hıza hemen geçer.
+
+signal changed
 
 enum Level { SLOW, NORMAL, FAST }
 
@@ -16,6 +18,7 @@ func current() -> Level:
 
 func select(level: Level) -> void:
 	SaveStore.set_preference(PREFERENCE_KEY, level)
+	changed.emit()
 
 
 ## Seçili seviyenin animasyon hız çarpanı.

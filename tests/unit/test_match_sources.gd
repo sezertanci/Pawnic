@@ -3,6 +3,7 @@ extends GutTest
 ## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
 ## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; molada saatin ve sıra süresinin durması;
 ## yerel oyunun menü için molaya alınması;
+## hostun oyun sırasında değiştirdiği hızın istemciye gitmesi;
 ## kaynakların oda kodu; ekranın kopyasına uymayan olayda görünümün yeniden istenmesi. Ağ sahte
 ## taşıyıcıyla
 ## kurulur.
@@ -229,6 +230,25 @@ func test_local_source_pauses_and_resumes_for_menu() -> void:
 
 	assert_true(paused)
 	assert_false(local_source.is_paused())
+
+
+func test_host_speed_change_reaches_client_source() -> void:
+	var old_level := GameSpeed.current()
+	GameSpeed.select(GameSpeed.Level.NORMAL)
+	await _start_match()
+	var host_source := RefereeSource.new(_referee, _host_seat, ROOM_CODE, _host)
+	watch_signals(host_source)
+	watch_signals(_source)
+
+	GameSpeed.select(GameSpeed.Level.FAST)
+	await wait_frames(FRAMES)
+
+	host_source.detach()
+	GameSpeed.select(old_level)
+	assert_signal_emitted(host_source, "speed_changed")
+	assert_signal_emitted(_source, "speed_changed")
+	assert_eq(_host.speed_level, GameSpeed.Level.FAST)
+	assert_eq(_source.speed_scale(), GameSpeed.scale_of(GameSpeed.Level.FAST))
 
 
 func test_client_source_skips_end_ad_soon_after_shared_ad() -> void:

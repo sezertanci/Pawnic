@@ -40,7 +40,8 @@ const NO_AD_BREAK := -1
 ## (MatchMessage.Refusal) ya da MatchMessage.NO_REFUSAL döndürür. Boşsa her uyumlu eş kabul edilir.
 ## Yeniden katılma anahtarıyla gelen eşe uygulanmaz.
 var admission: Callable
-## Görünümle eşlere giden oyun hızı seviyesi (GameSpeed.Level); hostun seçtiği hızdır.
+## Görünümle eşlere giden oyun hızı seviyesi (GameSpeed.Level); hostun seçtiği hızdır. Oyun
+## sırasında set_speed_level() ile değişir.
 var speed_level: int = GameSpeed.Level.NORMAL
 ## Şimdiki anı (ms) veren saat; testte sahte saatle değiştirilir.
 var clock: Callable = Callable(Time, &"get_ticks_msec")
@@ -83,6 +84,15 @@ func _init(referee: MatchReferee, transport: MatchTransport, settings: GameSetti
 	_referee.turn_timer_started.connect(_on_turn_timer_started)
 	_referee.pause_changed.connect(_on_pause_changed)
 	Engine.get_main_loop().process_frame.connect(_on_frame)
+
+
+## Host hızı değiştirdi; yeni hız oturan eşlere hemen gider (kopuk eşe döndüğünde görünümle).
+func set_speed_level(level: int) -> void:
+	if level == speed_level:
+		return
+	speed_level = level
+	for peer_id: int in _seats:
+		_transport.send(peer_id, MatchMessage.speed(level))
 
 
 ## Eşi koltuğa oturtur; eş el sıkışmadan geçmemişse ya da koltuk ya da eş zaten eşlenmişse false.

@@ -1,20 +1,21 @@
 class_name BoardTurn
 extends RefCounted
-## Tahtanın ekranda çeyrek turlarla döndürülmesi: bir koltuğun başlangıç alanı alta gelsin diye
-## hücre koordinatları tahtanın ortası çevresinde saat yönünde döndürülür. Dönüş tahtanın
-## geometrisinden hesaplanır (koltuğun yeri varsayılmaz). Yalnızca konumlar döner; taşlar, sayılar
-## ve tepsiler dik kalır. Kural motoru dönüşü bilmez.
+## Tahtanın ekranda çeyrek turlarla döndürülmesi: bir koltuğun çıkış karesi (ve onunla eve giriş
+## kolu) alta gelsin diye hücre koordinatları tahtanın ortası çevresinde saat yönünde
+## döndürülür. Dönüş tahtanın geometrisinden hesaplanır (koltuğun yeri varsayılmaz). Yalnızca
+## konumlar döner; taşlar, sayılar ve tepsiler dik kalır. Kural motoru dönüşü bilmez.
 
 const QUARTER_TURNS := 4
 ## Hücrenin merkezi (hücre boyuna oranla).
 const CELL_CENTER := Vector2(0.5, 0.5)
 
 
-## Koltuğun başlangıç alanını en alta getiren saat yönündeki çeyrek tur sayısı (0-3). Kare
+## Koltuğun çıkış karesini en alta getiren saat yönündeki çeyrek tur sayısı (0-3). Tepsiye
+## bakılmaz: köşedeki tepsi dönmeden de altta kalabilir, ama koltuğun yolu yanda kalır. Kare
 ## olmayan tahtada en ve boy yer değiştirmesin diye yalnızca yarım turlar (0 ya da 2) denenir.
 static func turns_to_bottom(layout: BoardLayout, seat: int) -> int:
 	var size := layout.grid_size
-	var away := layout.bases[seat] - size / 2.0
+	var away := _start_center(layout, seat) - size / 2.0
 	var best := 0
 	for turns: int in range(1, QUARTER_TURNS):
 		if grid(size, turns) != size:

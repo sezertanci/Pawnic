@@ -20,8 +20,6 @@ signal left
 ## SWAPPING'de iki kart yer değiştiriyor. PLACING'den itibaren düğmenin yerinde kart durur.
 enum RewardStage { NONE, WAITING, OFFERS, PLACING, SWAPPING }
 
-const SECONDS_PER_MINUTE := 60
-const SECONDS_PER_HOUR := 3600
 ## Joker sayı kartlarının eldeki kartlara göre boyu.
 const JOKER_CARD_SCALE := 0.7
 const LEAVE_MATCH_CONFIRM_KEY := "LEAVE_MATCH_CONFIRM"
@@ -142,6 +140,7 @@ func start_source(source: MatchSource, draw_starter := false) -> void:
 	_source.connection_changed.connect(_on_connection_changed)
 	_source.guests_changed.connect(_on_guests_changed)
 	_source.pause_changed.connect(_on_pause_changed)
+	_source.speed_changed.connect(_apply_speed)
 	_open_table(draw_starter)
 
 
@@ -185,6 +184,7 @@ func _release_source() -> void:
 	_source.connection_changed.disconnect(_on_connection_changed)
 	_source.guests_changed.disconnect(_on_guests_changed)
 	_source.pause_changed.disconnect(_on_pause_changed)
+	_source.speed_changed.disconnect(_apply_speed)
 
 
 ## Kaynak değiştiyse ya da oyun bırakıldıysa true.
@@ -206,9 +206,17 @@ func _set_up_table() -> void:
 	_board_view.board = _view.board
 	_board_view.seat_colors = _view.colors
 	_cards.settings = _view.settings
+	_apply_speed()
+	_hand_view.slot_count = _view.settings.hand_size + 1
+
+
+## Kart ve taş animasyonları kaynağın hızıyla (ağ oyununda hostunkiyle) oynar; hız oyun
+## sırasında değişince de çağrılır.
+func _apply_speed() -> void:
+	if _source == null:
+		return
 	_cards.speed_scale = _source.speed_scale()
 	_board_view.speed_scale = _source.speed_scale()
-	_hand_view.slot_count = _view.settings.hand_size + 1
 
 
 ## Başlangıç kurası ayrı katmanda oynar; el o sırada boştur ve saat henüz başlamamıştır.
@@ -259,7 +267,7 @@ func _cancel_selection() -> void:
 func _show_clock() -> void:
 	var seconds := _source.elapsed()
 	_clock_second = int(seconds)
-	_clock.text = format_clock(seconds)
+	_clock.text = ClockText.format(seconds)
 
 
 ## Botlu oyunda saatin yanında "/" ve seviyenin adı, seviyenin renginde görünür.
@@ -283,14 +291,6 @@ func _show_room_info() -> void:
 	_room_info.text = (
 		tr(ROOM_INFO_KEY) % [_source.room_code(), Skins.current.seat_name(host_color), tr(role)]
 	)
-
-
-static func format_clock(seconds: float) -> String:
-	var minutes := floori(seconds / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE
-	var rest := int(seconds) % SECONDS_PER_MINUTE
-	if seconds < SECONDS_PER_HOUR:
-		return "%02d:%02d" % [minutes, rest]
-	return "%d:%02d:%02d" % [floori(seconds / SECONDS_PER_HOUR), minutes, rest]
 
 
 ## Ağ oyunu sürerken çıkmadan önce onay sorulur: hosta her zaman (oyun herkes için biter),

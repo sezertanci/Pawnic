@@ -702,6 +702,74 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="StyleBoxFlat" id="coming_soon_card"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.16, 0.14, 0.31, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.42, 0.32, 0.72, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="coming_soon_skin_card"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.16, 0.14, 0.31, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.42, 0.32, 0.72, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="coming_soon_icon"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.23, 0.18, 0.45, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 16
+
+[sub_resource type="StyleBoxFlat" id="coming_soon_skin_icon"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.23, 0.18, 0.45, 1)
+border_width_left = 0
+border_width_top = 0
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 120
+corner_radius_top_right = 120
+corner_radius_bottom_right = 120
+corner_radius_bottom_left = 120
+corner_detail = 16
+
 [resource]
 default_font_size = 30
 MarginContainer/constants/margin_left = 24
@@ -947,6 +1015,29 @@ SkinCard/styles/hover = SubResource("skin_card")
 SkinCard/styles/pressed = SubResource("skin_card_on")
 SkinCard/styles/hover_pressed = SubResource("skin_card_on")
 SkinCard/styles/focus = SubResource("card_focus")
+ComingSoonCard/base_type = &"Button"
+ComingSoonCard/colors/sparkle_color = Color(1, 0.85, 0.2, 1)
+ComingSoonCard/styles/normal = SubResource("coming_soon_card")
+ComingSoonCard/styles/hover = SubResource("coming_soon_card")
+ComingSoonCard/styles/pressed = SubResource("coming_soon_card")
+ComingSoonCard/styles/hover_pressed = SubResource("coming_soon_card")
+ComingSoonCard/styles/focus = SubResource("card_focus")
+ComingSoonSkinCard/base_type = &"ComingSoonCard"
+ComingSoonSkinCard/styles/normal = SubResource("coming_soon_skin_card")
+ComingSoonSkinCard/styles/hover = SubResource("coming_soon_skin_card")
+ComingSoonSkinCard/styles/pressed = SubResource("coming_soon_skin_card")
+ComingSoonSkinCard/styles/hover_pressed = SubResource("coming_soon_skin_card")
+ComingSoonIcon/base_type = &"PanelContainer"
+ComingSoonIcon/styles/panel = SubResource("coming_soon_icon")
+ComingSoonSkinIcon/base_type = &"PanelContainer"
+ComingSoonSkinIcon/styles/panel = SubResource("coming_soon_skin_icon")
+ComingSoonNote/base_type = &"Label"
+ComingSoonNote/font_sizes/font_size = 20
+ComingSoonNote/colors/font_color = Color(0.76, 0.72, 0.96, 1)
+ComingSoonSkinTitle/base_type = &"PanelLabel"
+ComingSoonSkinTitle/font_sizes/font_size = 44
+ComingSoonSkinNote/base_type = &"ComingSoonNote"
+ComingSoonSkinNote/font_sizes/font_size = 28
 MenuOrangeButton/base_type = &"Button"
 MenuOrangeButton/font_sizes/font_size = 36
 MenuOrangeButton/constants/outline_size = 10

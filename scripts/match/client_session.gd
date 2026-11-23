@@ -28,6 +28,8 @@ signal host_silent_changed(silent: bool)
 signal closed_by_host
 ## Host oyunu molaya aldı (paused true) ya da moladan çıkardı.
 signal pause_changed(paused: bool)
+## Hostun oyun hızı (speed_level) değişti.
+signal speed_changed
 
 ## İstemcinin kopyası; ilk görünüm gelene kadar null.
 var view: MatchView
@@ -184,6 +186,8 @@ func _dispatch(type: int, data: Dictionary) -> void:
 		_set_paused(true, 0.0)
 	elif type == MatchMessage.Type.RESUMED:
 		_set_paused(false, MatchReferee.NOT_PAUSED)
+	elif type == MatchMessage.Type.SPEED:
+		_update_speed(data)
 
 
 ## Molada koltukların süreleri durur (yeniden katılınca yeni durum da); mola değiştiyse
@@ -224,6 +228,20 @@ func _update_presence(data: Dictionary) -> void:
 		_presence.mark_away(seat, seconds, clock.call())
 
 
+## Bozuk hız yok sayılır.
+func _update_speed(data: Dictionary) -> void:
+	var levels := _settings.speed_levels.size()
+	var level := MessageData.read_index(data, MatchMessage.KEY_SPEED, 0, levels)
+	if level != MessageData.INVALID:
+		_set_speed_level(level)
+
+
+func _set_speed_level(level: int) -> void:
+	if level != speed_level:
+		speed_level = level
+		speed_changed.emit()
+
+
 ## Hosta yoklama gönderir; oyun sürerken hostun sesi kesildiyse bildirir.
 func _on_frame() -> void:
 	if not _welcomed:
@@ -259,7 +277,7 @@ func _reset(data: Dictionary) -> void:
 	if not _is_pause_time(pause_time):
 		return
 	view = received
-	speed_level = level
+	_set_speed_level(level)
 	host_awaiting = awaiting
 	host_turn_time = turn_time
 	_awaiting_snapshot = false

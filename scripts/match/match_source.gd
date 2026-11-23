@@ -20,6 +20,8 @@ signal connection_changed(lost: bool)
 signal guests_changed
 ## Ağ oyununda host oyunu molaya aldı (paused true) ya da moladan çıkardı.
 signal pause_changed(paused: bool)
+## Oyun hızı değişti (yerel oyunda ya da hostta menüden, istemcide hosttan); speed_scale() yenidir.
+signal speed_changed
 
 
 ## Oyunun bu cihazda görünen hâli; her olaydan önce güncellenir.

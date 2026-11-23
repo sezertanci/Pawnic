@@ -4,7 +4,7 @@ extends Control
 ## Karta dokununca tema hemen uygulanır ve kaydedilir; ekranda kalınır, geri okla dönülür.
 ## Kilitli temanın kartına dokununca ödüllü reklam izleme onayı sorulur; reklam ödülü verirse
 ## kilit kalıcı olarak kalkar ve tema seçilir. Reklam hazır değilse yalnızca bilgi verilir.
-## Kartın üstünden başlayan kaydırma basış sayılmaz.
+## Kartın üstünden başlayan kaydırma basış sayılmaz. Listenin sonunda "Yakında" kartı durur.
 
 signal back_requested
 
@@ -29,6 +29,7 @@ func _ready() -> void:
 	Skins.changed.connect(_refresh)
 	for id: String in Skins.ids():
 		_add_card(id)
+	_add_coming_soon()
 	_refresh()
 
 
@@ -39,6 +40,14 @@ func _add_card(id: String) -> void:
 	card.button_down.connect(_on_card_down)
 	card.pressed.connect(_on_card_pressed.bind(id))
 	_cards[id] = card
+	_list.add_child(card)
+
+
+## Yakında kartı, önündeki görünüm kartıyla aynı boydadır.
+func _add_coming_soon() -> void:
+	var card := ComingSoonCard.new(true)
+	var previous: Control = _list.get_child(-1)
+	previous.resized.connect(func() -> void: card.custom_minimum_size.y = previous.size.y)
 	_list.add_child(card)
 
 

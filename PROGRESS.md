@@ -1009,3 +1009,25 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-23 (42):** Sürüm 11 (1.10.0): yerden ödül kartı ("Kart Değiştir"), yenilenen ödül
   düğmesi ve görünüm ekranı kaydırma düzeltmesi. Sürüm notu `store/pawnic/listing/` altındaki iki
   dosyaya eklendi; AAB derlendi.
+- **2026-11-23 (43):** Oyun içi menüden değiştirilen hız süren oyuna uygulanmıyordu (hız yalnızca
+  oyun başlarken okunuyordu). `GameSpeed.select` artık `changed` yayar; kaynak `speed_changed`
+  ile bildirir, oyun ekranı kart ve taş animasyonlarının hızını hemen günceller. Ağ oyununda hızı
+  yalnızca host değiştirir (oyun sırasında da): yeni hız `MatchMessage.Type.SPEED` ile oturan
+  eşlere gider, kopuk eş dönünce görünümle alır. Katılan oyuncunun menüsünde hız satırı gizlidir.
+  `PROTOCOL_VERSION` 10 oldu. Saat yazısı `ClockText`'e taşındı (`game_screen.gd` 1000 satır
+  sınırı).
+- **2026-11-23 (44):** Ağ oyununda tahta artık koltuğun tepsisine göre değil çıkış karesine göre
+  döndürülüyor (`BoardTurn.turns_to_bottom`). Dört Yaprak tahtasında tepsiler köşede olduğu için
+  sağ alttaki tepsi dönmeden altta sayılıyor, oyuncunun kolu yanda kalıyordu; artık her oyuncu
+  kendi kolunu ve evini altta ortada görür. Tepsiler `base_center` ile denk gelen köşeye konur.
+- **2026-11-23 (45):** Tek oyunculu yeni oyunda bot sayısı varsayılan olarak 3'tür
+  (`data/tuning.json` → `rules.default_bots`). Kurulum ekranı her mod için oyuncu sayısını ayrı
+  tutar; çok oyunculu mod eskisi gibi en az oyuncu sayısıyla (2) açılır.
+- **2026-11-23 (46):** Tahta ve görünüm listelerinin sonunda "Yakında" kartı (`ComingSoonCard`)
+  durur: mor zemin, ortada altın parıltı simgesi (`icon_sparkle.svg`), "Yakında" başlığı ve listeye
+  göre alt yazı ("Yeni tahtalar yolda" / "Yeni görünümler yolda"). Seçilemez; dokununca kısa bir
+  sallanma yapar. Renkler temadaki `ComingSoon*` türlerinden gelir. Kurulum ekranındaki tahta
+  listesi yatay kaydırılır (`BoardScroll`); kartlar alanın 1/2,2'si genişliğindedir, böylece
+  üçüncü kart kenardan taşar ve listenin kaydığı anlaşılır. Kaydırma sırasında kalkan parmak
+  tahta seçmez. Kartların çevresinde (`BoardRoom`) sallanan kartın köşelerine yer bırakılır.
+  Görünüm listesindeki Yakında kartı önündeki görünüm kartıyla aynı boydadır.

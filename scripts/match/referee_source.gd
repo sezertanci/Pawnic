@@ -30,6 +30,7 @@ func _init(
 	_session = session
 	_referee.event_emitted.connect(_on_event)
 	_referee.pause_changed.connect(_on_pause_changed)
+	GameSpeed.changed.connect(_on_speed_changed)
 	if _session != null:
 		_session.guests_changed.connect(guests_changed.emit)
 
@@ -97,6 +98,8 @@ func detach() -> void:
 	if is_instance_valid(_referee) and _referee.event_emitted.is_connected(_on_event):
 		_referee.event_emitted.disconnect(_on_event)
 		_referee.pause_changed.disconnect(_on_pause_changed)
+	if GameSpeed.changed.is_connected(_on_speed_changed):
+		GameSpeed.changed.disconnect(_on_speed_changed)
 	if _session != null and _session.guests_changed.is_connected(guests_changed.emit):
 		_session.guests_changed.disconnect(guests_changed.emit)
 
@@ -135,6 +138,15 @@ func bot_level() -> Bot.Level:
 
 func speed_scale() -> float:
 	return GameSpeed.speed_scale()
+
+
+## Menüden seçilen hız; ağ oyununda eşlere de gider.
+func _on_speed_changed() -> void:
+	if not is_live():
+		return
+	if _session != null:
+		_session.set_speed_level(GameSpeed.current())
+	speed_changed.emit()
 
 
 func _viewer() -> int:

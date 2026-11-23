@@ -59,4 +59,4 @@ func _open(title_key: String, note_key: String, is_host: bool) -> void:
 func show_time(seconds: float) -> void:
 	if int(seconds) != _shown_second:
 		_shown_second = int(seconds)
-		_time.text = GameScreen.format_clock(seconds)
+		_time.text = ClockText.format(seconds)

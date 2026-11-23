@@ -33,11 +33,13 @@ func _init(entry: BoardEntry, group: ButtonGroup) -> void:
 	theme_type_variation = THEME_TYPE
 	toggle_mode = true
 	button_group = group
+	# Dokunuş üstteki kaydırma alanına da geçsin; yoksa parmak kartın üstündeyken liste kaymaz.
+	mouse_filter = MOUSE_FILTER_PASS
 	size_flags_horizontal = SIZE_EXPAND_FILL
 	custom_minimum_size.y = MIN_HEIGHT
 	_row.mouse_filter = MOUSE_FILTER_IGNORE
 	_row.add_theme_constant_override(SEPARATION, GAP)
-	_row.add_child(_picture(load(entry.preview_path) as Texture2D, THUMB_SIZE))
+	_row.add_child(Nodes.picture(load(entry.preview_path) as Texture2D, THUMB_SIZE))
 	_row.add_child(_texts(entry.name_key))
 	add_child(_row)
 	toggled.connect(_on_toggled)
@@ -45,28 +47,8 @@ func _init(entry: BoardEntry, group: ButtonGroup) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_THEME_CHANGED:
-		_fit_row()
+		Nodes.fit_inside(_row, get_theme_stylebox(STYLE))
 		_refresh()
-
-
-## Kartın içi, temadaki çerçevenin iç boşluklarına göre yerleşir.
-func _fit_row() -> void:
-	var style := get_theme_stylebox(STYLE)
-	_row.set_anchors_preset(PRESET_FULL_RECT)
-	_row.offset_left = style.get_margin(SIDE_LEFT)
-	_row.offset_top = style.get_margin(SIDE_TOP)
-	_row.offset_right = -style.get_margin(SIDE_RIGHT)
-	_row.offset_bottom = -style.get_margin(SIDE_BOTTOM)
-
-
-func _picture(texture: Texture2D, picture_size: Vector2) -> TextureRect:
-	var picture := TextureRect.new()
-	picture.texture = texture
-	picture.custom_minimum_size = picture_size
-	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	picture.mouse_filter = MOUSE_FILTER_IGNORE
-	return picture
 
 
 ## Tahtanın adı ve altında durum satırı (simge ve yazı).
@@ -82,7 +64,7 @@ func _texts(name_key: String) -> VBoxContainer:
 	column.add_child(title)
 	var status_row := HBoxContainer.new()
 	status_row.mouse_filter = MOUSE_FILTER_IGNORE
-	_icon = _picture(VIDEO_ICON, ICON_SIZE)
+	_icon = Nodes.picture(VIDEO_ICON, ICON_SIZE)
 	status_row.add_child(_icon)
 	_status.theme_type_variation = NAME_TYPE
 	status_row.add_child(_status)
