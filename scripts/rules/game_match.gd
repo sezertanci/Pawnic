@@ -240,16 +240,35 @@ func draw_cards() -> Array[Card]:
 	return _draw_pile.duplicate()
 
 
-## Sıradaki oyuncunun elindeki kartı desteden aynı türde ve değerde bir kartla değiştirir.
-## Eldeki kart desteye rastgele bir yere konur. Kart destede yoksa ya da sıra geçersizse false.
+## Ödülde seçilebilecek kartlar: atılanlar ve deste. Sondan başa okununca önce destenin, sonra
+## atılanların üstündeki kart gelir (kopya).
+func reward_pool() -> Array[Card]:
+	return _discard_pile + _draw_pile
+
+
+## Sıradaki oyuncunun elindeki kartı yerdeki aynı türde ve değerde bir kartla değiştirir. Kart
+## önce destede, yoksa atılanlarda üstten aranır. Desteden alınınca eldeki kart desteye rastgele bir
+## yere, atılanlardan alınınca alınan kartın yerine konur; böylece iki yığının sayısı değişmez.
+## Atılanların üstündeki kart değişirse üstü bırakan oyuncu bu oyuncu olur. Kart yerde yoksa ya
+## da sıra geçersizse false.
 func take_reward(card_index: int, card: Card) -> bool:
 	var hand := current_hand()
-	var pile_index := _draw_pile.find_custom(func(other: Card) -> bool: return other.same_as(card))
-	if card_index < 0 or card_index >= hand.size() or pile_index == NO_INDEX:
+	if card_index < 0 or card_index >= hand.size():
 		return false
 	var given: Card = hand[card_index]
-	hand[card_index] = _draw_pile.pop_at(pile_index)
-	_draw_pile.insert(_rng.randi_range(0, _draw_pile.size()), given)
+	var pile_index := _draw_pile.find_custom(func(other: Card) -> bool: return other.same_as(card))
+	if pile_index != NO_INDEX:
+		hand[card_index] = _draw_pile.pop_at(pile_index)
+		_draw_pile.insert(_rng.randi_range(0, _draw_pile.size()), given)
+		return true
+	pile_index = _discard_pile.rfind_custom(func(other: Card) -> bool: return other.same_as(card))
+	if pile_index == NO_INDEX:
+		return false
+	hand[card_index] = _discard_pile[pile_index]
+	_discard_pile[pile_index] = given
+	if pile_index == _discard_pile.size() - 1:
+		last_discard_seat = current_seat()
+		top_discard_value = Card.NO_VALUE
 	return true
 
 

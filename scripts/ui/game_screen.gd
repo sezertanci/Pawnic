@@ -97,7 +97,7 @@ var _reward_offer := MatchIntent.NO_OFFER
 @onready var _pause_button: Button = %PauseButton
 @onready var _handoff_button: Button = %HandoffButton
 @onready var _handoff_glass: FrostedGlass = %Glass
-@onready var _reward_button: Button = %RewardButton
+@onready var _reward_button: RewardButton = %RewardButton
 @onready var _reward_choice: Button = %RewardChoice
 
 

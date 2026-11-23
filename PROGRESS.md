@@ -991,3 +991,18 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
 - **2026-11-23 (39):** `feature/four-leaf-board` main'e birleştirildi (hızlı ileri). Sürüm 10
   (1.9.0): Dört yaprak tahtası ve tahta seçimi, taş ışığı (düz/nabız) ve oyun içi menü. Sürüm notu
   `store/pawnic/listing/` altındaki iki dosyaya eklendi; AAB ve Gradle'lı APK derlendi.
+- **2026-11-23 (40):** Görünüm ekranında parmak kartın üstündeyken de liste kayar (`SkinCard`
+  `MOUSE_FILTER_PASS`; basıştan bırakışa kaydırma konumu değiştiyse seçim yapılmaz). Ödül düğmesinin
+  adı "Kart Değiştir" oldu; simgesi kamera yerine içinde oynat üçgeni, sağ üstünde "AD" etiketi olan
+  ekran (`icon_video.svg`, tahta kartındaki "Aç" satırında da). Ödül kuralı değişti (18. girdideki
+  "desteden 3 kart" yerine): teklifler deste ve atılanlardan birlikte (`GameMatch.reward_pool`) en iyi
+  3 farklı kart olarak seçilir. Kart destedeyse oradan alınır, eldeki kart desteye rastgele girer;
+  yoksa atılanlarda üstten aranır ve eldeki kart alınanın yerine konur, iki yığının sayısı
+  değişmez. Atılanların üstü değişirse olay `top_discard` alanıyla herkese gider
+  (`PROTOCOL_VERSION` 9); kayıt biçimi değişmedi.
+- **2026-11-23 (41):** Ödül düğmesi yeniden düzenlendi: "AD" etiketinin altında kalan çerçeve
+  ve üçgen maskeyle gizlenir, harfler okunur. Simge 44 px'ten 64 px'e büyüdü, yazı düğmenin alt
+  kenarına yaklaştı (düğme 120 px'ten 108 px'e indi). Godot Button simge üstteyken yazıya sabit
+  yükseklik ayırıp ortaladığı için simge ve yazı düğmenin içinde ayrı düğümlerdir (`RewardButton`,
+  `scripts/ui/reward_button.gd`); renkler temadaki RewardButton renklerinden, yazı boyutu
+  `RewardLabel` türünden gelir.

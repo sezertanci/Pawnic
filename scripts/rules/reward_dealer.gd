@@ -1,8 +1,8 @@
 class_name RewardDealer
 extends RefCounted
-## Ödüllü reklamı izleyen oyuncuya desteden gösterilecek kartları seçer. Destedeki her farklı
-## kart, oyuncunun bu sırada onunla yapabileceği en iyi hamleye göre puanlanır; hamlesi olmayan
-## kartlar en sona kalır. Eşit puanda destede üstte olan kart önce gelir.
+## Ödüllü reklamı izleyen oyuncuya yerden (deste ve atılanlar) gösterilecek kartları seçer. Yerdeki
+## her farklı kart, oyuncunun bu sırada onunla yapabileceği en iyi hamleye göre puanlanır; hamlesi
+## olmayan kartlar en sona kalır. Eşit puanda önce destenin, sonra atılanların üstündeki gelir.
 
 var _settings: GameSettings
 var _evaluator: BotEvaluator
@@ -15,7 +15,7 @@ func _init(settings: GameSettings) -> void:
 
 ## Sıradaki oyuncu için en işe yarar kartlar, en fazla reward_offer_count tane.
 func offers(game: GameMatch) -> Array[Card]:
-	var candidates := _distinct(game.draw_cards())
+	var candidates := _distinct(game.reward_pool())
 	var seat := game.current_seat()
 	var scores: Dictionary[Card, float] = {}
 	var order: Dictionary[Card, int] = {}
@@ -31,7 +31,7 @@ func offers(game: GameMatch) -> Array[Card]:
 	return candidates.slice(0, _settings.reward_offer_count)
 
 
-## Destedeki türü ve değeri farklı kartlar, desteden ilk çekilecekten başlayarak.
+## Yığındaki türü ve değeri farklı kartlar, yığının sonundan başlayarak.
 func _distinct(pile: Array[Card]) -> Array[Card]:
 	var result: Array[Card] = []
 	for index: int in range(pile.size() - 1, -1, -1):

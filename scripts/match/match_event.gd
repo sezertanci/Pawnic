@@ -36,6 +36,7 @@ const KEY_PATH := "path"
 const KEY_PLACE := "place"
 const KEY_CARD := "card"
 const KEY_OFFERS := "offers"
+const KEY_TOP_DISCARD := "top_discard"
 ## Ödül olayları; sıradaki oyuncunun niyeti bu olaylarda da beklenmeye devam eder.
 const REWARD_KINDS: Array[Kind] = [Kind.REWARD_STARTED, Kind.REWARD_ENDED]
 ## Kartı yalnızca oyuncunun kendisine yazılan (gizli) olaylar.
@@ -53,6 +54,9 @@ var place := 0
 var card: Card
 ## REWARD_STARTED'da desteden teklif edilen kartlar; yalnızca oyuncunun kendisine yazılır.
 var offers: Array[Card] = []
+## REWARD_ENDED'da atılanlardan alınan kartın yerine üste konan kart; üst değişmediyse null.
+## Herkese yazılır.
+var top_discard: Card
 ## TURN_STARTED'da tur ve hakemin saatindeki geçen süre; istemci saatini buna eşitler.
 var round_number := 0
 var elapsed := 0.0
@@ -86,6 +90,8 @@ func to_dict(viewer_seat: int) -> Dictionary:
 		data[KEY_CARD] = card.to_dict()
 	if not offers.is_empty() and viewer_seat == seat:
 		data[KEY_OFFERS] = Card.write_all(offers)
+	if top_discard != null:
+		data[KEY_TOP_DISCARD] = top_discard.to_dict()
 	return data
 
 
@@ -117,7 +123,7 @@ static func from_dict(data: Dictionary) -> MatchEvent:
 	return event if event._read_parts(data) else null
 
 
-## İsteğe bağlı hamle, kart ve teklifleri okur; anahtar varsa ama içeriği bozuksa false.
+## İsteğe bağlı hamle, kartlar ve teklifleri okur; anahtar varsa ama içeriği bozuksa false.
 func _read_parts(data: Dictionary) -> bool:
 	if data.has(MessageData.KEY_MOVE):
 		move = Move.from_dict(MessageData.read_dict(data, MessageData.KEY_MOVE))
@@ -126,5 +132,9 @@ func _read_parts(data: Dictionary) -> bool:
 	if data.has(KEY_CARD):
 		card = Card.from_dict(MessageData.read_dict(data, KEY_CARD))
 		if card == null:
+			return false
+	if data.has(KEY_TOP_DISCARD):
+		top_discard = Card.from_dict(MessageData.read_dict(data, KEY_TOP_DISCARD))
+		if top_discard == null:
 			return false
 	return not data.has(KEY_OFFERS) or Card.read_all(data[KEY_OFFERS], offers)

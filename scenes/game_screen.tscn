@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/ui/pause_icon.gd" id="pause_icon"]
 [ext_resource type="PackedScene" path="res://scenes/components/pause_overlay.tscn" id="pause_overlay"]
 [ext_resource type="Texture2D" path="res://assets/images/icon_video.svg" id="icon_video"]
+[ext_resource type="Script" path="res://scripts/ui/reward_button.gd" id="reward_button"]
 [ext_resource type="Script" path="res://scripts/ui/menu_icon.gd" id="menu_icon"]
 [ext_resource type="Script" path="res://scripts/ui/game_menu_button.gd" id="menu_button"]
 [ext_resource type="PackedScene" path="res://scenes/components/settings_overlay.tscn" id="settings"]
@@ -161,10 +162,39 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"RewardButton"
+script = ExtResource("reward_button")
+
+[node name="Content" type="MarginContainer" parent="Margin/Box/Piles/RewardSlot/RewardButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="Box" type="VBoxContainer" parent="Margin/Box/Piles/RewardSlot/RewardButton/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Icon" type="TextureRect" parent="Margin/Box/Piles/RewardSlot/RewardButton/Content/Box"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("icon_video")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Margin/Box/Piles/RewardSlot/RewardButton/Content/Box"]
+layout_mode = 2
+theme_type_variation = &"RewardLabel"
 text = "REWARD_CARD"
-icon = ExtResource("icon_video")
-icon_alignment = 1
-vertical_icon_alignment = 0
+horizontal_alignment = 1
 
 [node name="RewardChoice" type="Button" parent="Margin/Box/Piles/RewardSlot"]
 unique_name_in_owner = true

@@ -156,9 +156,13 @@ func _start_turn(event: MatchEvent) -> bool:
 	return true
 
 
-## Ödül kartı izleyicinin elindeki kartın yerine geçer; kartlar desteyle yer değiştirdiği için
-## sayılar değişmez.
+## Ödül kartı izleyicinin elindeki kartın yerine geçer; kartlar yerdeki yığınla yer değiştirdiği
+## için sayılar değişmez. Atılanların üstü değiştiyse yeni üstü oyuncu bırakmış olur.
 func _take_reward(event: MatchEvent) -> bool:
+	if event.top_discard != null:
+		top_discard = event.top_discard
+		top_discard_value = Card.NO_VALUE
+		last_discard_seat = event.seat
 	if event.card_index == MatchEvent.NO_CARD or event.seat != viewer_seat:
 		return seats.has(event.seat)
 	if event.card == null or event.card_index < 0 or event.card_index >= hand.size():

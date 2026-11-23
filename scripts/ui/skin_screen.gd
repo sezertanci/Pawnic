@@ -4,6 +4,7 @@ extends Control
 ## Karta dokununca tema hemen uygulanır ve kaydedilir; ekranda kalınır, geri okla dönülür.
 ## Kilitli temanın kartına dokununca ödüllü reklam izleme onayı sorulur; reklam ödülü verirse
 ## kilit kalıcı olarak kalkar ve tema seçilir. Reklam hazır değilse yalnızca bilgi verilir.
+## Kartın üstünden başlayan kaydırma basış sayılmaz.
 
 signal back_requested
 
@@ -13,8 +14,11 @@ const UNLOCK_ASK_KEY := "THEME_UNLOCK_ASK"
 var _group := ButtonGroup.new()
 var _cards: Dictionary[String, SkinCard] = {}
 var _unlock: RewardedUnlock
+## Parmak karta değdiğindeki kaydırma konumu; bırakınca farklıysa dokunuş kaydırmadır.
+var _scroll_at_down := 0
 
 @onready var _list: VBoxContainer = %Cards
+@onready var _scroll: ScrollContainer = %Scroll
 
 
 func _ready() -> void:
@@ -32,13 +36,22 @@ func _add_card(id: String) -> void:
 	var card := SkinCard.new()
 	card.preview = Skins.find(id).preview_texture
 	card.button_group = _group
+	card.button_down.connect(_on_card_down)
 	card.pressed.connect(_on_card_pressed.bind(id))
 	_cards[id] = card
 	_list.add_child(card)
 
 
+func _on_card_down() -> void:
+	_scroll_at_down = _scroll.scroll_vertical
+
+
 ## Kilitsiz tema hemen seçilir. Kilitli temada seçim eski karta döner ve onay sorulur.
+## Dokunuş liste kaydırmasıysa seçim değişmez.
 func _on_card_pressed(id: String) -> void:
+	if _scroll.scroll_vertical != _scroll_at_down:
+		_refresh()
+		return
 	if not Skins.is_locked(id):
 		Skins.select(id)
 		return

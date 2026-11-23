@@ -174,6 +174,16 @@ func test_reward_card_is_hidden_from_other_seats() -> void:
 	assert_eq(other.card_index, CARD_INDEX)
 
 
+func test_reward_top_discard_is_sent_to_every_seat() -> void:
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, SEAT)
+	event.card_index = CARD_INDEX
+	event.top_discard = Card.new(Card.Type.FORWARD, STEPS)
+
+	var other := MatchEvent.from_dict(event.to_dict(OTHER_SEAT))
+
+	assert_eq(other.top_discard.to_dict(), event.top_discard.to_dict())
+
+
 func _move() -> Move:
 	return Move.new(CARD_INDEX, Move.Action.FORWARD, 0, STEPS, Move.NO_PAWN, TARGET_SQUARE)
 

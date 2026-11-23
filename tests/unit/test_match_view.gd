@@ -121,6 +121,20 @@ func test_reward_event_without_card_is_accepted() -> void:
 	assert_true(view.apply(event))
 
 
+func test_reward_event_with_top_discard_updates_discard_top() -> void:
+	var game := _new_game(TWO_HUMANS)
+	var view := MatchView.of(game, game.seats[0])
+	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.seats[1])
+	event.card_index = 0
+	event.top_discard = Card.new(Card.Type.EXIT, 0)
+
+	assert_true(view.apply(event))
+
+	assert_true(view.top_discard.same_as(event.top_discard))
+	assert_eq(view.last_discard_seat, game.seats[1])
+	assert_eq(view.top_discard_value, Card.NO_VALUE)
+
+
 func test_views_follow_whole_two_player_match() -> void:
 	_play_whole_match(TWO_HUMANS)
 

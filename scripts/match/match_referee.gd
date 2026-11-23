@@ -383,20 +383,22 @@ func _take_reward(offer_index: int, card_index: int) -> bool:
 		return false
 	if not _is_hand_card(card_index):
 		return false
+	var top := game.top_discard()
 	if not game.take_reward(card_index, _reward_offers[offer_index]):
 		return false
-	_end_reward(card_index)
+	_end_reward(card_index, null if game.top_discard() == top else game.top_discard())
 	return true
 
 
-## Ödül kapanır; kart alındıysa (card_index NO_CARD değilse) olay yeni kartı taşır. Olay
-## bitince sıra süresi kalan süreyle sürer.
-func _end_reward(card_index: int) -> void:
+## Ödül kapanır; kart alındıysa (card_index NO_CARD değilse) olay yeni kartı, atılanların üstü
+## değiştiyse yeni üst kartı taşır. Olay bitince sıra süresi kalan süreyle sürer.
+func _end_reward(card_index: int, top_discard: Card = null) -> void:
 	_reward_active = false
 	_reward_closing = true
 	_reward_offers = []
 	var event := MatchEvent.new(MatchEvent.Kind.REWARD_ENDED, game.current_seat())
 	event.card_index = card_index
+	event.top_discard = top_discard
 	if card_index != MatchEvent.NO_CARD:
 		event.card = game.current_hand()[card_index]
 	var settled := await _emit(event)

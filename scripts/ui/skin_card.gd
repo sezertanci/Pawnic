@@ -37,6 +37,8 @@ var locked := false:
 func _init() -> void:
 	theme_type_variation = THEME_TYPE
 	toggle_mode = true
+	# Dokunuş üstteki kaydırma alanına da geçsin; yoksa parmak kartın üstündeyken liste kaymaz.
+	mouse_filter = MOUSE_FILTER_PASS
 	size_flags_horizontal = SIZE_EXPAND_FILL
 	resized.connect(_fit_height)
 
