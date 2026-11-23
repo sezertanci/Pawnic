@@ -988,3 +988,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   katmanı açılmaz), kapanınca sürer; ağ oyunu durmaz. Ana ekran ve oyun ekranı birlikte yaşadığı
   için pencere her açılışta tercihleri yeniden okur. Işık satırları ana ekrandaki ayarlarda da
   vardır.
+- **2026-11-23 (39):** `feature/four-leaf-board` main'e birleştirildi (hızlı ileri). Sürüm 10
+  (1.9.0): Dört yaprak tahtası ve tahta seçimi, taş ışığı (düz/nabız) ve oyun içi menü. Sürüm notu
+  `store/pawnic/listing/` altındaki iki dosyaya eklendi; AAB ve Gradle'lı APK derlendi.

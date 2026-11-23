@@ -46,6 +46,13 @@ PLAY AT YOUR PACE
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.9.0)
+
+- New board: "Four Leaf". Pick your board on the new game screen; watch an ad to unlock it for good.
+- New: Pawn glow. Pawns on the board glow in their player's color; choose a steady or pulsing light, or turn it off.
+- New: In-game menu. Use the top-right button to change glow, sound, music and game speed without leaving the game; the game waits while the menu is open.
+- Bug fixes.
+
 ## Sürüm notu (1.8.0)
 
 - New: "Appearance" screen. Wood and Neon board themes added; watch an ad to unlock them for good.

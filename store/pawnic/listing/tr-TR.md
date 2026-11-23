@@ -46,6 +46,13 @@ RAHAT OYNAYIN
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.9.0)
+
+- Yeni tahta: "Dört Yaprak". Yeni oyun ekranından tahtanızı seçin; yeni tahtayı bir reklam izleyerek kalıcı olarak açın.
+- Yeni: Taş ışığı. Tahtadaki taşlar oyuncu rengiyle parlar; düz ya da nabız gibi atan ışık seçin veya kapatın.
+- Yeni: Oyun içi menü. Sağ üstteki tuştan ışığı, sesi, müziği ve oyun hızını oyundan çıkmadan değiştirin; menü açıkken oyun bekler.
+- Hata düzeltmeleri.
+
 ## Sürüm notu (1.8.0)
 
 - Yeni: "Görünüm" ekranı. Ahşap ve Neon tahta temaları eklendi; bir reklam izleyerek kalıcı olarak açın.
