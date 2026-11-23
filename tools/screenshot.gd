@@ -35,7 +35,9 @@ func _run() -> void:
 	root.add_child(main)
 	await _frames()
 	_save(out_dir.path_join("1a_home.png"))
-	main.get_node("Column/HomeScreen").emit_signal("appearance_requested")
+	var home := main.get_node("Column/HomeScreen")
+	await _capture_overlay(home, "%SettingsButton", "%SettingsOverlay", out_dir, "1f_settings.png")
+	home.emit_signal("appearance_requested")
 	await _frames()
 	_save(out_dir.path_join("1e_appearance.png"))
 	main.get_node("Column/SkinScreen").emit_signal("back_requested")
@@ -53,6 +55,7 @@ func _run() -> void:
 		await _play_like_bot(screen, out_dir if step == HUMAN_MOVES - 1 else "")
 	await _wait_for_human(screen)
 	_save(out_dir.path_join("3_board.png"))
+	await _capture_overlay(screen, "%MenuButton", "%SettingsOverlay", out_dir, "3b_menu.png")
 	_save_board_preview(screen.get_node("%BoardView") as Control, out_dir.path_join(PREVIEW_FILE))
 	DirAccess.remove_absolute(SAVE_PATH)
 	quit()
@@ -103,6 +106,18 @@ func _play_like_bot(screen: Node, out_dir: String) -> void:
 		screen.call("_on_pawn_pressed", move.target)
 	if picker.stage == MovePicker.Stage.DESTINATION:
 		screen.call("_on_square_pressed", move.destination)
+
+
+## Düğmeye basıp açılan katmanın görüntüsünü alır, sonra katmanı kapatır.
+func _capture_overlay(
+	screen: Node, button: String, overlay: String, out_dir: String, file: String
+) -> void:
+	screen.get_node(button).emit_signal("pressed")
+	await _frames()
+	# Katman çizilmeden kaydedilirse görüntü bir önceki kareyle aynı çıkıyor.
+	await RenderingServer.frame_post_draw
+	_save(out_dir.path_join(file))
+	(screen.get_node(overlay) as Control).hide()
 
 
 func _wait_for_human(screen: Node) -> void:

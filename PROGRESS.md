@@ -972,3 +972,19 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   klasik tahta tema önizlemesi yerine kendi görselini (`board_preview_classic.png`) kullanır,
   Dört yaprak görseli son düzenle güncellendi. Reklam hazır değil metninin anahtarı tema ve
   tahta için ortak olduğundan `AD_NOT_READY` olarak adlandırıldı.
+- **2026-11-23 (37):** Tahtadaki taşlar (başlangıç tepsisinde ve evde olmayanlar) yerleri kolay
+  görülsün diye kendi renklerinde, dışa doğru solan bir ışık halesi saçar
+  (`BoardView._draw_glow`; `GLOW_SPREAD` 2,6, `GLOW_LAYERS` 8, `GLOW_ALPHA` 1,0). Haleler
+  taşlardan önce çizilir, komşu taşın üstüne binmez; hareket eden taşla birlikte kayar. Hale
+  ya düz (en parlak halinde sabit) ya da nabız gibi (`GLOW_PERIOD` 1,8 sn'de bir, `GLOW_DIM`
+  0,5'e inip çıkar) yanar.
+- **2026-11-23 (38):** Taş ışığı oyuncu tercihi oldu: `PawnGlow` autoload'u açık/kapalı ve
+  Düz/Nabız biçimini saklar (ilk açılışta açık, nabız). Ayarlar penceresine "Taş Işığı" anahtarı
+  ve biçim seçimi eklendi (ışık kapalıyken biçim düğmeleri pasif). Oyun ekranının sağ üst
+  köşesine (sıra noktalarının sağına) üç çizgi simgeli (`MenuIcon`) menü tuşu
+  (`GameMenuButton`) geldi; aynı ayarlar penceresini `in_game` olarak açar: ses, müzik, taş ışığı ve oyun hızı görünür; dil,
+  reklam kaldırma ve gizlilik görünmez. Ağ oyununda hız hostun lobide seçtiği olduğu için hız
+  satırı da gizlenir. Tek cihazlı oyunda menü açıkken oyun durur (saat, sıra süresi, bot; mola
+  katmanı açılmaz), kapanınca sürer; ağ oyunu durmaz. Ana ekran ve oyun ekranı birlikte yaşadığı
+  için pencere her açılışta tercihleri yeniden okur. Işık satırları ana ekrandaki ayarlarda da
+  vardır.

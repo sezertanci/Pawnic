@@ -134,6 +134,7 @@ func start(game: GameMatch, draw_starter := false) -> void:
 func start_source(source: MatchSource, draw_starter := false) -> void:
 	_release_source()
 	_source = source
+	(%MenuButton as GameMenuButton).source = source
 	_source.event_emitted.connect(_on_event)
 	_source.intent_rejected.connect(_on_intent_rejected)
 	_source.view_reset.connect(_on_view_reset)
@@ -319,10 +320,10 @@ func _on_pause_changed(_paused: bool) -> void:
 		_show_pause()
 
 
-## Mola katmanı ve duraklat düğmesi kaynağın durumunu izler; yeniden katılan oyuncu molayı
-## görünümle öğrenir. Ağ oyununda ekran baştan beri açık tutulur (lobi ekranları açar).
+## Mola katmanı ve duraklat düğmesi ağ oyununun molasını izler (yerel oyunu yalnızca menü durdurur);
+## yeniden katılan oyuncu molayı görünümle öğrenir. Ekran baştan beri açık tutulur.
 func _show_pause() -> void:
-	var paused := _source.is_paused() and not _match_over
+	var paused := _source.is_paused() and _source.is_networked() and not _match_over
 	_pause_button.visible = (
 		_source.is_networked()
 		and _source.is_host()

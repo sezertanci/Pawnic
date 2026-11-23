@@ -2,6 +2,7 @@ extends GutTest
 ## Oyun kaynakları: hakemden beslenen kaynağın bayatlaması ve hostun görünümü; istemci kaynağının
 ## olayları ekran bitirene kadar tutması, kendi niyetinin reddini bildirmesi, bağlantı kopunca
 ## bitmesi ve oyuncu çıkınca koltuğun bota geçmesi; molada saatin ve sıra süresinin durması;
+## yerel oyunun menü için molaya alınması;
 ## kaynakların oda kodu; ekranın kopyasına uymayan olayda görünümün yeniden istenmesi. Ağ sahte
 ## taşıyıcıyla
 ## kurulur.
@@ -209,16 +210,25 @@ func test_client_source_freezes_turn_time_and_clock_while_paused() -> void:
 	assert_false(_source.is_awaiting_intent())
 
 
-func test_only_host_source_pauses() -> void:
+func test_host_source_pauses() -> void:
 	await _start_match()
 	var host_source := RefereeSource.new(_referee, _host_seat, ROOM_CODE, _host)
-	var local_source := RefereeSource.new(_referee)
 
-	local_source.pause()
-	assert_false(_referee.is_paused())
 	host_source.pause()
 
 	assert_true(host_source.is_paused())
+
+
+func test_local_source_pauses_and_resumes_for_menu() -> void:
+	_referee.start(_game)
+	var local_source := RefereeSource.new(_referee)
+
+	local_source.pause()
+	var paused := local_source.is_paused()
+	local_source.resume()
+
+	assert_true(paused)
+	assert_false(local_source.is_paused())
 
 
 func test_client_source_skips_end_ad_soon_after_shared_ad() -> void:

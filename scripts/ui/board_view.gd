@@ -37,6 +37,15 @@ const HOUSE_HALF := Vector2(1.05, 0.95)
 const TRAIL_ALPHA := 1.0
 const TRAIL_FADE_POWER := 0.5
 const TRAIL_LIGHTEN := 0.5
+## Tahtadaki taşların çevresindeki ışık: dış yarıçapı (taş yarıçapına oranla), katman sayısı,
+## katmanların üst üste binince ulaştığı en yüksek saydamlık ve rengin beyaza yaklaşma oranı.
+const GLOW_SPREAD := 2.6
+const GLOW_LAYERS := 8
+const GLOW_ALPHA := 1.0
+const GLOW_LIGHTEN := 0.2
+## Hale nabzının bir parlayıp sönme süresi (saniye) ve en sönük anındaki parlaklık oranı.
+const GLOW_PERIOD := 1.8
+const GLOW_DIM := 0.5
 ## Kısayol karesindeki evin çizgi kalınlığı (kare boyuna oranla).
 const HOUSE_LINE_RATIO := 0.03
 
@@ -91,16 +100,27 @@ var _glows: Dictionary[int, float] = {}
 func _ready() -> void:
 	Skins.changed.connect(queue_redraw)
 	Skins.changed.connect(_update_spinner)
+	PawnGlow.changed.connect(queue_redraw)
 	add_child(_spinner)
 	_update_spinner()
 
 
-## Seçilebilir bir şey ya da yol önizlemesi varken dalga ve varış ışığı oynasın diye tahta her
-## karede yeniden çizilir.
+## Seçilebilir bir şey, yol önizlemesi ya da tahtada nabız atan taş varken dalga, varış ışığı
+## ve hale oynasın diye tahta her karede yeniden çizilir. Hale düzse ya da kapalıysa taşlar
+## için yeniden çizilmez.
 func _process(_delta: float) -> void:
 	var waving := not selectable.is_empty() or not selectable_squares.is_empty()
-	if waving or not preview_paths.is_empty():
+	if waving or not preview_paths.is_empty() or (PawnGlow.is_pulsing() and _has_track_pawn()):
 		queue_redraw()
+
+
+func _has_track_pawn() -> bool:
+	if board == null:
+		return false
+	for pawn: int in range(board.positions.size()):
+		if _is_on_track(pawn):
+			return true
+	return false
 
 
 func _draw() -> void:
@@ -586,6 +606,7 @@ func _draw_pawns() -> void:
 		else:
 			still.append(pawn)
 	still.sort_custom(func(a: int, b: int) -> bool: return _centers[a].y < _centers[b].y)
+	_draw_glows(still, moving)
 	for pawn: int in still:
 		_draw_pawn(pawn, _centers[pawn], _radii[pawn])
 	for pawn: int in moving:
@@ -596,7 +617,50 @@ func _draw_pawns() -> void:
 		var height := _animation.height_at(pawn, _time)
 		if height > 0.0:
 			_draw_shadow(ground, radius)
-		_draw_pawn(pawn, ground + Vector2.UP * height, radius)
+		_draw_pawn(pawn, _moving_center(pawn), radius)
+
+
+## Hareket eden taşın o anki çizim merkezi (zıplamada yerden yükseltilmiş).
+func _moving_center(pawn: int) -> Vector2:
+	var ground := _animation.position_at(pawn, _time, _centers[pawn])
+	return ground + Vector2.UP * _animation.height_at(pawn, _time)
+
+
+## Tahtadaki (başlangıç alanında ve evde olmayan) taşların ışığı; hiçbir hale bir taşın
+## üstüne binmesin diye bütün taşlardan önce çizilir. Oyuncu ışığı kapattıysa çizilmez.
+func _draw_glows(still: Array[int], moving: Array[int]) -> void:
+	if not PawnGlow.is_enabled():
+		return
+	for pawn: int in still:
+		if _is_on_track(pawn):
+			_draw_glow(pawn, _centers[pawn], _radii[pawn])
+	for pawn: int in moving:
+		if _is_on_track(pawn):
+			var radius := _radii[pawn] * _animation.scale_at(pawn, _time)
+			_draw_glow(pawn, _moving_center(pawn), radius)
+
+
+func _is_on_track(pawn: int) -> bool:
+	return board.positions[pawn] != BoardState.BASE and not _is_home(pawn)
+
+
+## Taş gövdesinin ortasından dışa doğru solan, taş renginde katmanlı daire ışık; nabız
+## biçiminde yavaşça parlayıp söner, düz biçimde en parlak halinde durur.
+func _draw_glow(pawn: int, foot: Vector2, radius: float) -> void:
+	var texture := Skins.current.pawn_textures[color_of(board.owners[pawn])]
+	var middle := BoardPainter.pawn_rect(foot, radius, texture).get_center()
+	var color := _seat_color(board.owners[pawn]).lightened(GLOW_LIGHTEN)
+	var layer := Color(color, _glow_strength() * GLOW_ALPHA / GLOW_LAYERS)
+	for step: int in range(GLOW_LAYERS, 0, -1):
+		draw_circle(middle, radius * GLOW_SPREAD * step / GLOW_LAYERS, layer)
+
+
+## Halenin o anki parlaklık oranı: düz biçimde 1, nabızda GLOW_DIM ile 1 arasında gidip gelir.
+func _glow_strength() -> float:
+	if PawnGlow.current() == PawnGlow.Mode.STEADY:
+		return 1.0
+	var pulse := 0.5 - 0.5 * cos(TAU * PulseWave.phase(GLOW_PERIOD))
+	return lerpf(GLOW_DIM, 1.0, pulse)
 
 
 ## Kayan taşın arkasındaki ışık kuyruğu: taştan uzaklaştıkça incelen ve solan kesintisiz şerit.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_screen.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/board_view.gd" id="2"]
@@ -15,6 +15,9 @@
 [ext_resource type="Script" path="res://scripts/ui/pause_icon.gd" id="pause_icon"]
 [ext_resource type="PackedScene" path="res://scenes/components/pause_overlay.tscn" id="pause_overlay"]
 [ext_resource type="Texture2D" path="res://assets/images/icon_video.svg" id="icon_video"]
+[ext_resource type="Script" path="res://scripts/ui/menu_icon.gd" id="menu_icon"]
+[ext_resource type="Script" path="res://scripts/ui/game_menu_button.gd" id="menu_button"]
+[ext_resource type="PackedScene" path="res://scenes/components/settings_overlay.tscn" id="settings"]
 
 [node name="GameScreen" type="Control"]
 layout_mode = 3
@@ -101,6 +104,24 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("pause_icon")
+
+[node name="MenuButton" type="Button" parent="Margin/Box/Header" node_paths=PackedStringArray("overlay")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+theme_type_variation = &"IconButton"
+script = ExtResource("menu_button")
+overlay = NodePath("../../../../SettingsOverlay")
+
+[node name="Icon" type="Control" parent="Margin/Box/Header/MenuButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("menu_icon")
 
 [node name="RoomInfo" type="Label" parent="Margin/Box"]
 unique_name_in_owner = true
@@ -262,6 +283,12 @@ layout_mode = 1
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
+
+[node name="SettingsOverlay" parent="." instance=ExtResource("settings")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+in_game = true
 
 [node name="PauseOverlay" parent="." instance=ExtResource("pause_overlay")]
 unique_name_in_owner = true

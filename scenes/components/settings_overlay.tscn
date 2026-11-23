@@ -79,7 +79,31 @@ size_flags_vertical = 4
 theme_type_variation = &"ToggleSwitch"
 script = ExtResource("switch")
 
+[node name="GlowRow" type="HBoxContainer" parent="Margin/Box/Panel/Box"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="GlowLabel" type="Label" parent="Margin/Box/Panel/Box/GlowRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"RuleLabel"
+text = "PAWN_GLOW"
+
+[node name="GlowSwitch" type="Button" parent="Margin/Box/Panel/Box/GlowRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 64)
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"ToggleSwitch"
+script = ExtResource("switch")
+
+[node name="GlowModes" type="HBoxContainer" parent="Margin/Box/Panel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
 [node name="SpeedLabel" type="Label" parent="Margin/Box/Panel/Box"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"RuleLabel"
 text = "GAME_SPEED"
@@ -90,6 +114,7 @@ layout_mode = 2
 mouse_filter = 2
 
 [node name="LanguageLabel" type="Label" parent="Margin/Box/Panel/Box"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"RuleLabel"
 text = "LANGUAGE"
@@ -101,6 +126,7 @@ mouse_filter = 2
 columns = 2
 
 [node name="RemoveAdsButton" type="Button" parent="Margin/Box/Panel/Box"]
+unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
 size_flags_horizontal = 4

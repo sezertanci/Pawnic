@@ -35,6 +35,7 @@ Music="*res://scripts/autoload/music.gd"
 GameSpeed="*res://scripts/autoload/game_speed.gd"
 Difficulty="*res://scripts/autoload/difficulty.gd"
 PlayerColor="*res://scripts/autoload/player_color.gd"
+PawnGlow="*res://scripts/autoload/pawn_glow.gd"
 
 [debug]
 

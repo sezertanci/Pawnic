@@ -79,12 +79,12 @@ func pause_time() -> float:
 
 
 func pause() -> void:
-	if is_live() and is_host():
+	if is_live():
 		_referee.pause()
 
 
 func resume() -> void:
-	if is_live() and is_host():
+	if is_live():
 		_referee.resume()
 
 

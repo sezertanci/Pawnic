@@ -64,7 +64,7 @@ func seat_wait(_seat: int) -> float:
 	return SeatPresence.PRESENT
 
 
-## Ağ oyunu moladaysa true.
+## Oyun moladaysa true (ağ oyununda hostun molası, yerel oyunda açık menü).
 func is_paused() -> bool:
 	return false
 
@@ -74,12 +74,13 @@ func pause_time() -> float:
 	return MatchReferee.NOT_PAUSED
 
 
-## Ağ oyununda host oyunu molaya alır; başka yerde bir şey yapmaz.
+## Oyunu hakemi tutan cihaz molaya alır (ağ oyununda host, yerel oyunda menü açılınca);
+## konukta bir şey yapmaz.
 func pause() -> void:
 	pass
 
 
-## Ağ oyununda host oyunu moladan çıkarır; başka yerde bir şey yapmaz.
+## Oyunu hakemi tutan cihaz moladan çıkarır; konukta bir şey yapmaz.
 func resume() -> void:
 	pass
 

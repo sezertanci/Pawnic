@@ -106,6 +106,9 @@ GAME_SPEED,Oyun Hızı,Game Speed,Spieltempo,Velocidad De Juego,Vitesse Du Jeu,V
 SPEED_SLOW,Yavaş,Slow,Langsam,Lenta,Lente,Lenta,Lenta,Lambat
 SPEED_NORMAL,Normal,Normal,Normal,Normal,Normale,Normale,Normal,Normal
 SPEED_FAST,Hızlı,Fast,Schnell,Rápida,Rapide,Veloce,Rápida,Cepat
+PAWN_GLOW,Taş Işığı,Pawn Glow,Figurenleuchten,Brillo De Fichas,Halo Des Pions,Bagliore Pedine,Brilho Das Peças,Cahaya Bidak
+GLOW_STEADY,Düz,Steady,Gleichmäßig,Fijo,Fixe,Fisso,Fixo,Tetap
+GLOW_PULSE,Nabız,Pulse,Pulsierend,Pulso,Pulsation,Pulsante,Pulsante,Berdenyut
 LANG_TR,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe,Türkçe
 LANG_EN,English,English,English,English,English,English,English,English
 LANG_DE,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch,Deutsch

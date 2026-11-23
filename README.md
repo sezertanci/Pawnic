@@ -158,5 +158,6 @@ gider. Yol ayrımında birden fazla varış karesi çıkarsa oyuncu kareyi tahta
 | `Ads` | Reklam sağlayıcısını sarar (AdMob; Gradle'sız derlemede ve testte sahte sağlayıcı); reklamları kaldırma ürünü alındıysa banner ve geçiş reklamını göstermez |
 | `Iap` | Satın alma sağlayıcısını sarar (Google Play Billing; Gradle'sız derlemede ve testte sahte sağlayıcı); sahip olunan ürünleri kayıtta da tutar |
 | `PlayerColor` | Tek oyunculu oyunda oyuncunun seçtiği rengi saklar (varsayılan yeşil); botlar kalan renkleri alır |
+| `PawnGlow` | Tahtadaki taşların ışığının açık/kapalı tercihini ve biçimini (düz ya da nabız) saklar; ilk açılışta açık ve nabızlıdır. Ayarlar penceresinden ve oyun ekranındaki menü tuşundan değiştirilir |
 | `Sound` | Ses efektlerini `Effects` ses yolunda çalar; her düğmeye dokunma sesini kendiliğinden bağlar, efektlerin açık/kapalı tercihini saklar |
 | `Music` | Arka plan müziğini `Music` ses yolunda çalar (menüde menü döngüsü, oyunda oyun müziği, geçişte kısıp açar); müziğin açık/kapalı tercihini efektlerden ayrı saklar. Ses düzeyi `tuning.json`'daki `audio` bölümündedir |
