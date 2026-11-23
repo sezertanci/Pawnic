@@ -46,6 +46,13 @@ RAHAT OYNAYIN
 
 Gizlilik politikası: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.10.0)
+
+- Ödül düğmesinin adı "Kart Değiştir" oldu. Teklif edilen 3 kart artık yalnızca desteden değil, atılan kartlardan da seçilir; birini elinizdeki bir kartla değiştirin.
+- Ödül düğmesi yenilendi: daha büyük reklam simgesi ve daha derli toplu görünüm.
+- Görünüm ekranında parmak kartın üstündeyken de liste kayar.
+- Hata düzeltmeleri.
+
 ## Sürüm notu (1.9.0)
 
 - Yeni tahta: "Dört Yaprak". Yeni oyun ekranından tahtanızı seçin; yeni tahtayı bir reklam izleyerek kalıcı olarak açın.

@@ -1006,3 +1006,6 @@ sınıfa taşınması (Aşama 1), mesaj biçimi ve sahte taşıyıcı, sonra Aş
   yükseklik ayırıp ortaladığı için simge ve yazı düğmenin içinde ayrı düğümlerdir (`RewardButton`,
   `scripts/ui/reward_button.gd`); renkler temadaki RewardButton renklerinden, yazı boyutu
   `RewardLabel` türünden gelir.
+- **2026-11-23 (42):** Sürüm 11 (1.10.0): yerden ödül kartı ("Kart Değiştir"), yenilenen ödül
+  düğmesi ve görünüm ekranı kaydırma düzeltmesi. Sürüm notu `store/pawnic/listing/` altındaki iki
+  dosyaya eklendi; AAB derlendi.

@@ -46,6 +46,13 @@ PLAY AT YOUR PACE
 
 Privacy policy: https://sezertanci.github.io/pawnic/privacy.html
 
+## Sürüm notu (1.10.0)
+
+- The reward button is now called "Swap Card". The 3 offered cards now come from the discard pile as well as the deck; swap one for a card in your hand.
+- Refreshed reward button: a bigger ad icon and a cleaner look.
+- The Appearance screen now scrolls even when your finger starts on a card.
+- Bug fixes.
+
 ## Sürüm notu (1.9.0)
 
 - New board: "Four Leaf". Pick your board on the new game screen; watch an ad to unlock it for good.
